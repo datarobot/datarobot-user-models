@@ -646,7 +646,13 @@ class WorkerCtx:
                 return _session_locks[client]
 
         def patch_method(method_name):
-            _orig_method = getattr(AsyncHTTPClient, method_name)
+            # Save original method on first patch to prevent nested wrappers
+            orig_attr_name = f'_drum_original_{method_name}'
+            if not hasattr(AsyncHTTPClient, orig_attr_name):
+                setattr(AsyncHTTPClient, orig_attr_name, getattr(AsyncHTTPClient, method_name))
+            
+            # Always use the original method (not the potentially already-patched one)
+            _orig_method = getattr(AsyncHTTPClient, orig_attr_name)
 
             def fixed_method(self, *args, **kwargs):
                 """
@@ -762,7 +768,12 @@ class WorkerCtx:
             if not hasattr(AsyncHTTPClient, "close"):
                 return
 
-            _orig_close = AsyncHTTPClient.close
+            # Save original method on first patch to prevent nested wrappers
+            if not hasattr(AsyncHTTPClient, '_drum_original_close'):
+                AsyncHTTPClient._drum_original_close = AsyncHTTPClient.close
+            
+            # Always use the original method (not the potentially already-patched one)
+            _orig_close = AsyncHTTPClient._drum_original_close
 
             def fixed_close(self):
                 """
@@ -788,6 +799,10 @@ class WorkerCtx:
             import opentelemetry.instrumentation.openai.utils as otel_utils
         except ImportError:
             return
+
+        # Save original method on first patch to prevent nested wrappers
+        if not hasattr(otel_utils, '_drum_original_run_async'):
+            otel_utils._drum_original_run_async = otel_utils.run_async
 
         def handle_task_result(future):
             """Callback to log exceptions from OTEL async tasks."""
@@ -815,9 +830,13 @@ class WorkerCtx:
         except ImportError:
             return
 
-        # Use the standardized helper to create the patch
+        # Save original method on first patch to prevent nested wrappers
+        if not hasattr(GuardExecutor, '_drum_original_async_guard_executor'):
+            GuardExecutor._drum_original_async_guard_executor = GuardExecutor.async_guard_executor
+        
+        # Always patch using the original method (not the potentially already-patched one)
         GuardExecutor.async_guard_executor = _create_async_method_patch(
-            bg_loop, _wrap_future, GuardExecutor.async_guard_executor
+            bg_loop, _wrap_future, GuardExecutor._drum_original_async_guard_executor
         )
 
     def _patch_nemo_rails(self, bg_loop, _wrap_future, _create_async_method_patch):
@@ -827,9 +846,13 @@ class WorkerCtx:
         except ImportError:
             return
 
-        # Use the standardized helper to create the patch
+        # Save original method on first patch to prevent nested wrappers
+        if not hasattr(LLMRails, '_drum_original_generate_async'):
+            LLMRails._drum_original_generate_async = LLMRails.generate_async
+        
+        # Always patch using the original method (not the potentially already-patched one)
         LLMRails.generate_async = _create_async_method_patch(
-            bg_loop, _wrap_future, LLMRails.generate_async
+            bg_loop, _wrap_future, LLMRails._drum_original_generate_async
         )
 
     def start(self):

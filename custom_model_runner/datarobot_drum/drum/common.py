@@ -52,6 +52,12 @@ from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapProp
 # protecting against potential deadlocks in nested/recursive calls.
 _otel_thread_setup_lock = threading.RLock()
 
+# Global flag to track if OTEL has been initialized to prevent duplicate setup
+# This is important because setup_otel() modifies global logging/tracing/metrics state
+# and should only be called once per process.
+_otel_initialized = False
+_otel_init_lock = threading.Lock()
+
 
 ctx_request_id = ContextVar("request_id")
 
@@ -321,6 +327,10 @@ def setup_otel(runtime_parameters, options):
     OTEL is configured by OTEL_EXPORTER_OTLP_ENDPOINT and
     OTEL_EXPORTER_OTLP_HEADERS env vars set by DR.
 
+    This function can only be called once per process. Subsequent calls will
+    return the already-initialized providers to prevent duplicate setup which
+    would cause multiple handlers/processors and duplicate telemetry data.
+
     Parameters
     ----------
     runtime_parameters: Type[RuntimeParameters] class handles runtime parameters for custom modes
@@ -329,39 +339,58 @@ def setup_otel(runtime_parameters, options):
         command argumetns
     Returns
     -------
-    (TracerProvider, MetricProvider)
+    (TracerProvider, MetricProvider, LoggerProvider)
     """
+    global _otel_initialized
+    
     log = get_drum_logger("setup_otel")
 
-    # Can be used to disable OTEL reporting from env var parameters
-    # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    if runtime_parameters.has("OTEL_SDK_DISABLED") and runtime_parameters.get("OTEL_SDK_DISABLED"):
-        log.info("OTEL explictly disabled")
-        return (None, None, None)
+    # Protect against multiple initialization
+    with _otel_init_lock:
+        if _otel_initialized:
+            log.debug("OTEL already initialized, returning existing providers")
+            # Return already configured providers from OpenTelemetry global state
+            from opentelemetry import trace, metrics
+            from opentelemetry._logs import get_logger_provider
+            
+            return (
+                trace.get_tracer_provider(),
+                metrics.get_meter_provider(), 
+                get_logger_provider()
+            )
 
-    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
-    if not endpoint:
-        log.info("OTEL is not configured")
-        return (None, None, None)
+        # Can be used to disable OTEL reporting from env var parameters
+        # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+        if runtime_parameters.has("OTEL_SDK_DISABLED") and runtime_parameters.get("OTEL_SDK_DISABLED"):
+            log.info("OTEL explictly disabled")
+            _otel_initialized = True
+            return (None, None, None)
 
-    # In case of NIM flask server is configured to run in multiprocessing
-    # mode that uses fork. Since BatchSpanProcessor start background thread
-    # with bunch of locks, OTEL simply deadlocks and does not offlooad any
-    # spans. Even if we start BatchSpanProcessor per fork, batches often
-    # missing due to process exits before all data offloaded. In forking
-    # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
-    # (most frequent case)
-    multiprocessing = False
-    if hasattr(options, "max_workers") and options.max_workers is not None:
-        multiprocessing = options.max_workers > 1
+        endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+        if not endpoint:
+            log.info("OTEL is not configured")
+            _otel_initialized = True
+            return (None, None, None)
 
-    resource = Resource.create()
-    trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
-    logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
-    metric_provider = _setup_otel_metrics(resource=resource)
+        # In case of NIM flask server is configured to run in multiprocessing
+        # mode that uses fork. Since BatchSpanProcessor start background thread
+        # with bunch of locks, OTEL simply deadlocks and does not offlooad any
+        # spans. Even if we start BatchSpanProcessor per fork, batches often
+        # missing due to process exits before all data offloaded. In forking
+        # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
+        # (most frequent case)
+        multiprocessing = False
+        if hasattr(options, "max_workers") and options.max_workers is not None:
+            multiprocessing = options.max_workers > 1
 
-    log.info(f"OTEL is configured with endpoint: {endpoint}")
-    return trace_provider, metric_provider, logger_provider
+        resource = Resource.create()
+        trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
+        logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
+        metric_provider = _setup_otel_metrics(resource=resource)
+
+        log.info(f"OTEL is configured with endpoint: {endpoint}")
+        _otel_initialized = True
+        return trace_provider, metric_provider, logger_provider
 
 
 @contextmanager
