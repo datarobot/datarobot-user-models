@@ -202,10 +202,6 @@ class _GeventFutureWrapper:
 
             return _wrapper().__await__()
 
-    def __iter__(self):
-        """Make the wrapper an iterator for compatibility with older asyncio/gevent patterns."""
-        return self.__await__()
-
     def result(self, timeout=None):
         """Get the result with gevent-safe cooperative waiting."""
         return _wait_for_future_gevent_safe(self._fut, timeout=timeout)
