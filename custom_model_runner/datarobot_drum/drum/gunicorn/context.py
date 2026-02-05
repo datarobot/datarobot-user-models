@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from typing import Callable, Any, List, Tuple, Optional
@@ -164,6 +165,47 @@ class _GeventFutureWrapper:
     def __init__(self, fut):
         self._fut = fut
 
+    def __await__(self):
+        """Make the wrapper awaitable for asyncio compatibility.
+
+        This allows using 'await' or 'asyncio.gather' on the wrapper, which is
+        essential for models or libraries (like AsyncGuardExecutor) that use
+        async/await syntax even in gevent-patched environments.
+
+        The implementation intelligently uses asyncio.sleep when inside an event loop
+        (for efficient concurrent task scheduling in asyncio.gather) or falls back
+        to gevent-style polling in sync contexts.
+        """
+        try:
+            # Check if we're inside a running asyncio event loop
+            asyncio.get_running_loop()
+
+            async def _async_wait():
+                """Async polling using asyncio.sleep for proper event loop integration."""
+                poll_interval = 0.01  # Start with 10ms polling
+
+                while not self._fut.done():
+                    # Use asyncio.sleep to yield control to the event loop,
+                    # allowing other tasks (e.g., in asyncio.gather) to execute
+                    await asyncio.sleep(poll_interval)
+                    # Exponential backoff up to 100ms to reduce CPU usage
+                    poll_interval = min(poll_interval * 1.5, 0.1)
+
+                return self._fut.result()
+
+            return _async_wait().__await__()
+
+        except RuntimeError:
+            # No running loop - we're in sync context, use gevent-style polling
+            async def _wrapper():
+                return self.result()
+
+            return _wrapper().__await__()
+
+    def __iter__(self):
+        """Make the wrapper an iterator for compatibility with older asyncio/gevent patterns."""
+        return self.__await__()
+
     def result(self, timeout=None):
         """Get the result with gevent-safe cooperative waiting."""
         return _wait_for_future_gevent_safe(self._fut, timeout=timeout)
@@ -319,7 +361,6 @@ class WorkerCtx:
         - Provides gevent-safe future waiting that yields cooperatively
         - Handles cleanup without blocking the gevent hub
         """
-        import asyncio
 
         def _create_async_method_patch(bg_loop, _wrap_future, original_method):
             """
@@ -369,10 +410,9 @@ class WorkerCtx:
                     return asyncio.wrap_future(fut)
 
                 # If it's some other loop and gevent is active, we might be in a greenlet
-                # with an event loop, which is problematic for wrap_future in Python 3.12
+                # with an event loop.
                 if _is_gevent_patched():
-                    # Return GeventFutureWrapper for sync-style waiting
-                    # Note: This means the caller cannot await this - they must call .result()
+                    # Return GeventFutureWrapper for sync-style waiting and gevent-safe await.
                     return _GeventFutureWrapper(fut)
 
                 # Not gevent, some other loop - safe to wrap
@@ -562,7 +602,6 @@ class WorkerCtx:
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
-        import asyncio
         import weakref
 
         try:
@@ -782,7 +821,6 @@ class WorkerCtx:
 
     def _patch_otel_utils(self, bg_loop, _wrap_future):
         """Patch OpenTelemetry instrumentation to run async tasks in the background loop."""
-        import asyncio
 
         try:
             import opentelemetry.instrumentation.openai.utils as otel_utils
