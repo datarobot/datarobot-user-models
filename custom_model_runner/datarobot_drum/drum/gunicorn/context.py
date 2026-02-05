@@ -327,7 +327,7 @@ class WorkerCtx:
             - If inside bg_loop (async context in real thread): wrap as asyncio.Future (awaitable)
             - If in gevent context without loop: return GeventFutureWrapper for cooperative waiting
             - Otherwise: return the raw future for blocking .result() calls
-            
+
             The key insight: bg_loop runs in a real OS thread (not greenlet), so
             asyncio.wrap_future is safe there even with gevent active elsewhere.
             """
@@ -335,21 +335,21 @@ class WorkerCtx:
             try:
                 current_loop = asyncio.get_running_loop()
                 # We're in some running event loop
-                
+
                 # If it's bg_loop, we're in the real OS thread - safe to use wrap_future
                 if current_loop is bg_loop:
                     return asyncio.wrap_future(fut)
-                
+
                 # If it's some other loop and gevent is active, we might be in a greenlet
                 # with an event loop, which is problematic for wrap_future in Python 3.12
                 if _is_gevent_patched():
                     # Return GeventFutureWrapper for sync-style waiting
                     # Note: This means the caller cannot await this - they must call .result()
                     return _GeventFutureWrapper(fut)
-                
+
                 # Not gevent, some other loop - safe to wrap
                 return asyncio.wrap_future(fut)
-                
+
             except RuntimeError:
                 # No running loop - we're in sync context
                 pass
@@ -818,21 +818,21 @@ class WorkerCtx:
             """
             Thread-safe async wrapper for LLMRails.generate_async that offloads execution
             to the dedicated background event loop.
-            
+
             This ensures the coroutine runs in bg_loop and awaits the result safely,
-            avoiding asyncio.wrap_future which can trigger "Non-thread-safe operation" 
+            avoiding asyncio.wrap_future which can trigger "Non-thread-safe operation"
             errors in Python 3.12 + gevent when called from a greenlet context.
             """
             # Offload to background loop using run_coroutine_threadsafe
             fut = asyncio.run_coroutine_threadsafe(
                 _orig_generate_async(self, *args, **kwargs), bg_loop
             )
-            
+
             # Await the result by polling the concurrent.futures.Future cooperatively.
             # This avoids asyncio.wrap_future which can fail with gevent + Python 3.12.
             while not fut.done():
                 await asyncio.sleep(0.01)  # Cooperative yield
-            
+
             # Future is done, get the result (will raise if there was an exception)
             return fut.result()
 
