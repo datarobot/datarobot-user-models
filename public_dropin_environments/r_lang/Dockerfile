@@ -27,15 +27,31 @@ RUN apk add --no-cache \
 ENV R_HOME=/usr/lib/R
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
 
-# TODO: DELETE THIS once chainguard ships glibc-2.43
-# This is a workaround because on 2026.02.04 chainguard broke Rscript (the next
-# command) by shipping a version of libgfortran that linked to the next version
-# of glibc (2.43) which they don't yet ship. Downgrading libgfortran to the
-# previous release (r7) resolves the issue.
-RUN apk add libgfortran=15.2.0-r7
+RUN Rscript -e "install.packages( \
+        c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse'), \
+        repos='https://cloud.r-project.org', \
+        Ncpus=4 \
+    )"
+
+# TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42.
+# Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
+# package depends on `later`, which comes with its own version of
+# `tinycthread`. The upgrade to `glibc-2.43` caused a change in compile
+# behavior where overriding previously defined macros.
+# This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
+# so compile works.
+RUN cd /tmp; \
+  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.5.tar.gz' \
+  | gunzip -c \
+  | tar -x; \
+  cd later; \
+  sed -i 's/^  \(#define once_flag pthread_once_t\)/  \/\/ \1/' src/tinycthread.h; \
+  Rscript -e "install.packages(c('.'), repos=NULL, Ncpus=4)"; \
+  cd; \
+  rm -r /tmp/later
 
 RUN Rscript -e "install.packages( \
-        c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse', 'devtools'), \
+        c('devtools'), \
         repos='https://cloud.r-project.org', \
         Ncpus=4 \
     )" && \
