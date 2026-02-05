@@ -377,6 +377,16 @@ class WorkerCtx:
 
             def wrapper(self, *args, **kwargs):
                 """Thread-safe wrapper that offloads execution to the background loop."""
+                # Check if we're already in the background loop to avoid double-offloading
+                try:
+                    if asyncio.get_running_loop() is bg_loop:
+                        # We're in the bg_loop thread, call original method directly.
+                        # It will return a coroutine that the caller (which is also in bg_loop) can await.
+                        return original_method(self, *args, **kwargs)
+                except RuntimeError:
+                    # Not in any event loop
+                    pass
+
                 return _wrap_future(
                     asyncio.run_coroutine_threadsafe(
                         original_method(self, *args, **kwargs), bg_loop
@@ -424,6 +434,16 @@ class WorkerCtx:
 
             # Plain sync context
             return fut
+
+        def _wait_for_sync_result(fut, timeout=None):
+            """
+            Wait for a future and return its result, suitable for replacing sync methods.
+            Uses _wrap_future to get a gevent-safe wrapper and then calls .result().
+            """
+            wrapped = _wrap_future(fut)
+            if hasattr(wrapped, "result"):
+                return wrapped.result(timeout=timeout)
+            return wrapped
 
         # Background loop for thread-safe async execution in sync/gevent workers.
         # We store it on self.app to ensure it lives as long as the worker.
@@ -593,8 +613,8 @@ class WorkerCtx:
 
         self._patch_async_http_client(bg_loop, _wrap_future)
         self._patch_otel_utils(bg_loop, _wrap_future)
-        self._patch_guard_executor(bg_loop, _wrap_future, _create_async_method_patch)
-        self._patch_nemo_rails(bg_loop, _wrap_future, _create_async_method_patch)
+        self._patch_guard_executor(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
+        self._patch_nemo_rails(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
@@ -842,16 +862,16 @@ class WorkerCtx:
 
         otel_utils.run_async = fixed_run_async
 
-    def _patch_guard_executor(self, bg_loop, _wrap_future, _create_async_method_patch):
-        """Patch GuardExecutor to run async_guard_executor in the background loop."""
+    def _patch_guard_executor(self, bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result):
+        """Patch AsyncGuardExecutor to run async operations in the background loop."""
         try:
-            from datarobot_dome.guard_executor import GuardExecutor
+            from datarobot_dome.guard_executor import AsyncGuardExecutor
         except ImportError:
             return
 
-        # Use the standardized helper to create the patch
-        GuardExecutor.async_guard_executor = _create_async_method_patch(
-            bg_loop, _wrap_future, GuardExecutor.async_guard_executor
+        # Patch async_guard_executor to use background loop
+        AsyncGuardExecutor.async_guard_executor = _create_async_method_patch(
+            bg_loop, _wrap_future, AsyncGuardExecutor.async_guard_executor
         )
 
     def _patch_nemo_rails(self, bg_loop, _wrap_future, _create_async_method_patch):
@@ -861,10 +881,68 @@ class WorkerCtx:
         except ImportError:
             return
 
-        # Use the standardized helper to create the patch
+        # Patch generate_async - the main async method
         LLMRails.generate_async = _create_async_method_patch(
             bg_loop, _wrap_future, LLMRails.generate_async
         )
+
+        # Patch other async methods
+        if hasattr(LLMRails, "generate_events_async"):
+            LLMRails.generate_events_async = _create_async_method_patch(
+                bg_loop, _wrap_future, LLMRails.generate_events_async
+            )
+
+        if hasattr(LLMRails, "process_events_async"):
+            LLMRails.process_events_async = _create_async_method_patch(
+                bg_loop, _wrap_future, LLMRails.process_events_async
+            )
+
+        # CRITICAL: Patch synchronous methods that use loop.run_until_complete
+        # These methods are commonly called from Flask handlers in gunicorn+gevent
+
+        # Patch generate() - synchronous wrapper for generate_async
+        def patched_generate(self, prompt=None, messages=None, options=None, state=None):
+            """Patched generate to use background loop instead of loop.run_until_complete."""
+            import asyncio
+
+            # Run in background loop instead of get_or_create_event_loop().run_until_complete()
+            async def _coro():
+                return await self.generate_async(
+                    prompt=prompt,
+                    messages=messages,
+                    options=options,
+                    state=state,
+                )
+
+            return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+        LLMRails.generate = patched_generate
+
+        # Patch generate_events() - synchronous wrapper for generate_events_async
+        if hasattr(LLMRails, "generate_events"):
+            def patched_generate_events(self, events):
+                """Patched generate_events to use background loop."""
+                import asyncio
+
+                async def _coro():
+                    return await self.generate_events_async(events=events)
+
+                return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+            LLMRails.generate_events = patched_generate_events
+
+        # Patch process_events() - synchronous wrapper for process_events_async
+        if hasattr(LLMRails, "process_events"):
+            def patched_process_events(self, events, state=None, blocking=False):
+                """Patched process_events to use background loop."""
+                import asyncio
+
+                async def _coro():
+                    return await self.process_events_async(events, state, blocking)
+
+                return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+            LLMRails.process_events = patched_process_events
 
     def start(self):
         """
