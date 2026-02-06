@@ -4,15 +4,19 @@
 #  All rights reserved.
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
+from typing import Annotated
 from typing import List
 from typing import Optional
 
 from pydantic import BaseModel
-from pydantic import conlist
-from pydantic import constr
+from pydantic import ConfigDict
+from pydantic import Field
 from pydantic import model_validator
 
 from datarobot_drum.drum.lazy_loading.constants import BackendType
+
+# Type aliases for Pydantic v2
+NonEmptyStr = Annotated[str, Field(min_length=1)]
 
 
 def to_camel(string: str) -> str:
@@ -21,27 +25,29 @@ def to_camel(string: str) -> str:
 
 
 class LazyLoadingFile(BaseModel):
-    remote_path: constr(min_length=1)
-    local_path: constr(min_length=1)
-    repository_id: constr(min_length=1)
+    model_config = ConfigDict(
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
 
-    class Config:
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
+    remote_path: NonEmptyStr
+    local_path: NonEmptyStr
+    repository_id: NonEmptyStr
 
 
 class LazyLoadingRepository(BaseModel):
-    repository_id: constr(min_length=1)
-    bucket_name: constr(min_length=1)
-    credential_id: constr(min_length=1)
+    model_config = ConfigDict(
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    repository_id: NonEmptyStr
+    bucket_name: NonEmptyStr
+    credential_id: NonEmptyStr
     endpoint_url: Optional[str] = None
     verify_certificate: Optional[bool] = None
-
-    class Config:
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
 
     @model_validator(mode="before")
     @classmethod
@@ -57,13 +63,14 @@ class LazyLoadingRepository(BaseModel):
 
 
 class LazyLoadingData(BaseModel):
-    files: conlist(LazyLoadingFile, min_length=1)
-    repositories: conlist(LazyLoadingRepository, min_length=1)
+    model_config = ConfigDict(
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
 
-    class Config:
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
+    files: Annotated[List[LazyLoadingFile], Field(min_length=1)]
+    repositories: Annotated[List[LazyLoadingRepository], Field(min_length=1)]
 
     @classmethod
     def from_json_string(cls, json_string: str):
@@ -71,36 +78,39 @@ class LazyLoadingData(BaseModel):
 
 
 class S3Credentials(BaseModel):
-    credential_type: BackendType
-    aws_access_key_id: constr(min_length=1)
-    aws_secret_access_key: constr(min_length=1)
-    aws_session_token: Optional[constr(min_length=1)] = None
-
-    class Config:
+    model_config = ConfigDict(
         # Future proofing in case we want to add a profile field
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    credential_type: BackendType
+    aws_access_key_id: NonEmptyStr
+    aws_secret_access_key: NonEmptyStr
+    aws_session_token: Optional[NonEmptyStr] = None
 
 
 class LazyLoadingCommandLineFileCredentialsContent(S3Credentials):
-    id: constr(min_length=1)
-
-    class Config:
+    model_config = ConfigDict(
         # Future proofing in case we want to add a profile field
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    id: NonEmptyStr
 
 
 class LazyLoadingCommandLineFileContent(LazyLoadingData):
-    credentials: List[LazyLoadingCommandLineFileCredentialsContent]
-
-    class Config:
+    model_config = ConfigDict(
         # Future proofing in case we want to add a profile field
-        extra = "ignore"
-        alias_generator = to_camel
-        populate_by_name = True
+        extra="ignore",
+        alias_generator=to_camel,
+        populate_by_name=True,
+    )
+
+    credentials: List[LazyLoadingCommandLineFileCredentialsContent]
 
     @classmethod
     def from_json_string(cls, json_string: str):

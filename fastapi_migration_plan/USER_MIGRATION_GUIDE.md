@@ -16,6 +16,119 @@ DRUM is transitioning from a Flask-based production server to a modern FastAPI-b
 | **Routing** | `Blueprint` | `APIRouter` |
 | **Response** | `flask.jsonify()` | `fastapi.responses.JSONResponse` |
 
+---
+
+## Pydantic v2 Migration
+
+DRUM's FastAPI server uses **Pydantic v2** (>=2.5.0). If your custom model code uses Pydantic v1 patterns, you'll need to update them.
+
+### Why Pydantic v2?
+
+- **Performance:** 5-50x faster validation
+- **Better typing:** Improved type hints and IDE support
+- **Future-proof:** FastAPI 1.0 will require Pydantic v2
+
+### Python Version Requirements
+
+| Python Version | Support |
+|----------------|---------|
+| 3.7, 3.8 | Use `DRUM_SERVER_TYPE=flask` |
+| 3.9+ | FastAPI supported |
+| 3.11, 3.12 | Recommended |
+
+### Migration Patterns
+
+| v1 Pattern | v2 Pattern |
+|------------|------------|
+| `class Config:` | `model_config = ConfigDict(...)` |
+| `.dict()` | `.model_dump()` |
+| `.json()` | `.model_dump_json()` |
+| `@validator` | `@field_validator` |
+| `@root_validator` | `@model_validator` |
+| `constr(regex=...)` | `Annotated[str, Field(pattern=...)]` |
+| `constr(min_length=1)` | `Annotated[str, Field(min_length=1)]` |
+| `conlist(Item, min_items=1)` | `Annotated[List[Item], Field(min_length=1)]` |
+| `.parse_raw()` | `.model_validate_json()` |
+| `.parse_obj()` | `.model_validate()` |
+| `__fields__` | `model_fields` |
+| `.schema()` | `.model_json_schema()` |
+
+### Example: Pydantic Model Migration
+
+**Before (Pydantic v1):**
+```python
+from pydantic import BaseModel, validator, constr
+
+class PredictionInput(BaseModel):
+    feature_name: constr(min_length=1)
+    value: float
+    
+    class Config:
+        extra = "ignore"
+    
+    @validator("value")
+    def value_must_be_positive(cls, v):
+        if v < 0:
+            raise ValueError("value must be positive")
+        return v
+```
+
+**After (Pydantic v2):**
+```python
+from typing import Annotated
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+class PredictionInput(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    feature_name: Annotated[str, Field(min_length=1)]
+    value: float
+    
+    @field_validator("value")
+    @classmethod
+    def value_must_be_positive(cls, v: float) -> float:
+        if v < 0:
+            raise ValueError("value must be positive")
+        return v
+```
+
+### Required Library Versions
+
+If using these libraries with Pydantic v2:
+
+| Library | Minimum Version | Notes |
+|---------|-----------------|-------|
+| `langchain` | >= 0.1.0 | Pydantic v2 support |
+| `mlflow` | >= 2.9.0 | Pydantic v2 support |
+| `ray[serve]` | >= 2.8.0 | Pydantic v2 support |
+| `datarobot` SDK | Any | Compatible |
+| `transformers` | Any | No conflict |
+
+### Checking Compatibility
+
+Run this script to check your environment:
+
+```python
+from importlib.metadata import version, PackageNotFoundError
+
+def check_pydantic_v2():
+    try:
+        pydantic_ver = version("pydantic")
+        major = int(pydantic_ver.split(".")[0])
+        if major < 2:
+            print(f"⚠️ Pydantic {pydantic_ver} is v1. Upgrade: pip install 'pydantic>=2.5.0'")
+            return False
+        print(f"✅ Pydantic {pydantic_ver} (v2)")
+        return True
+    except PackageNotFoundError:
+        print("❌ Pydantic not installed")
+        return False
+
+check_pydantic_v2()
+```
+
+---
+
 ## Migration Examples
 
 ### 1. Authentication Middleware
@@ -373,15 +486,18 @@ On Windows, `uvloop` is not available. The server will automatically fall back t
 
 **Solution:** This is expected behavior. No action needed. Performance on Windows may be slightly lower than Linux/macOS.
 
-### 6. Pydantic v1 vs v2
-If your custom code uses Pydantic models, you may encounter compatibility issues.
+### 6. Pydantic v2 Migration
+DRUM's FastAPI server requires Pydantic v2 (>=2.5.0). If your custom code uses Pydantic v1 patterns, you must update them.
 
-**Problem:** `ImportError` or `ValidationError` related to Pydantic
+**Problem:** `ImportError`, `ValidationError`, or deprecated warnings related to Pydantic
 
 **Solution:**
 - Check your Pydantic version: `pip show pydantic`
-- For Pydantic v2 with v1-style code: `from pydantic.v1 import BaseModel`
-- See [COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md) for details
+- Update v1 patterns to v2 (see "Pydantic v2 Migration" section above)
+- Ensure ML libraries are updated (langchain >= 0.1.0, mlflow >= 2.9.0, ray >= 2.8.0)
+- See [COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md) for detailed compatibility info
+
+**Note:** The `from pydantic.v1 import BaseModel` shim is available but not recommended for new code. Migrate fully to v2 patterns for best performance.
 
 ---
 
@@ -391,13 +507,28 @@ Use this checklist when migrating your `custom_flask.py` to `custom_fastapi.py`:
 
 ### Pre-Migration
 
+- [ ] Verify Python version >= 3.9 (3.11 or 3.12 recommended)
 - [ ] Identify all Flask-specific imports in your code
 - [ ] List all `@app.before_request` and `@app.after_request` hooks
 - [ ] Document all `Blueprint` routes and their purposes
 - [ ] Check for any global state (counters, caches, etc.)
 - [ ] Review threading locks (need to convert to asyncio.Lock)
+- [ ] Identify Pydantic v1 patterns that need migration
 
-### Migration Steps
+### Pydantic v2 Migration Steps
+
+- [ ] Update Pydantic import: `from pydantic import BaseModel, ConfigDict, Field`
+- [ ] Replace `class Config:` with `model_config = ConfigDict(...)`
+- [ ] Replace `constr(min_length=1)` with `Annotated[str, Field(min_length=1)]`
+- [ ] Replace `conlist(Item)` with `Annotated[List[Item], Field(...)]`
+- [ ] Replace `.dict()` with `.model_dump()`
+- [ ] Replace `.json()` with `.model_dump_json()`
+- [ ] Replace `.parse_raw()` with `.model_validate_json()`
+- [ ] Replace `@validator` with `@field_validator` (add `@classmethod`)
+- [ ] Replace `@root_validator` with `@model_validator`
+- [ ] Update ML library versions if needed (langchain >= 0.1.0, mlflow >= 2.9.0)
+
+### Flask to FastAPI Migration Steps
 
 - [ ] Create new `custom_fastapi.py` file
 - [ ] Convert imports:
@@ -418,6 +549,7 @@ Use this checklist when migrating your `custom_flask.py` to `custom_fastapi.py`:
 - [ ] Custom routes are accessible
 - [ ] No blocking calls in async code
 - [ ] Memory usage is stable under load
+- [ ] Pydantic models validate correctly
 
 ---
 

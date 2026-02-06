@@ -59,6 +59,30 @@ def _is_uvloop_available() -> bool:
         return False
 
 
+def _is_uvloop_python312_compatible() -> bool:
+    """
+    Check if uvloop version is compatible with Python 3.12.
+    
+    Python 3.12 requires uvloop >= 0.19.0 to avoid segfaults.
+    See: https://github.com/MagicStack/uvloop/issues/513
+    """
+    import sys
+    
+    if sys.version_info < (3, 12):
+        return True  # Not Python 3.12, no special check needed
+    
+    try:
+        import uvloop
+        version_parts = uvloop.__version__.split('.')
+        major = int(version_parts[0])
+        minor = int(version_parts[1]) if len(version_parts) > 1 else 0
+        
+        # uvloop >= 0.19.0 required for Python 3.12
+        return (major, minor) >= (0, 19)
+    except (ImportError, ValueError, AttributeError):
+        return False
+
+
 @dataclass
 class UvicornConfig:
     """
@@ -226,9 +250,12 @@ class UvicornConfig:
         
         Priority:
         1. Explicit DRUM_UVICORN_LOOP setting (with validation)
-        2. uvloop on Linux/macOS if available
+        2. uvloop on Linux/macOS if available and compatible
         3. asyncio as fallback
+        
+        Note: Python 3.12 requires uvloop >= 0.19.0 to avoid segfaults.
         """
+        import sys
         system = platform.system()
         
         if RuntimeParameters.has("DRUM_UVICORN_LOOP"):
@@ -248,6 +275,19 @@ class UvicornConfig:
                         "Falling back to asyncio."
                     )
                     return "asyncio"
+                elif not _is_uvloop_python312_compatible():
+                    # Python 3.12 requires uvloop >= 0.19.0
+                    try:
+                        import uvloop
+                        logger.warning(
+                            "uvloop %s may cause segfaults on Python 3.12. "
+                            "Upgrade to uvloop>=0.19.0 or falling back to asyncio. "
+                            "Install with: pip install 'uvloop>=0.19.0'",
+                            uvloop.__version__
+                        )
+                    except ImportError:
+                        pass
+                    return "asyncio"
                 return "uvloop"
             
             if requested in {"auto", "asyncio"}:
@@ -261,6 +301,20 @@ class UvicornConfig:
             return "auto"
         
         # Default: auto (uvicorn will pick uvloop if available on Linux/macOS)
+        # But check Python 3.12 compatibility first
+        if sys.version_info >= (3, 12) and _is_uvloop_available() and not _is_uvloop_python312_compatible():
+            try:
+                import uvloop
+                logger.warning(
+                    "Python 3.12 detected with uvloop %s. "
+                    "uvloop < 0.19.0 may cause segfaults. "
+                    "Using asyncio instead. Upgrade with: pip install 'uvloop>=0.19.0'",
+                    uvloop.__version__
+                )
+            except ImportError:
+                pass
+            return "asyncio"
+        
         return "auto"
     
     def _load_ssl_config(self):
@@ -681,6 +735,44 @@ class TestUvicornConfig:
             with patch.object(RuntimeParameters, "get", return_value="uvloop"):
                 config = UvicornConfig.from_runtime_params()
         
+        assert config.loop == "asyncio"
+    
+    def test_uvloop_python312_version_check(self):
+        """Python 3.12 should require uvloop >= 0.19.0."""
+        import sys
+        
+        # Mock Python 3.12
+        with patch.object(sys, "version_info", (3, 12, 0)):
+            # Mock uvloop with old version
+            mock_uvloop = MagicMock()
+            mock_uvloop.__version__ = "0.18.0"
+            
+            with patch.dict("sys.modules", {"uvloop": mock_uvloop}):
+                with patch("platform.system", return_value="Linux"):
+                    # Should detect incompatibility
+                    assert not _is_uvloop_python312_compatible()
+            
+            # Mock uvloop with new version
+            mock_uvloop.__version__ = "0.19.0"
+            with patch.dict("sys.modules", {"uvloop": mock_uvloop}):
+                with patch("platform.system", return_value="Linux"):
+                    # Should be compatible
+                    assert _is_uvloop_python312_compatible()
+    
+    def test_uvloop_auto_fallback_python312(self):
+        """Auto loop should fall back to asyncio on Python 3.12 with old uvloop."""
+        import sys
+        
+        mock_uvloop = MagicMock()
+        mock_uvloop.__version__ = "0.18.0"
+        
+        with patch.object(sys, "version_info", (3, 12, 0)):
+            with patch.dict("sys.modules", {"uvloop": mock_uvloop}):
+                with patch("platform.system", return_value="Linux"):
+                    with patch.object(RuntimeParameters, "has", return_value=False):
+                        config = UvicornConfig.from_runtime_params()
+        
+        # Should fall back to asyncio due to uvloop version
         assert config.loop == "asyncio"
     
     def test_ssl_validation(self, tmp_path):

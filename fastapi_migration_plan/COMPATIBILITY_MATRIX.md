@@ -8,25 +8,24 @@ This document defines the supported configurations and known compatibility issue
 
 | Python Version | Flask/Gunicorn | FastAPI/Uvicorn | Notes |
 |----------------|----------------|-----------------|-------|
-| 3.7 | ✅ Supported | ❌ Not supported | FastAPI requires 3.8+ |
-| 3.8 | ✅ Supported | ✅ Supported | Minimum for FastAPI |
-| 3.9 | ✅ Supported | ✅ Supported | |
+| 3.7 | ✅ Supported | ❌ Not supported | EOL, use Flask |
+| 3.8 | ✅ Supported | ❌ Not supported | Use Flask for 3.8 |
+| 3.9 | ✅ Supported | ✅ Supported | Minimum for FastAPI |
 | 3.10 | ✅ Supported | ✅ Supported | |
 | 3.11 | ✅ Supported | ✅ Supported | Recommended |
 | 3.12 | ✅ Supported | ✅ Supported | Best performance |
 
 **Action Required:** 
-- Environments using Python 3.7 must upgrade before using `DRUM_SERVER_TYPE=fastapi`
+- Environments using Python 3.8 or lower must use `DRUM_SERVER_TYPE=flask`
+- Python 3.12 requires `uvloop>=0.19.0` to avoid segfaults
 - Add runtime check in `run_uvicorn.py`:
 
 ```python
 import sys
-if sys.version_info < (3, 8):
+if sys.version_info < (3, 9):
     raise RuntimeError(
-        "FastAPI server requires Python 3.8+. "
-        "Current version: {}. Use DRUM_SERVER_TYPE=flask for Python 3.7.".format(
-            sys.version
-        )
+        f"FastAPI server requires Python 3.9+. "
+        f"Current version: {sys.version}. Use DRUM_SERVER_TYPE=flask for Python 3.8."
     )
 ```
 
@@ -34,111 +33,85 @@ if sys.version_info < (3, 8):
 
 ## Pydantic Version Compatibility
 
-### The Problem
+### Strategy: Immediate Pydantic v2 Support
 
-FastAPI has different version requirements depending on version:
-- FastAPI < 0.100: Pydantic v1 (1.x)
-- FastAPI >= 0.100: Pydantic v2 (2.x)
+We use Pydantic v2 from the start for:
+- **Performance:** 5-50x faster validation
+- **Simpler code:** No v1 compatibility layer needed
+- **Future-proof:** FastAPI 1.0 will require Pydantic v2
+- **Better typing:** Improved type hints and IDE support
+- **Python 3.12:** Full compatibility with latest Python
 
-Many ML libraries still use Pydantic v1 internally.
+### Required Versions
+
+```
+# requirements.txt
+fastapi>=0.109.0,<1.0.0
+pydantic>=2.5.0,<3.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+uvloop>=0.19.0;platform_system!="Windows"
+```
 
 ### Compatibility Table
 
-| FastAPI Version | Pydantic Version | ML Library Compatibility |
-|-----------------|------------------|--------------------------|
-| 0.95.x - 0.99.x | 1.10.x | ✅ Best compatibility |
-| 0.100.x+ | 2.x | ⚠️ May conflict with some ML libs |
+| FastAPI Version | Pydantic Version | Status |
+|-----------------|------------------|--------|
+| >=0.109.0,<1.0.0 | >=2.5.0,<3.0.0 | **Default** |
 
-### Recommended Strategy
+### Known Library Compatibility
 
-> ⚠️ **RECOMMENDATION: Start with Option A (Conservative) for initial migration, then upgrade to Option C after stabilization.**
+If using these libraries in custom models, ensure minimum versions:
 
-**Option A: Use FastAPI 0.95-0.99 (Conservative) - RECOMMENDED FOR INITIAL MIGRATION**
-```
-# requirements.txt - Phase 1 (M1-M5)
-fastapi>=0.95.0,<0.100.0
-pydantic>=1.10.0,<2.0.0
-uvicorn[standard]>=0.23.0,<1.0.0
-```
-
-✅ **Why this is recommended:**
-- Maximum compatibility with existing ML ecosystem (langchain, mlflow, ray)
-- No risk of breaking customer models that depend on Pydantic v1
-- Stable, battle-tested versions
-- Easy upgrade path to v2 later
-
-**Option B: Use FastAPI 0.100+ with Pydantic v1 compatibility layer**
-```
-# requirements.txt - Only if absolutely needed
-fastapi>=0.100.0,<0.110.0
-pydantic>=2.0.0,<3.0.0
-
-# User code MUST migrate to pydantic.v1 shim:
-# from pydantic.v1 import BaseModel
-```
-
-⚠️ **Use only if you need FastAPI 0.100+ features. Requires customer communication.**
-
-**Option C: Use FastAPI 0.115+ (Latest) - FUTURE TARGET (after M6 stabilization)**
-```
-# requirements.txt - Phase 2 (post M6, ~6 months later)
-fastapi>=0.115.0,<1.0.0
-pydantic>=2.5.0,<3.0.0
-```
-
-📋 **Migration Timeline:**
-| Phase | FastAPI Version | Pydantic | When |
-|-------|----------------|----------|------|
-| Initial (M1-M5) | 0.95-0.99 | 1.10.x | Start |
-| Stable (M6) | 0.99.x | 1.10.x | After canary |
-| Future | 0.115+ | 2.5+ | +6 months after M6 |
-
-### Known Conflicts
-
-| Library | Pydantic Requirement | Workaround |
-|---------|---------------------|------------|
-| `datarobot` SDK | v1 or v2 | Compatible with both |
-| `langchain` < 0.1 | v1 only | Upgrade langchain or use Option A |
-| `transformers` | No conflict | |
-| `mlflow` < 2.9 | v1 only | Upgrade mlflow |
-| `ray[serve]` < 2.8 | v1 only | Upgrade ray |
+| Library | Minimum Version | Pydantic v2 Support | Notes |
+|---------|-----------------|---------------------|-------|
+| `datarobot` SDK | Any | ✅ Yes | Compatible with both v1 and v2 |
+| `langchain` | >= 0.1.0 | ✅ Yes | Requires upgrade from older versions |
+| `mlflow` | >= 2.9.0 | ✅ Yes | Requires upgrade from older versions |
+| `ray[serve]` | >= 2.8.0 | ✅ Yes | Requires upgrade from older versions |
+| `transformers` | Any | ✅ Yes | No conflict |
 
 ### Detection Script
 
 ```python
 # scripts/check_pydantic_compat.py
-"""Check for Pydantic version conflicts in the environment."""
-import pkg_resources
+"""Check for Pydantic v2 compatibility in the environment."""
+from importlib.metadata import version, PackageNotFoundError
 import sys
 
 def check_pydantic_compatibility():
     issues = []
     
     try:
-        pydantic_version = pkg_resources.get_distribution("pydantic").version
+        pydantic_version = version("pydantic")
         major = int(pydantic_version.split(".")[0])
-    except pkg_resources.DistributionNotFound:
+    except PackageNotFoundError:
         print("Pydantic not installed")
         return
     
     print(f"Pydantic version: {pydantic_version}")
     
-    # Known v1-only packages
-    v1_only = {
+    if major < 2:
+        issues.append(
+            f"⚠️  Pydantic {pydantic_version} is v1. DRUM FastAPI server requires Pydantic v2. "
+            f"Upgrade with: pip install 'pydantic>=2.5.0'"
+        )
+    
+    # Known packages that require minimum versions for Pydantic v2
+    v2_min_versions = {
         "langchain": "0.1.0",
         "mlflow": "2.9.0",
         "ray": "2.8.0",
     }
     
-    for pkg, min_v2_compat in v1_only.items():
+    for pkg, min_v2_compat in v2_min_versions.items():
         try:
-            installed = pkg_resources.get_distribution(pkg).version
-            if major >= 2 and installed < min_v2_compat:
+            installed = version(pkg)
+            if installed < min_v2_compat:
                 issues.append(
                     f"⚠️  {pkg}=={installed} may not work with Pydantic v2. "
                     f"Upgrade to >={min_v2_compat}"
                 )
-        except pkg_resources.DistributionNotFound:
+        except PackageNotFoundError:
             pass
     
     if issues:
@@ -147,11 +120,30 @@ def check_pydantic_compatibility():
             print(f"  {issue}")
         sys.exit(1)
     else:
-        print("✅ No Pydantic compatibility issues detected")
+        print("✅ No Pydantic v2 compatibility issues detected")
 
 if __name__ == "__main__":
     check_pydantic_compatibility()
 ```
+
+### Pydantic v1 to v2 Migration Patterns
+
+If your custom model code uses Pydantic v1, update using these patterns:
+
+| v1 Pattern | v2 Pattern |
+|------------|------------|
+| `class Config:` | `model_config = ConfigDict(...)` |
+| `.dict()` | `.model_dump()` |
+| `.json()` | `.model_dump_json()` |
+| `@validator` | `@field_validator` |
+| `@root_validator` | `@model_validator` |
+| `constr(regex=...)` | `Annotated[str, Field(pattern=...)]` |
+| `constr(min_length=1)` | `Annotated[str, Field(min_length=1)]` |
+| `conlist(Item, min_items=1)` | `Annotated[List[Item], Field(min_length=1)]` |
+| `.parse_raw()` | `.model_validate_json()` |
+| `.parse_obj()` | `.model_validate()` |
+| `__fields__` | `model_fields` |
+| `.schema()` | `.model_json_schema()` |
 
 ---
 
@@ -386,48 +378,41 @@ cat /sys/fs/cgroup/memory/memory.limit_in_bytes 2>/dev/null || echo "Not v1"
 
 ## Dependency Version Matrix
 
-### Core Dependencies (Phase 1: Conservative - Pydantic v1)
+### Core Dependencies (Pydantic v2)
 
 | Dependency | Minimum | Recommended | Maximum | Notes |
 |------------|---------|-------------|---------|-------|
-| fastapi | 0.95.0 | **0.99.1** | <0.100.0 | Last version with Pydantic v1 |
-| uvicorn | 0.23.0 | 0.24.0 | <1.0.0 | Stable with graceful shutdown |
-| httpx | 0.24.0 | 0.25.0 | <1.0.0 | For async HTTP |
-| starlette | 0.27.0 | 0.32.0 | <0.33.0 | Compatible with FastAPI 0.99 |
-| pydantic | 1.10.0 | 1.10.13 | <2.0.0 | v1 for compatibility |
-| anyio | 3.0.0 | 3.7.1 | <4.0.0 | Stable v3 branch |
-
-### Core Dependencies (Phase 2: Modern - Pydantic v2, post-stabilization)
-
-| Dependency | Minimum | Recommended | Maximum | Notes |
-|------------|---------|-------------|---------|-------|
-| fastapi | 0.109.0 | 0.115.0 | <1.0.0 | Modern with Pydantic v2 |
+| fastapi | 0.109.0 | **0.115.0** | <1.0.0 | Modern with Pydantic v2 |
 | uvicorn | 0.27.0 | 0.30.0 | <1.0.0 | Latest features |
 | httpx | 0.27.0 | 0.27.0 | <1.0.0 | For async HTTP |
 | starlette | 0.36.0 | 0.37.0 | <1.0.0 | Latest compatible |
-| pydantic | 2.5.0 | 2.6.0 | <3.0.0 | v2 with performance gains |
+| pydantic | 2.5.0 | 2.6.0 | <3.0.0 | v2 with 5-50x performance gains |
 | anyio | 4.0.0 | 4.3.0 | <5.0.0 | Modern async support |
 
 ### Optional Dependencies
 
-| Dependency | Purpose | When Required |
-|------------|---------|---------------|
-| uvloop | High-performance event loop | Linux/macOS production |
-| orjson | Fast JSON serialization | High-throughput scenarios |
-| python-multipart | Form data parsing | File uploads |
+| Dependency | Purpose | Version | Notes |
+|------------|---------|---------|-------|
+| uvloop | High-performance event loop | >=0.19.0 | **Critical:** >=0.19.0 for Python 3.12 |
+| orjson | Fast JSON serialization | >=3.9.0 | High-throughput scenarios |
+| python-multipart | Form data parsing | >=0.0.6 | File uploads |
 
 ### Pinned Requirements
 
 ```
-# requirements.txt - FastAPI dependencies
-fastapi>=0.95.0,<1.0.0
-uvicorn[standard]>=0.23.0,<1.0.0
-httpx>=0.24.0,<1.0.0
+# requirements.txt - FastAPI dependencies (Pydantic v2)
+fastapi>=0.109.0,<1.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+starlette>=0.36.0,<1.0.0
+pydantic>=2.5.0,<3.0.0
+httpx>=0.27.0,<1.0.0
 python-multipart>=0.0.6
-anyio>=3.0.0,<5.0.0
+anyio>=4.0.0,<5.0.0
+
+# Event loop - critical for Python 3.12
+uvloop>=0.19.0;platform_system!="Windows"
 
 # Optional performance dependencies
-uvloop>=0.17.0;platform_system!="Windows"
 orjson>=3.9.0
 ```
 
@@ -484,9 +469,14 @@ ENV SSL_CERT_FILE=/path/to/ca-bundle.crt
 
 Before enabling `DRUM_SERVER_TYPE=fastapi`:
 
-- [ ] Python version >= 3.8
-- [ ] No Pydantic v1-only dependencies (or using compatibility layer)
-- [ ] uvloop compatible (or using asyncio on Windows)
+- [ ] Python version >= 3.9 (3.11 or 3.12 recommended)
+- [ ] Pydantic v2 compatible (>= 2.5.0)
+- [ ] uvloop >= 0.19.0 on Python 3.12 (or using asyncio on Windows)
+- [ ] ML library versions compatible with Pydantic v2:
+  - [ ] langchain >= 0.1.0 (if used)
+  - [ ] mlflow >= 2.9.0 (if used)
+  - [ ] ray[serve] >= 2.8.0 (if used)
 - [ ] Container runtime supports cgroups detection
 - [ ] All dependencies at compatible versions
+- [ ] Custom model code migrated from Pydantic v1 to v2 patterns
 - [ ] Custom extensions migrated to `custom_fastapi.py`

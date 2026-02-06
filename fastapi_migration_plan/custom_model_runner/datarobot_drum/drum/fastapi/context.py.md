@@ -19,6 +19,13 @@ The `FastAPIWorkerCtx` class manages the lifecycle of background tasks and resou
 """
 FastAPI Worker Context.
 Mirrors gunicorn/context.py with async-friendly adaptations.
+
+Includes:
+- Background task and thread management
+- Graceful shutdown with request draining
+- Production-ready backpressure
+- HTTP connection pooling with httpx
+- OpenTelemetry asyncio compatibility
 """
 import asyncio
 import logging
@@ -27,6 +34,7 @@ import time
 from typing import Callable, Any, List, Tuple, Optional
 from dataclasses import dataclass, field
 
+import httpx
 from fastapi import FastAPI
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
@@ -153,6 +161,13 @@ class ProductionBackpressure:
 class FastAPIWorkerCtx:
     """
     Worker context for FastAPI, managing lifecycle of background tasks and resources.
+    
+    Features:
+    - Thread and async task management
+    - Graceful shutdown with request draining
+    - HTTP connection pooling via httpx
+    - Production-ready backpressure
+    - OpenTelemetry compatibility patches
     """
     
     def __init__(self, app: FastAPI):
@@ -163,7 +178,26 @@ class FastAPIWorkerCtx:
         self._on_stop: List[Tuple[int, Callable[[], None], str]] = []
         self._on_cleanup: List[Tuple[int, Callable[[], None], str]] = []
         
-        # Production backpressure
+        # Model loading state (used by /startupz probe)
+        self.model_loaded = False
+        
+        # =================================================================
+        # Graceful Shutdown: Request Tracking
+        # =================================================================
+        # Track active requests for graceful drain during shutdown
+        self._active_requests: set[asyncio.Task] = set()
+        self._shutdown_event = asyncio.Event()
+        self._drain_timeout = 30.0  # seconds to wait for active requests
+        
+        # =================================================================
+        # HTTP Connection Pooling
+        # =================================================================
+        # Persistent httpx client for external calls (NIM, APIs, etc.)
+        self._http_client: Optional[httpx.AsyncClient] = None
+        
+        # =================================================================
+        # Production Backpressure
+        # =================================================================
         from datarobot_drum import RuntimeParameters
         max_concurrent = int(RuntimeParameters.get("DRUM_MAX_CONCURRENT_REQUESTS", 10))
         max_queue_depth = int(RuntimeParameters.get("DRUM_MAX_QUEUE_DEPTH", 100))
@@ -177,6 +211,137 @@ class FastAPIWorkerCtx:
         
         # Legacy semaphore for backward compatibility
         self.semaphore = self.backpressure._semaphore
+    
+    # =====================================================================
+    # Request Tracking for Graceful Shutdown
+    # =====================================================================
+    
+    def track_request(self, task: asyncio.Task):
+        """
+        Track an active request task for graceful shutdown.
+        
+        Call this when a request starts processing. The task will be 
+        automatically removed when it completes.
+        
+        Usage in middleware:
+            task = asyncio.current_task()
+            ctx.track_request(task)
+        """
+        self._active_requests.add(task)
+        task.add_done_callback(self._active_requests.discard)
+    
+    def get_active_request_count(self) -> int:
+        """Get the number of currently active requests."""
+        return len(self._active_requests)
+    
+    async def drain_requests(self, timeout: Optional[float] = None) -> bool:
+        """
+        Wait for all active requests to complete before shutdown.
+        
+        This method should be called during graceful shutdown to ensure
+        in-flight requests finish processing before the server stops.
+        
+        Args:
+            timeout: Maximum time to wait (uses self._drain_timeout if None)
+        
+        Returns:
+            True if all requests completed, False if timeout occurred
+        
+        Example:
+            async def shutdown_handler():
+                ctx = get_worker_ctx()
+                if not await ctx.drain_requests(timeout=30):
+                    logger.warning("Some requests did not complete")
+        """
+        timeout = timeout or self._drain_timeout
+        
+        if not self._active_requests:
+            logger.info("No active requests to drain")
+            return True
+        
+        active_count = len(self._active_requests)
+        logger.info(
+            "Draining %d active requests (timeout: %.1fs)...",
+            active_count, timeout
+        )
+        
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(*self._active_requests, return_exceptions=True),
+                timeout=timeout
+            )
+            logger.info("All requests drained successfully")
+            return True
+        except asyncio.TimeoutError:
+            remaining = len(self._active_requests)
+            logger.warning(
+                "Drain timeout after %.1fs, %d requests still active",
+                timeout, remaining
+            )
+            return False
+    
+    def signal_shutdown(self):
+        """Signal that shutdown has been initiated."""
+        self._shutdown_event.set()
+    
+    def is_shutting_down(self) -> bool:
+        """Check if shutdown has been signaled."""
+        return self._shutdown_event.is_set()
+    
+    # =====================================================================
+    # HTTP Connection Pooling
+    # =====================================================================
+    
+    async def get_http_client(self) -> httpx.AsyncClient:
+        """
+        Get a persistent HTTP client with connection pooling.
+        
+        Features:
+        - Connection pooling (max 100 connections, 20 keepalive)
+        - HTTP/2 support for better performance
+        - Configurable timeouts
+        - Automatic cleanup on shutdown
+        
+        Usage:
+            ctx = get_worker_ctx()
+            client = await ctx.get_http_client()
+            response = await client.post(url, json=data)
+        
+        Returns:
+            httpx.AsyncClient instance (shared, do not close manually)
+        """
+        if self._http_client is None:
+            timeout = httpx.Timeout(
+                connect=10.0,    # Connection establishment timeout
+                read=120.0,      # Read timeout (for slow model responses)
+                write=120.0,     # Write timeout
+                pool=5.0         # Wait for connection from pool
+            )
+            limits = httpx.Limits(
+                max_connections=100,           # Total connection pool size
+                max_keepalive_connections=20,  # Connections to keep alive
+                keepalive_expiry=30.0          # Keepalive TTL in seconds
+            )
+            self._http_client = httpx.AsyncClient(
+                timeout=timeout,
+                limits=limits,
+                http2=True,  # Enable HTTP/2 for better multiplexing
+            )
+            # Register cleanup to close client on shutdown
+            self.defer_cleanup(self._close_http_client, desc="HTTP client pool")
+            logger.info(
+                "HTTP client pool initialized (max_connections=%d, http2=True)",
+                limits.max_connections
+            )
+        return self._http_client
+    
+    async def _close_http_client(self):
+        """Close the HTTP client pool."""
+        if self._http_client:
+            logger.info("Closing HTTP client pool...")
+            await self._http_client.aclose()
+            self._http_client = None
+            logger.info("HTTP client pool closed")
 
     def add_thread(self, thread: threading.Thread, *, name: Optional[str] = None):
         """Register a thread for graceful shutdown."""
@@ -300,10 +465,32 @@ class FastAPIWorkerCtx:
             getattr(otel_openai, '__version__', 'unknown')
         )
 
+    async def graceful_shutdown(self, drain_timeout: Optional[float] = None):
+        """
+        Perform a graceful shutdown with request draining.
+        
+        This is the recommended way to stop the server in production.
+        It waits for active requests to complete before stopping.
+        
+        Args:
+            drain_timeout: Max time to wait for requests (default: 30s)
+        """
+        logger.info("Initiating graceful shutdown...")
+        self.signal_shutdown()
+        
+        # Wait for active requests to complete
+        drained = await self.drain_requests(timeout=drain_timeout)
+        if not drained:
+            logger.warning("Proceeding with shutdown despite incomplete requests")
+        
+        # Now perform normal stop
+        self.stop()
+    
     def stop(self):
         """Gracefully signal all tasks to stop."""
         logger.info("FastAPIWorkerCtx stopping...")
         self._running = False
+        self.signal_shutdown()
         
         # Sort by priority (ascending) - lower numbers run first
         for priority, fn, desc in sorted(self._on_stop, key=lambda x: x[0]):

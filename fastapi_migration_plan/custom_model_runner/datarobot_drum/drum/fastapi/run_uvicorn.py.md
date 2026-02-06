@@ -15,6 +15,10 @@ This module provides the entry point for running the DRUM server with Uvicorn. I
 """
 Uvicorn launcher for DRUM FastAPI server.
 Mirrors run_gunicorn.py functionality.
+
+Requirements:
+- Python 3.9+ (for Pydantic v2 and modern async features)
+- uvloop >= 0.19.0 on Python 3.12 (to avoid segfaults)
 """
 import logging
 import subprocess
@@ -27,6 +31,17 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.fastapi.config import UvicornConfig
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+
+# Python version check - FastAPI server requires Python 3.9+
+# This is due to Pydantic v2 requirements and modern async features
+MIN_PYTHON_VERSION = (3, 9)
+
+if sys.version_info < MIN_PYTHON_VERSION:
+    raise RuntimeError(
+        f"FastAPI server requires Python {MIN_PYTHON_VERSION[0]}.{MIN_PYTHON_VERSION[1]}+. "
+        f"Current version: {sys.version}. "
+        f"Use DRUM_SERVER_TYPE=flask for Python {sys.version_info[0]}.{sys.version_info[1]}."
+    )
 
 
 def main_uvicorn():
@@ -153,3 +168,18 @@ See `app.py.md` for lifespan implementation details.
 - The subprocess approach is preferred as it provides better process isolation.
 - The programmatic approach (`main_uvicorn_programmatic`) is provided as an alternative for testing or single-worker scenarios.
 - Unlike gunicorn, Uvicorn handles signals (SIGTERM, SIGINT) internally for graceful shutdown.
+
+## Python Version Requirements
+
+| Python Version | FastAPI Support | Notes |
+|----------------|-----------------|-------|
+| 3.7, 3.8 | No | Use `DRUM_SERVER_TYPE=flask` |
+| 3.9+ | Yes | Minimum supported version |
+| 3.11 | Yes | Recommended |
+| 3.12 | Yes | Requires uvloop >= 0.19.0 |
+
+The Python 3.9+ requirement is due to:
+- Pydantic v2 (>=2.5.0) requires Python 3.8+, but 3.9+ is recommended
+- Modern async/await patterns and type hints
+- Better performance with newer Python versions
+- FastAPI 0.109+ best practices

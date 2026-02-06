@@ -56,7 +56,9 @@ flowchart LR
 
 | Phase | Primary Risk | Mitigation |
 |-------|-------------|------------|
-| M1-M2 | Pydantic v1/v2 conflicts | Start with FastAPI <0.100, migrate to v2 later |
+| M1-M2 | ML library Pydantic v2 conflicts | Document required library versions in USER_MIGRATION_GUIDE.md |
+| M1 | Python 3.12 uvloop segfaults | Require uvloop >= 0.19.0, auto-fallback to asyncio |
+| M1-M2 | Custom model Pydantic v1 code | Provide v1 to v2 migration patterns in documentation |
 | M3 | ThreadPoolExecutor deadlocks | Implement backpressure early, load test extensively |
 | M5 | Production regressions | Extended canary phases, automatic rollback triggers |
 | M6 | Customer extension breakage | 3-month deprecation period, migration support |
@@ -148,14 +150,19 @@ custom_model_runner/datarobot_drum/drum/
 
 ### Details of Changes by File
 
-#### 1. `requirements.txt` - Add dependencies
+#### 1. `requirements.txt` - Add dependencies (Pydantic v2)
 
 ```diff
  flask
  jinja2>=3.0.0
-+fastapi>=0.100.0
-+uvicorn[standard]>=0.23.0
-+httpx>=0.24.0
++# FastAPI with Pydantic v2
++fastapi>=0.109.0,<1.0.0
++uvicorn[standard]>=0.27.0,<1.0.0
++starlette>=0.36.0,<1.0.0
++pydantic>=2.5.0,<3.0.0
++httpx>=0.27.0,<1.0.0
++# Event loop - critical for Python 3.12
++uvloop>=0.19.0;platform_system!="Windows"
  memory_profiler<1.0.0
 ```
 
@@ -442,10 +449,18 @@ See [CANARY_DEPLOYMENT.md](CANARY_DEPLOYMENT.md) for detailed strategy.
 
 ## Milestone 1 Checklist
 
-### Dependencies
-- [ ] Add `fastapi>=0.100.0` to requirements.txt
-- [ ] Add `uvicorn[standard]>=0.23.0` to requirements.txt
-- [ ] Add `httpx>=0.24.0` to requirements.txt
+### Dependencies (Pydantic v2)
+- [ ] Add `fastapi>=0.109.0,<1.0.0` to requirements.txt
+- [ ] Add `uvicorn[standard]>=0.27.0,<1.0.0` to requirements.txt
+- [ ] Add `pydantic>=2.5.0,<3.0.0` to requirements.txt
+- [ ] Add `httpx>=0.27.0,<1.0.0` to requirements.txt
+- [ ] Add `uvloop>=0.19.0` to requirements.txt (Python 3.12 fix)
+
+### Pydantic v2 Migration
+- [ ] Migrate `lazy_loading/schema.py` to v2 patterns (ConfigDict, Annotated)
+- [ ] Migrate `lazy_loading/lazy_loading_handler.py` (model_validate_json)
+- [ ] Add Python 3.9+ version check
+- [ ] Add Python 3.12 uvloop version check
 
 ### Constants (enum.py)
 - [ ] Add `FASTAPI_EXT_FILE_NAME`
@@ -456,12 +471,12 @@ See [CANARY_DEPLOYMENT.md](CANARY_DEPLOYMENT.md) for detailed strategy.
 
 ### FastAPI module
 - [ ] Create `fastapi/__init__.py`
-- [ ] Create `fastapi/config.py` with UvicornConfig
+- [ ] Create `fastapi/config.py` with UvicornConfig (includes uvloop 3.12 check)
 - [ ] Create `fastapi/context.py` with FastAPIWorkerCtx and Semaphore
 - [ ] Create `fastapi/app.py` with lifespan and app.state.worker_ctx
 - [ ] Create `fastapi/routes.py`
 - [ ] Create `fastapi/middleware.py` (TimeoutMiddleware)
-- [ ] Create `fastapi/run_uvicorn.py`
+- [ ] Create `fastapi/run_uvicorn.py` (includes Python version check)
 - [ ] Create `fastapi/otel.py`
 - [ ] Create `fastapi/error_server.py`
 

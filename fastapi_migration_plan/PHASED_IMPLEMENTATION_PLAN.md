@@ -60,13 +60,27 @@ flask>=2.0.0
 gunicorn>=20.0.0
 gevent>=21.0.0
 
-# Add for FastAPI support
-fastapi>=0.100.0
-uvicorn[standard]>=0.23.0
-httpx>=0.24.0
+# Add for FastAPI support (Pydantic v2)
+fastapi>=0.109.0,<1.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+starlette>=0.36.0,<1.0.0
+pydantic>=2.5.0,<3.0.0
+httpx>=0.27.0,<1.0.0
+
+# Event loop - critical for Python 3.12
+uvloop>=0.19.0;platform_system!="Windows"
 ```
 
-### 0.2 Add constants
+### 0.2 Python Version Requirements
+
+| Python Version | Support | Notes |
+|----------------|---------|-------|
+| 3.7, 3.8 | Flask only | Use `DRUM_SERVER_TYPE=flask` |
+| 3.9+ | FastAPI | Minimum supported |
+| 3.11 | FastAPI | Recommended |
+| 3.12 | FastAPI | Requires uvloop >= 0.19.0 |
+
+### 0.3 Add constants
 
 File: [`custom_model_runner/datarobot_drum/drum/enum.py`](../custom_model_runner/datarobot_drum/drum/enum.py)
 
@@ -291,20 +305,28 @@ drum server --code-dir ./model --target-type regression --address 0.0.0.0:8080
 | Memory footprint (large files) | Use `SpooledTemporaryFile` for handling multipart/form-data |
 | Outdated OpenTelemetry patch | Version check for `opentelemetry` + fallback to standard behavior |
 | Performance issues | Benchmark-driven tuning of `DRUM_FASTAPI_EXECUTOR_WORKERS` |
+| ML library Pydantic v2 conflicts | Document required library versions in USER_MIGRATION_GUIDE.md |
+| Python 3.12 uvloop segfaults | Require uvloop >= 0.19.0, auto-fallback to asyncio if not available |
+| Custom model Pydantic v1 code | Provide migration guide for v1 to v2 patterns |
 
 ---
 
 ## Checklist by Phases
 
 ### Phase 0: Foundation
-- [ ] Add FastAPI dependencies to requirements.txt
+- [ ] Add FastAPI dependencies to requirements.txt (Pydantic v2)
 - [ ] Add constants DRUM_SERVER_TYPE and FASTAPI_* to enum.py
+- [ ] Migrate existing Pydantic v1 code to v2 patterns
+  - [ ] Update `lazy_loading/schema.py` (ConfigDict, Annotated types)
+  - [ ] Update `lazy_loading/lazy_loading_handler.py` (model_validate_json)
+- [ ] Add Python 3.9+ version check in run_uvicorn.py
+- [ ] Add Python 3.12 uvloop version check in config.py
 
 ### Phase 1: Core Infrastructure
-- [ ] Create fastapi/config.py with UvicornConfig
+- [ ] Create fastapi/config.py with UvicornConfig (includes uvloop 3.12 check)
 - [ ] Create fastapi/context.py with FastAPIWorkerCtx
 - [ ] Create fastapi/app.py with lifespan events
-- [ ] Create fastapi/run_uvicorn.py launcher
+- [ ] Create fastapi/run_uvicorn.py launcher (includes Python version check)
 
 ### Phase 2: Integration
 - [ ] Update entry_point.py for server selection
@@ -314,7 +336,9 @@ drum server --code-dir ./model --target-type regression --address 0.0.0.0:8080
 ### Phase 3: Extensions and Testing
 - [ ] Create fastapi/extensions.py for custom_fastapi.py
 - [ ] Add unit and functional tests for FastAPI
+- [ ] Add Pydantic v2 compatibility tests
 
 ### Phase 4: Environments
-- [ ] Update Docker base images with FastAPI deps
+- [ ] Update Docker base images with FastAPI deps (Pydantic v2)
 - [ ] Update public_dropin_environments
+- [ ] Ensure Python 3.9+ in all environments

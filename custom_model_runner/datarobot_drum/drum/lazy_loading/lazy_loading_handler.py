@@ -56,7 +56,7 @@ class LazyLoadingHandler:
                     f"Missing credential for repository {repository.repository_id}, "
                     f"credential_id: {repository.credential_id}"
                 )
-            credentials[repository.credential_id] = S3Credentials.parse_raw(credential_content)
+            credentials[repository.credential_id] = S3Credentials.model_validate_json(credential_content)
         return credentials
 
     def download_lazy_loading_files(self):

@@ -9,16 +9,20 @@ Core route definitions for FastAPI, abstracted from logic, including Prometheus 
 Core route definitions for FastAPI DRUM server.
 
 Includes:
-- Health check endpoints (/ping, /health, /livez, /readyz)
+- Health check endpoints (/ping, /health, /livez, /readyz, /startupz)
+- Chat completions with SSE streaming support
 - Prometheus metrics endpoint (/metrics)
 - Info endpoint (/info)
 """
+import asyncio
+import json
 import time
 import logging
-from typing import Optional
+from typing import Optional, Any, AsyncGenerator
 
 from fastapi import APIRouter, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
 
 from datarobot_drum.drum.fastapi.app import get_worker_ctx
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
@@ -26,6 +30,27 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 router = APIRouter()
+
+
+# =============================================================================
+# Pydantic Response Models (for OpenAPI documentation)
+# =============================================================================
+
+class PredictionResponse(BaseModel):
+    """Response model for prediction endpoints."""
+    predictions: list[Any] = Field(..., description="Model predictions")
+
+class ErrorResponse(BaseModel):
+    """Standard error response model."""
+    message: str = Field(..., description="Error message")
+    request_id: Optional[str] = Field(None, description="Request ID for tracking")
+    error: Optional[str] = Field(None, description="Error code")
+
+class HealthResponse(BaseModel):
+    """Health check response model."""
+    status: str = Field(..., description="Health status")
+    message: Optional[str] = Field(None, description="Additional message")
+    reason: Optional[str] = Field(None, description="Reason if not healthy")
 
 
 # =============================================================================
@@ -89,6 +114,216 @@ async def readyz():
             return JSONResponse(status_code=503, content=result)
     
     return {"status": "ready"}
+
+
+@router.get("/startupz")
+async def startupz():
+    """
+    Kubernetes startup probe.
+    
+    Returns 200 only after model is fully loaded.
+    Use with startupProbe in K8s to allow slow model loading
+    without affecting liveness/readiness probe intervals.
+    
+    Example K8s config:
+        startupProbe:
+          httpGet:
+            path: /startupz
+            port: 8080
+          failureThreshold: 30
+          periodSeconds: 10
+    """
+    ctx = get_worker_ctx()
+    
+    if not ctx:
+        return JSONResponse(
+            status_code=503, 
+            content={"status": "initializing", "model_loaded": False}
+        )
+    
+    if not getattr(ctx, "model_loaded", False):
+        return JSONResponse(
+            status_code=503, 
+            content={"status": "loading model", "model_loaded": False}
+        )
+    
+    return {"status": "started", "model_loaded": True}
+
+
+# =============================================================================
+# Chat Completions with SSE Streaming
+# =============================================================================
+
+async def _stream_chat_response(
+    predictor, 
+    body: dict, 
+    request: Request
+) -> AsyncGenerator[str, None]:
+    """
+    Generator for SSE streaming chat responses.
+    
+    Yields Server-Sent Events in OpenAI-compatible format:
+    - data: {chunk JSON}
+    - data: [DONE] at end
+    
+    Handles client disconnection gracefully.
+    """
+    try:
+        # Check if predictor supports streaming
+        if not hasattr(predictor, "stream_chat"):
+            error_chunk = {
+                "error": {
+                    "message": "Streaming not supported by this model",
+                    "type": "unsupported_operation"
+                }
+            }
+            yield f"data: {json.dumps(error_chunk)}\n\n"
+            return
+        
+        async for chunk in predictor.stream_chat(body):
+            # Check if client disconnected
+            if await request.is_disconnected():
+                logger.info("Stream cancelled - client disconnected")
+                return
+            
+            yield f"data: {json.dumps(chunk)}\n\n"
+        
+        yield "data: [DONE]\n\n"
+        
+    except asyncio.CancelledError:
+        logger.info("Stream cancelled by client")
+        raise
+    except Exception as e:
+        logger.error("Error during streaming: %s", e)
+        error_chunk = {
+            "error": {
+                "message": str(e),
+                "type": "internal_error"
+            }
+        }
+        yield f"data: {json.dumps(error_chunk)}\n\n"
+
+
+@router.post("/chat/completions")
+@router.post("/v1/chat/completions")
+async def chat_completions(request: Request):
+    """
+    OpenAI-compatible chat completions endpoint.
+    
+    Supports both streaming (SSE) and non-streaming responses.
+    Set "stream": true in request body for streaming.
+    
+    Request body:
+        {
+            "messages": [{"role": "user", "content": "Hello"}],
+            "stream": false,  // Optional, default false
+            "model": "...",   // Optional
+            ...
+        }
+    
+    Streaming response:
+        Content-Type: text/event-stream
+        data: {"choices": [{"delta": {"content": "..."}}]}
+        data: [DONE]
+    
+    Non-streaming response:
+        Content-Type: application/json
+        {"choices": [{"message": {"content": "..."}}]}
+    """
+    ctx = get_worker_ctx()
+    
+    if not ctx:
+        return JSONResponse(
+            status_code=503,
+            content={"error": {"message": "Model not ready", "type": "service_unavailable"}}
+        )
+    
+    try:
+        body = await request.json()
+    except json.JSONDecodeError as e:
+        return JSONResponse(
+            status_code=400,
+            content={"error": {"message": f"Invalid JSON: {e}", "type": "invalid_request"}}
+        )
+    
+    # Check if streaming is requested
+    stream = body.get("stream", False)
+    
+    if stream:
+        return StreamingResponse(
+            _stream_chat_response(ctx.predictor, body, request),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no",  # Disable nginx buffering
+            }
+        )
+    
+    # Non-streaming response
+    if hasattr(ctx.predictor, "chat_completion"):
+        try:
+            result = await ctx.predictor.chat_completion(body)
+            return JSONResponse(content=result)
+        except Exception as e:
+            logger.error("Chat completion error: %s", e)
+            return JSONResponse(
+                status_code=500,
+                content={"error": {"message": str(e), "type": "internal_error"}}
+            )
+    else:
+        return JSONResponse(
+            status_code=501,
+            content={"error": {"message": "Chat completions not supported", "type": "not_implemented"}}
+        )
+
+
+# =============================================================================
+# Prediction Endpoints with OpenAPI Schema
+# =============================================================================
+
+@router.post(
+    "/predict/",
+    response_model=PredictionResponse,
+    responses={
+        400: {"model": ErrorResponse, "description": "Invalid input data"},
+        503: {"model": ErrorResponse, "description": "Model not ready"},
+        504: {"model": ErrorResponse, "description": "Request timeout"},
+    },
+    summary="Make predictions",
+    description="Submit data for model predictions. Accepts CSV or JSON input.",
+    tags=["predictions"],
+)
+@router.post("/predict")
+async def predict(request: Request):
+    """
+    Main prediction endpoint.
+    
+    Accepts CSV or JSON input data and returns model predictions.
+    """
+    ctx = get_worker_ctx()
+    
+    if not ctx:
+        return JSONResponse(
+            status_code=503,
+            content={"message": "Model not ready", "error": "service_unavailable"}
+        )
+    
+    if hasattr(ctx, "predictor") and hasattr(ctx.predictor, "predict"):
+        try:
+            result = await ctx.predictor.predict(request)
+            return result
+        except Exception as e:
+            logger.error("Prediction error: %s", e)
+            return JSONResponse(
+                status_code=500,
+                content={"message": str(e), "error": "prediction_error"}
+            )
+    
+    return JSONResponse(
+        status_code=501,
+        content={"message": "Prediction not supported", "error": "not_implemented"}
+    )
 
 
 # =============================================================================
