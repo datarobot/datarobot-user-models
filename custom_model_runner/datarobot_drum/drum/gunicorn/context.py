@@ -615,6 +615,51 @@ class WorkerCtx:
         self._patch_otel_utils(bg_loop, _wrap_future)
         self._patch_guard_executor(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
         self._patch_nemo_rails(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
+        self._patch_openai_client()
+
+    def _patch_openai_client(self):
+        """
+        Pre-cache the OpenAI client's _platform attribute to prevent asyncify(get_platform)().
+
+        The OpenAI SDK's AsyncAPIClient.request() lazily initializes self._platform by calling:
+            self._platform = await asyncify(get_platform)()
+
+        asyncify() delegates to asyncio.to_thread() → loop.run_in_executor() →
+        ThreadPoolExecutor.submit(). Inside submit(), Python acquires _global_shutdown_lock
+        (a native _thread.lock) together with the executor's _shutdown_lock (a gevent-patched
+        threading.Lock). When a Gunicorn WORKER TIMEOUT fires SIGABRT → sys.exit(1) during
+        this lock acquisition, the context manager's __exit__ tries to release a lock that
+        was never acquired, causing 'RuntimeError: release unlocked lock'.
+
+        The fix: call get_platform() synchronously once (it's a trivial function that reads
+        platform.system() / distro.id()) and patch AsyncAPIClient.__init__ to pre-set the
+        cached value, so the asyncify codepath is never reached.
+        """
+        try:
+            from openai._base_client import AsyncAPIClient, get_platform
+        except ImportError:
+            return
+
+        # Call get_platform() synchronously — it only reads platform info, no I/O.
+        try:
+            cached_platform = get_platform()
+        except Exception:
+            cached_platform = "Unknown"
+
+        _original_init = AsyncAPIClient.__init__
+
+        def patched_init(self, *args, **kwargs):
+            _original_init(self, *args, **kwargs)
+            # Pre-set _platform so request() never calls asyncify(get_platform)().
+            # This avoids ThreadPoolExecutor.submit() → _global_shutdown_lock,
+            # which causes "release unlocked lock" under gevent + SIGABRT.
+            self._platform = cached_platform
+
+        AsyncAPIClient.__init__ = patched_init
+        logger.info(
+            "Patched OpenAI AsyncAPIClient.__init__ to pre-cache _platform=%s",
+            cached_platform,
+        )
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
@@ -903,7 +948,6 @@ class WorkerCtx:
         # Patch generate() - synchronous wrapper for generate_async
         def patched_generate(self, prompt=None, messages=None, options=None, state=None):
             """Patched generate to use background loop instead of loop.run_until_complete."""
-            import asyncio
 
             # Run in background loop instead of get_or_create_event_loop().run_until_complete()
             async def _coro():
@@ -922,7 +966,6 @@ class WorkerCtx:
         if hasattr(LLMRails, "generate_events"):
             def patched_generate_events(self, events):
                 """Patched generate_events to use background loop."""
-                import asyncio
 
                 async def _coro():
                     return await self.generate_events_async(events=events)
@@ -935,7 +978,6 @@ class WorkerCtx:
         if hasattr(LLMRails, "process_events"):
             def patched_process_events(self, events, state=None, blocking=False):
                 """Patched process_events to use background loop."""
-                import asyncio
 
                 async def _coro():
                     return await self.process_events_async(events, state, blocking)
@@ -954,7 +996,11 @@ class WorkerCtx:
         """
         self._running = True
 
-        self._setup_async_patches()
+        if _is_gevent_patched():
+            logger.info("Gevent worker detected, applying async patches")
+            self._setup_async_patches()
+        else:
+            logger.info("Sync worker detected, skipping async patches")
 
         from datarobot_drum.drum.main import main
 
