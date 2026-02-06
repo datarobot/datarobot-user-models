@@ -1,29 +1,112 @@
 # Plan: custom_model_runner/datarobot_drum/drum/root_predictors/prediction_server.py
 
-Refactor `PredictionServer` to support FastAPI routing alongside Flask.
+Refactor `PredictionServer` to support FastAPI routing alongside Flask, with memory-efficient request handling.
 
 ## Overview
 
-The `PredictionServer` class will be updated to work with both Flask and FastAPI apps. When `DRUM_SERVER_TYPE=fastapi`, it will use FastAPI's `APIRouter` instead of Flask's `Blueprint`.
+The `PredictionServer` class will be updated to work with both Flask and FastAPI apps. Key improvements:
+- Centralized prediction logic callable from both frameworks
+- Memory-efficient streaming for large payloads
+- Proper resource cleanup via worker context
 
 ## Changes:
 
 ### 1. Imports
+
 ```python
 # Add new imports
-from typing import Union, Optional, List
-from fastapi import FastAPI, APIRouter, Request, Response, File, UploadFile, Form
+import asyncio
+import logging
+from concurrent.futures import ThreadPoolExecutor
+from typing import Union, Optional, Callable, AsyncIterator, Dict, Any
+from tempfile import SpooledTemporaryFile
+from functools import partial
+
+from fastapi import FastAPI, APIRouter, Request, Response, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 import httpx  # Async HTTP client for proxy endpoints
 
-# Keep existing Flask imports for backward compatibility during transition
+# Keep existing Flask imports for backward compatibility
 from flask import Flask, Blueprint, Response as FlaskResponse, jsonify, request as flask_request
+
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 ```
 
-### 2. Update `__init__` signature
+### 2. Memory-Efficient File Handling
 
 ```python
-def __init__(self, params: dict, app: Union[Flask, FastAPI, None] = None, worker_ctx=None, flask_app=None):
+# Constants for memory management
+SPOOL_MAX_SIZE = 10 * 1024 * 1024  # 10MB - files smaller than this stay in memory
+CHUNK_SIZE = 64 * 1024  # 64KB chunks for streaming
+
+
+class SpooledUploadFile:
+    """
+    Memory-efficient wrapper for uploaded files.
+    
+    Small files (< SPOOL_MAX_SIZE) stay in memory.
+    Large files are spooled to disk automatically.
+    """
+    
+    def __init__(self, upload_file: UploadFile, max_memory: int = SPOOL_MAX_SIZE):
+        self._upload_file = upload_file
+        self._spooled = SpooledTemporaryFile(max_size=max_memory, mode='w+b')
+        self._size = 0
+        self._fully_read = False
+        self.filename = upload_file.filename
+        self.content_type = upload_file.content_type
+    
+    async def read_to_spool(self) -> int:
+        """Read entire file into spool, return size."""
+        if self._fully_read:
+            return self._size
+        
+        while True:
+            chunk = await self._upload_file.read(CHUNK_SIZE)
+            if not chunk:
+                break
+            self._spooled.write(chunk)
+            self._size += len(chunk)
+        
+        self._spooled.seek(0)
+        self._fully_read = True
+        return self._size
+    
+    def read(self, size: int = -1) -> bytes:
+        """Synchronous read from spooled file."""
+        return self._spooled.read(size)
+    
+    def seek(self, pos: int):
+        """Seek in spooled file."""
+        self._spooled.seek(pos)
+    
+    def close(self):
+        """Clean up resources."""
+        self._spooled.close()
+    
+    @property
+    def size(self) -> int:
+        return self._size
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, *args):
+        self.close()
+```
+
+### 3. Update `__init__` signature
+
+```python
+def __init__(
+    self, 
+    params: dict, 
+    app: Union[Flask, FastAPI, None] = None, 
+    worker_ctx=None, 
+    flask_app=None  # Deprecated
+):
     self._params = params
     
     # Backwards compatibility for flask_app parameter
@@ -37,16 +120,239 @@ def __init__(self, params: dict, app: Union[Flask, FastAPI, None] = None, worker
         self.app = flask_app
     else:
         self.app = app
-        
-    self._worker_ctx = worker_ctx  # Store worker context for cleanup and watchdog
-    # ... rest remains the same
+    
+    self._worker_ctx = worker_ctx
+    self._executor: Optional[ThreadPoolExecutor] = None
+    self._executor_shutdown = False
+    
+    # ... rest of initialization ...
 ```
 
-### 3. Refactor `materialize()` method
+### 4. Executor Management with Backpressure
 
-Split into two methods based on app type:
-- `_materialize_flask()` - existing Flask blueprint logic
-- `_materialize_fastapi()` - new FastAPI router logic
+> ⚠️ **CRITICAL FIX:** The executor must have backpressure to prevent deadlocks when
+> concurrent requests exceed executor capacity.
+
+```python
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
+from typing import Optional, Callable, TypeVar
+from functools import partial
+
+T = TypeVar("T")
+
+
+class ExecutorWithBackpressure:
+    """
+    ThreadPoolExecutor wrapper with asyncio-based backpressure.
+    
+    Prevents deadlocks by limiting the number of concurrent tasks
+    submitted to the executor. When the limit is reached, new requests
+    wait asynchronously (non-blocking) until a slot becomes available.
+    
+    Key differences from raw ThreadPoolExecutor:
+    - Semaphore limits concurrent submissions (not just worker threads)
+    - Async waiting prevents event loop blocking
+    - Timeout support for queued requests
+    - Metrics for monitoring queue depth
+    """
+    
+    def __init__(
+        self,
+        max_workers: int = 4,
+        max_queue_depth: int = 100,
+        queue_timeout: float = 30.0,
+        thread_name_prefix: str = "drum-predict-"
+    ):
+        """
+        Initialize executor with backpressure.
+        
+        Args:
+            max_workers: Number of threads in the pool
+            max_queue_depth: Maximum number of pending tasks (backpressure limit)
+            queue_timeout: Timeout for waiting in queue (seconds)
+            thread_name_prefix: Prefix for thread names
+        """
+        self._max_workers = max_workers
+        self._max_queue_depth = max_queue_depth
+        self._queue_timeout = queue_timeout
+        
+        self._executor = ThreadPoolExecutor(
+            max_workers=max_workers,
+            thread_name_prefix=thread_name_prefix
+        )
+        
+        # Semaphore limits total concurrent operations (workers + queue)
+        self._semaphore = asyncio.Semaphore(max_workers + max_queue_depth)
+        
+        # Track metrics
+        self._pending_count = 0
+        self._rejected_count = 0
+        self._completed_count = 0
+        self._lock = asyncio.Lock()
+        
+        self._shutdown = False
+        
+        logger.info(
+            "Created ExecutorWithBackpressure: workers=%d, max_queue=%d, timeout=%.1fs",
+            max_workers, max_queue_depth, queue_timeout
+        )
+    
+    async def run(self, func: Callable[..., T], *args, **kwargs) -> T:
+        """
+        Run a sync function in the thread pool with backpressure.
+        
+        Args:
+            func: Synchronous function to execute
+            *args, **kwargs: Arguments to pass to the function
+            
+        Returns:
+            Result of the function
+            
+        Raises:
+            asyncio.TimeoutError: If waiting in queue exceeds timeout
+            RuntimeError: If executor is shut down
+        """
+        if self._shutdown:
+            raise RuntimeError("Executor is shut down")
+        
+        # Try to acquire semaphore with timeout (backpressure)
+        try:
+            acquired = await asyncio.wait_for(
+                self._semaphore.acquire(),
+                timeout=self._queue_timeout
+            )
+        except asyncio.TimeoutError:
+            async with self._lock:
+                self._rejected_count += 1
+            logger.warning(
+                "Request rejected due to backpressure (queue full for %.1fs). "
+                "pending=%d, max=%d",
+                self._queue_timeout, self._pending_count, self._max_queue_depth
+            )
+            raise asyncio.TimeoutError(
+                f"Server overloaded. Queue full for {self._queue_timeout}s. "
+                f"Try again later."
+            )
+        
+        async with self._lock:
+            self._pending_count += 1
+        
+        try:
+            # Run in thread pool
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(
+                self._executor,
+                partial(func, *args, **kwargs)
+            )
+            
+            async with self._lock:
+                self._completed_count += 1
+            
+            return result
+        finally:
+            async with self._lock:
+                self._pending_count -= 1
+            self._semaphore.release()
+    
+    async def get_metrics(self) -> dict:
+        """Get executor metrics for monitoring."""
+        async with self._lock:
+            return {
+                "executor_workers": self._max_workers,
+                "executor_max_queue": self._max_queue_depth,
+                "executor_pending": self._pending_count,
+                "executor_queue_available": self._semaphore._value,
+                "executor_completed": self._completed_count,
+                "executor_rejected": self._rejected_count,
+            }
+    
+    def shutdown(self, wait: bool = True, cancel_futures: bool = False):
+        """Shutdown the executor."""
+        self._shutdown = True
+        logger.info("Shutting down ExecutorWithBackpressure...")
+        
+        import sys
+        if sys.version_info >= (3, 9):
+            self._executor.shutdown(wait=wait, cancel_futures=cancel_futures)
+        else:
+            self._executor.shutdown(wait=wait)
+        
+        logger.debug("ExecutorWithBackpressure shut down successfully")
+
+
+def _get_executor(self) -> ExecutorWithBackpressure:
+    """Get or create thread pool executor with backpressure for sync operations."""
+    if self._executor is None:
+        from datarobot_drum import RuntimeParameters
+        
+        # Calculate optimal workers based on uvicorn workers
+        uvicorn_workers = int(os.environ.get("UVICORN_WORKERS", 1))
+        
+        # Default: 2x uvicorn workers, minimum 4
+        default_workers = max(4, uvicorn_workers * 2)
+        
+        if RuntimeParameters.has("DRUM_FASTAPI_EXECUTOR_WORKERS"):
+            workers = int(RuntimeParameters.get("DRUM_FASTAPI_EXECUTOR_WORKERS"))
+        else:
+            workers = default_workers
+        
+        # Queue depth: allow some queuing but not unbounded
+        max_queue_depth = workers * 10  # 10 pending per worker
+        if RuntimeParameters.has("DRUM_FASTAPI_EXECUTOR_QUEUE_DEPTH"):
+            max_queue_depth = int(RuntimeParameters.get("DRUM_FASTAPI_EXECUTOR_QUEUE_DEPTH"))
+        
+        # Queue timeout
+        queue_timeout = 30.0
+        if RuntimeParameters.has("DRUM_FASTAPI_EXECUTOR_QUEUE_TIMEOUT"):
+            queue_timeout = float(RuntimeParameters.get("DRUM_FASTAPI_EXECUTOR_QUEUE_TIMEOUT"))
+        
+        self._executor = ExecutorWithBackpressure(
+            max_workers=workers,
+            max_queue_depth=max_queue_depth,
+            queue_timeout=queue_timeout,
+            thread_name_prefix="drum-predict-"
+        )
+        
+        # Register cleanup with worker context
+        if self._worker_ctx:
+            self._worker_ctx.defer_cleanup(
+                lambda: self._executor.shutdown(wait=True, cancel_futures=True),
+                order=100,  # High priority - shutdown early
+                desc="ExecutorWithBackpressure shutdown"
+            )
+        
+        logger.info(
+            "Created ExecutorWithBackpressure: workers=%d, queue=%d, timeout=%.1fs",
+            workers, max_queue_depth, queue_timeout
+        )
+    
+    return self._executor
+```
+
+### Backpressure Configuration
+
+| Parameter | Description | Default | Recommended |
+|-----------|-------------|---------|-------------|
+| `DRUM_FASTAPI_EXECUTOR_WORKERS` | Thread pool size | `max(4, uvicorn_workers * 2)` | CPU cores for CPU-bound, 2-4x for I/O-bound |
+| `DRUM_FASTAPI_EXECUTOR_QUEUE_DEPTH` | Max pending requests | `workers * 10` | Adjust based on latency requirements |
+| `DRUM_FASTAPI_EXECUTOR_QUEUE_TIMEOUT` | Queue wait timeout (sec) | `30.0` | Match client timeout |
+
+### Why Backpressure is Critical
+
+Without backpressure:
+```
+8 uvicorn workers × 100 concurrent connections = 800 tasks
+4 executor threads = DEADLOCK (796 tasks waiting forever)
+```
+
+With backpressure:
+```
+4 executor threads + 40 queue slots = 44 max concurrent
+Task #45 waits async (non-blocking) or gets 503 after timeout
+```
+
+### 5. Refactored `materialize()` Method
 
 ```python
 def materialize(self):
@@ -55,7 +361,7 @@ def materialize(self):
     else:
         return self._materialize_flask()
 
-def _is_fastapi_mode(self):
+def _is_fastapi_mode(self) -> bool:
     from datarobot_drum import RuntimeParameters
     return (
         RuntimeParameters.has("DRUM_SERVER_TYPE") 
@@ -63,9 +369,7 @@ def _is_fastapi_mode(self):
     )
 ```
 
-### 4. Implement `_materialize_fastapi()`
-
-All endpoints must be implemented with FastAPI equivalents:
+### 6. FastAPI Routes with Streaming Support
 
 ```python
 def _materialize_fastapi(self):
@@ -82,6 +386,25 @@ def _materialize_fastapi(self):
             return self._predictor.liveness_probe()
         return {"message": "OK"}
     
+    @router.get("/livez")
+    async def livez():
+        """Kubernetes liveness probe."""
+        return {"status": "alive"}
+    
+    @router.get("/readyz")
+    async def readyz():
+        """Kubernetes readiness probe."""
+        if not self._worker_ctx or not self._worker_ctx.is_running:
+            return JSONResponse(
+                status_code=503,
+                content={"status": "not ready", "reason": "worker not running"}
+            )
+        if hasattr(self._predictor, "readiness_probe"):
+            result = self._predictor.readiness_probe()
+            if result.get("status") != "ok":
+                return JSONResponse(status_code=503, content=result)
+        return {"status": "ready"}
+    
     @router.get("/capabilities")
     @router.get("/capabilities/")
     async def capabilities():
@@ -90,28 +413,13 @@ def _materialize_fastapi(self):
     @router.get("/info")
     @router.get("/info/")
     async def info():
-        # ...
-```
-
-### 4a. Trailing Slash Consistency Middleware
-To ensure consistency across all endpoints without defining multiple routes for each, we can add a normalization middleware:
-
-```python
-class TrailingSlashMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path != "/" and request.url.path.endswith("/"):
-            # Internal redirect or just strip slash for routing
-            # FastAPI's APIRouter(redirect_slashes=True) already does this with 307
-            pass
-        return await call_next(request)
-```
-
-However, defining multiple decorators is more explicit and avoids redirects for common endpoints.
         model_info = self._predictor.model_info()
-        model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
-        model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
-        model_info.update({ModelInfoKeys.DRUM_SERVER: "fastapi"})
-        model_info.update({ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)})
+        model_info.update({
+            ModelInfoKeys.LANGUAGE: self._run_language.value,
+            ModelInfoKeys.DRUM_VERSION: drum_version,
+            ModelInfoKeys.DRUM_SERVER: "fastapi",
+            ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)
+        })
         return model_info
     
     @router.get("/health/")
@@ -122,16 +430,16 @@ However, defining multiple decorators is more explicit and avoids redirects for 
     
     @router.get("/stats/")
     async def stats():
-        """Endpoint for resource and performance statistics."""
         ret_dict = self._resource_monitor.collect_resources_info()
         
-        if self._stats_collector:
-            self._stats_collector.round()
-            ret_dict["time_info"] = {}
-            for name in self._stats_collector.get_report_names():
-                d = self._stats_collector.dict_report(name)
-                ret_dict["time_info"][name] = d
-            self._stats_collector.stats_reset()
+        # Add backpressure metrics if available
+        if self._worker_ctx and hasattr(self._worker_ctx, "get_backpressure_metrics"):
+            ret_dict.update(self._worker_ctx.get_backpressure_metrics())
+        
+        # Add executor metrics (backpressure monitoring)
+        if self._executor:
+            executor_metrics = await self._executor.get_metrics()
+            ret_dict.update(executor_metrics)
         
         return ret_dict
 
@@ -139,311 +447,262 @@ However, defining multiple decorators is more explicit and avoids redirects for 
     @router.post("/predict/")
     @router.post("/invocations")
     async def predict(request: Request):
-        logger.debug("Entering predict() endpoint")
-        
-        # Pre-process request for sync mixin
-        await self._prepare_fastapi_request(request)
-        
-        with otel_context(tracer, "drum.invocations", request.headers) as span:
-            span.set_attributes(extract_request_headers(dict(request.headers)))
-            self._pre_predict_and_transform()
-            try:
-                # Run sync prediction in executor to not block event loop
-                response, response_status = await self._run_sync_in_executor(
-                    self.do_predict_structured,
-                    logger=logger,
-                    request=request
-                )
-            finally:
-                self._post_predict_and_transform()
-        
-        return self._convert_fastapi_response(response, response_status)
+        return await self._handle_predict_request(request, self.do_predict_structured)
     
     @router.post("/transform/")
     async def transform(request: Request):
-        logger.debug("Entering transform() endpoint")
-        
-        await self._prepare_fastapi_request(request)
-        
-        with otel_context(tracer, "drum.transform", request.headers) as span:
-            span.set_attributes(extract_request_headers(dict(request.headers)))
-            self._pre_predict_and_transform()
-            try:
-                response, response_status = await self._run_sync_in_executor(
-                    self.do_transform,
-                    logger=logger,
-                    request=request
-                )
-            finally:
-                self._post_predict_and_transform()
-        
-        return self._convert_fastapi_response(response, response_status)
+        return await self._handle_predict_request(request, self.do_transform)
     
     @router.post("/predictionsUnstructured/")
     @router.post("/predictUnstructured/")
     async def predict_unstructured(request: Request):
-        logger.debug("Entering predict_unstructured() endpoint")
-        
-        await self._prepare_fastapi_request(request)
-        
-        with otel_context(tracer, "drum.predictUnstructured", request.headers) as span:
-            span.set_attributes(extract_request_headers(dict(request.headers)))
-            self._pre_predict_and_transform()
-            try:
-                response, response_status = await self._run_sync_in_executor(
-                    self.do_predict_unstructured,
-                    logger=logger,
-                    request=request
-                )
-            finally:
-                self._post_predict_and_transform()
-        
-        return self._convert_fastapi_response(response, response_status)
+        return await self._handle_predict_request(request, self.do_predict_unstructured)
     
-    @router.post("/chat/completions")
-    @router.post("/v1/chat/completions")
-    async def chat(request: Request):
-        logger.debug("Entering chat endpoint")
-        
-        await self._prepare_fastapi_request(request)
-        body_json = await request.json()
-        
-        with otel_context(tracer, "drum.chat.completions", request.headers) as span:
-            span.set_attributes(extract_chat_request_attributes(body_json))
-            span.set_attributes(extract_request_headers(dict(request.headers)))
-            self._pre_predict_and_transform()
-            try:
-                # Chat might be streaming, handled inside do_chat
-                result = await self._run_sync_in_executor(
-                    self.do_chat,
-                    logger=logger,
-                    request=request,
-                    is_fastapi=True
-                )
-                
-                # result is (response, status_code)
-                response, response_status = result
-                
-                if isinstance(response, dict) and response_status == 200:
-                    span.set_attributes(extract_chat_response_attributes(response))
-            finally:
-                self._post_predict_and_transform()
-        
-        return response # do_chat returns Response/JSONResponse for FastAPI if is_fastapi=True
-    
-    @router.get("/models")
-    @router.get("/v1/models")
-    async def get_supported_llm_models_endpoint():
-        logger.debug("Entering models endpoint")
-        self._pre_predict_and_transform()
-        try:
-            response, response_status = self.get_supported_llm_models(logger=logger)
-        finally:
-            self._post_predict_and_transform()
-        
-        return JSONResponse(content=response, status_code=response_status)
-    
-    @router.api_route("/directAccess/{path:path}", methods=["GET", "POST", "PUT"])
-    @router.api_route("/nim/{path:path}", methods=["GET", "POST", "PUT"])
-    async def forward_request(path: str, request: Request):
-        """Proxy endpoint for direct access to NIM/OpenAI backend."""
-        with otel_context(tracer, "drum.directAccess", request.headers) as span:
-            span.set_attributes(extract_request_headers(dict(request.headers)))
-            if not hasattr(self._predictor, "openai_host") or not hasattr(self._predictor, "openai_port"):
-                msg = "This endpoint is only supported by OpenAI based predictors"
-                span.set_status(StatusCode.ERROR, msg)
-                return JSONResponse(content={"message": msg}, status_code=HTTP_400_BAD_REQUEST)
-            
-            openai_host = self._predictor.openai_host
-            openai_port = self._predictor.openai_port
-            body = await request.body()
-            
-            forward_headers = {
-                k: v for k, v in request.headers.items()
-                if k.lower() not in ('host', 'content-length', 'transfer-encoding')
-            }
-            
-            timeout = httpx.Timeout(
-                self.get_nim_direct_access_request_timeout(),
-                connect=30.0
-            )
-            
-            try:
-                # To correctly set the status code for StreamingResponse, 
-                # we perform the request and check the status before yielding the generator.
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    async with client.stream(
-                        method=request.method,
-                        url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
-                        headers=forward_headers,
-                        params=dict(request.query_params),
-                        content=body,
-                        follow_redirects=False,
-                    ) as resp:
-                        # Capture status and headers from upstream
-                        status_code = resp.status_code
-                        headers = {
-                            k: v for k, v in resp.headers.items()
-                            if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length')
-                        }
+    # Streaming prediction endpoint
+    @router.post("/predictionsStream/")
+    async def predict_stream(request: Request):
+        """Streaming prediction endpoint for large responses."""
+        return await self._handle_streaming_predict(request)
 
-                        async def generate_content():
-                            async for chunk in resp.aiter_bytes():
-                                yield chunk
-
-                        return StreamingResponse(
-                            generate_content(),
-                            status_code=status_code,
-                            headers=headers,
-                            media_type=resp.headers.get("content-type", "application/octet-stream")
-                        )
-            except Exception as e:
-                span.set_status(StatusCode.ERROR, str(e))
-                return JSONResponse(content={"message": f"ERROR: {e}"}, status_code=502)
-    
-    # Get or create FastAPI app
+    # Register router
     app = get_fastapi_app(router, self.app)
     
-    # Add StdoutFlusher middleware if available
-    if hasattr(self, '_stdout_flusher'):
-        from datarobot_drum.drum.server import StdoutFlusherMiddleware
-        app.add_middleware(StdoutFlusherMiddleware, flusher=self._stdout_flusher)
-
-    # Load custom FastAPI extensions
-    load_fastapi_extensions(app, self._code_dir)
-    
-    # Start stdout flusher and register for cleanup
-    if self._worker_ctx and hasattr(self, '_stdout_flusher'):
-        self._worker_ctx.add_thread(
-            self._stdout_flusher._flusher_thread,
-            name="StdoutFlusher"
-        )
-        self._stdout_flusher.start()
-
-    # Start watchdog thread if enabled and worker context available
-    self._start_watchdog_if_enabled()
-    
-    # Register executor cleanup
-    if self._worker_ctx:
-        self._worker_ctx.defer_cleanup(
-            self._shutdown_executor,
-            order=100,
-            desc="ThreadPoolExecutor shutdown"
-        )
-    
-    # Initialize executor early to ensure it exists for cleanup
-    self._get_executor()
+    # Setup lifecycle
+    self._setup_fastapi_lifecycle(app)
     
     return []
 ```
 
-### 5. Helper methods for FastAPI
+### 7. Memory-Efficient Request Handler with Backpressure
 
 ```python
-async def _prepare_fastapi_request(self, request: Request):
-    """Pre-fetch body and form data for sync mixin methods."""
-    # Update last activity time for StdoutFlusher
+async def _handle_predict_request(
+    self, 
+    request: Request, 
+    handler_func: Callable
+) -> Response:
+    """
+    Handle prediction request with memory-efficient file handling and backpressure.
+    
+    Features:
+    - Memory-efficient: small payloads in memory, large ones spooled to disk
+    - Backpressure: rejects requests with 503 when server is overloaded
+    - Timeout: cancels requests that take too long in queue
+    """
+    # Update activity for stdout flusher
     if hasattr(self, '_stdout_flusher'):
         self._stdout_flusher.set_last_activity_time()
-
-    body = await request.body()
-    request.state.body = body
     
+    # Parse request with memory-efficient handling
+    request_data = await self._parse_request_efficiently(request)
+    
+    try:
+        # OTel tracing context
+        from datarobot_drum.drum.common import otel_context, extract_request_headers
+        tracer = trace.get_tracer(__name__)
+        
+        with otel_context(tracer, "drum.invocations", request.headers) as span:
+            span.set_attributes(extract_request_headers(dict(request.headers)))
+            
+            self._pre_predict_and_transform()
+            
+            try:
+                # Run sync prediction with backpressure protection
+                executor = self._get_executor()
+                
+                try:
+                    response_data, status_code = await executor.run(
+                        handler_func, 
+                        request_data=request_data
+                    )
+                except asyncio.TimeoutError as e:
+                    # Server overloaded - return 503 Service Unavailable
+                    logger.warning(
+                        "Request rejected due to backpressure: %s",
+                        str(e)
+                    )
+                    return JSONResponse(
+                        status_code=503,
+                        content={
+                            "message": "Server overloaded. Please retry later.",
+                            "error": "SERVICE_UNAVAILABLE",
+                            "retry_after": 5
+                        },
+                        headers={"Retry-After": "5"}
+                    )
+                
+                return self._create_response(response_data, status_code)
+            finally:
+                self._post_predict_and_transform()
+    
+    finally:
+        # Cleanup spooled files
+        self._cleanup_request_data(request_data)
+
+
+async def _parse_request_efficiently(self, request: Request) -> Dict[str, Any]:
+    """
+    Parse request with memory-efficient handling.
+    
+    Strategy:
+    - Small bodies (< 10MB): keep in memory
+    - Large bodies: spool to disk
+    - Multipart files: use SpooledUploadFile
+    """
     content_type = request.headers.get("content-type", "")
+    content_length = int(request.headers.get("content-length", 0))
+    
+    request_data = {
+        "headers": dict(request.headers),
+        "content_type": content_type,
+        "body": None,
+        "files": {},
+        "_spooled_files": [],  # Track for cleanup
+    }
+    
     if "multipart/form-data" in content_type:
         form = await request.form()
-        request.state.form = {k: v for k, v in form.items() if isinstance(v, str)}
-        request.state.files = {}
+        
         for key, value in form.items():
-            if hasattr(value, 'read'):
-                file_content = await value.read()
-                request.state.files[key] = {
-                    "content": file_content,
-                    "filename": getattr(value, 'filename', None),
-                    "content_type": getattr(value, 'content_type', None),
+            if isinstance(value, UploadFile):
+                # Use spooled file for memory efficiency
+                spooled = SpooledUploadFile(value)
+                await spooled.read_to_spool()
+                
+                request_data["files"][key] = {
+                    "content": spooled,  # Pass spooled file, not bytes
+                    "filename": value.filename,
+                    "content_type": value.content_type,
+                    "size": spooled.size,
                 }
-
-def _convert_fastapi_response(self, response, status_code):
-    """Convert various response types to FastAPI Response."""
-    if isinstance(response, (Response, JSONResponse, StreamingResponse)):
-        return response
+                request_data["_spooled_files"].append(spooled)
+                
+                logger.debug(
+                    "Processed file %s: %d bytes (spooled: %s)",
+                    key, spooled.size, spooled.size > SPOOL_MAX_SIZE
+                )
+            else:
+                request_data.setdefault("form", {})[key] = value
     
-    if isinstance(response, dict):
-        return JSONResponse(content=response, status_code=status_code)
+    elif content_length > SPOOL_MAX_SIZE:
+        # Large non-multipart body - spool to disk
+        spooled = SpooledTemporaryFile(max_size=SPOOL_MAX_SIZE, mode='w+b')
+        
+        async for chunk in request.stream():
+            spooled.write(chunk)
+        
+        spooled.seek(0)
+        request_data["body"] = spooled
+        request_data["_spooled_files"].append(spooled)
+        
+        logger.debug("Spooled large request body: %d bytes", content_length)
     
-    # Handle Flask response objects if they leak from mixin
-    if hasattr(response, 'get_data'):
-        return Response(
-            content=response.get_data(),
-            status_code=status_code,
-            media_type=response.content_type
-        )
+    else:
+        # Small body - keep in memory
+        request_data["body"] = await request.body()
     
-    return Response(content=response, status_code=status_code)
+    return request_data
 
-def _get_executor(self):
-    """Get or create the thread pool executor."""
-    if not hasattr(self, '_executor'):
-        from datarobot_drum import RuntimeParameters
-        from concurrent.futures import ThreadPoolExecutor
-        workers = 4
-        if RuntimeParameters.has("DRUM_FASTAPI_EXECUTOR_WORKERS"):
-            workers = int(RuntimeParameters.get("DRUM_FASTAPI_EXECUTOR_WORKERS"))
-        self._executor = ThreadPoolExecutor(max_workers=workers)
-    return self._executor
 
-async def _run_sync_in_executor(self, func, *args, **kwargs):
-    """Run a synchronous function in a thread pool executor."""
-    import asyncio
-    from functools import partial
-    
-    executor = self._get_executor()
-    loop = asyncio.get_event_loop()
-    bound_func = partial(func, *args, **kwargs)
-    return await loop.run_in_executor(executor, bound_func)
-
-def _shutdown_executor(self):
-    """Shutdown the thread pool executor."""
-    if hasattr(self, '_executor'):
-        self._executor.shutdown(wait=True)
+def _cleanup_request_data(self, request_data: Dict[str, Any]):
+    """Clean up spooled files after request processing."""
+    for spooled in request_data.get("_spooled_files", []):
+        try:
+            if hasattr(spooled, "close"):
+                spooled.close()
+        except Exception as e:
+            logger.warning("Error closing spooled file: %s", e)
 ```
 
-### 6. Watchdog and NIM support
+### 8. Streaming Response Support
 
 ```python
-def _start_watchdog_if_enabled(self):
-    """Start NIM watchdog thread if enabled."""
-    from datarobot_drum import RuntimeParameters
-    if not RuntimeParameters.has("USE_NIM_WATCHDOG"):
-        return
+async def _handle_streaming_predict(self, request: Request) -> StreamingResponse:
+    """
+    Handle streaming prediction for large responses.
     
-    if str(RuntimeParameters.get("USE_NIM_WATCHDOG")).lower() not in ["true", "1", "yes"]:
-        return
+    Useful for:
+    - Large batch predictions
+    - Generative model outputs
+    - Real-time streaming
+    """
+    request_data = await self._parse_request_efficiently(request)
     
-    if self._worker_ctx is None:
-        return
+    async def generate() -> AsyncIterator[bytes]:
+        try:
+            loop = asyncio.get_running_loop()
+            
+            # Get prediction iterator from predictor
+            if hasattr(self._predictor, "predict_stream"):
+                async for chunk in self._predictor.predict_stream(request_data):
+                    yield chunk
+            else:
+                # Fallback: run regular prediction and yield all at once
+                response_data, _ = await loop.run_in_executor(
+                    self._get_executor(),
+                    partial(self.do_predict_structured, request_data=request_data)
+                )
+                yield response_data
+        finally:
+            self._cleanup_request_data(request_data)
     
-    from threading import Thread
-    port = self._params.get("address", "8080").split(":")[-1]
-    try:
-        port = int(port)
-    except ValueError:
-        port = 8080
+    return StreamingResponse(
+        generate(),
+        media_type="application/octet-stream",
+        headers={"X-Streaming": "true"}
+    )
+
+
+def _create_response(self, data: Any, status_code: int) -> Response:
+    """Create appropriate response based on data type."""
+    if isinstance(data, bytes):
+        return Response(
+            content=data,
+            status_code=status_code,
+            media_type="application/octet-stream"
+        )
+    elif isinstance(data, str):
+        return Response(
+            content=data,
+            status_code=status_code,
+            media_type="text/plain"
+        )
+    else:
+        return JSONResponse(content=data, status_code=status_code)
+```
+
+### 9. Lifecycle Setup
+
+```python
+def _setup_fastapi_lifecycle(self, app: FastAPI):
+    """Setup middlewares, extensions, and cleanup hooks."""
+    from datarobot_drum.drum.fastapi.extensions import load_fastapi_extensions
+    from datarobot_drum.drum.fastapi.middleware import StdoutFlusherMiddleware
+    
+    # Store config reference
+    app.state.prediction_server = self
+    
+    # Setup stdout flusher if available
+    if hasattr(self, '_stdout_flusher') and self._stdout_flusher:
+        app.add_middleware(StdoutFlusherMiddleware, flusher=self._stdout_flusher)
         
-    self._server_watchdog = Thread(
-        target=self.watchdog,
-        args=(port,),
-        daemon=True,
-        name="NIM Sidecar Watchdog",
-    )
+        if self._worker_ctx:
+            self._worker_ctx.add_thread(
+                self._stdout_flusher._flusher_thread, 
+                name="StdoutFlusher"
+            )
+            self._stdout_flusher.start()
     
-    self._worker_ctx.add_thread(
-        self._server_watchdog,
-        join_timeout=5.0,
-        name="NIM Sidecar Watchdog"
-    )
-    self._server_watchdog.start()
-    logger.info("Started NIM watchdog thread for port %s", port)
+    # Load user extensions
+    load_fastapi_extensions(app, self._code_dir)
+    
+    # Start watchdog if enabled
+    self._start_watchdog_if_enabled()
+    
+    # Ensure executor is created
+    self._get_executor()
+    
+    logger.info("FastAPI lifecycle setup complete")
 ```
 
 ## Runtime Parameters
@@ -452,10 +711,20 @@ def _start_watchdog_if_enabled(self):
 |-----------|-------------|---------|
 | `DRUM_SERVER_TYPE` | Server type: "flask", "gunicorn", or "fastapi" | "flask" |
 | `DRUM_FASTAPI_EXECUTOR_WORKERS` | Thread pool size for sync operations | 4 |
+| `DRUM_FASTAPI_MAX_UPLOAD_SIZE` | Max request body size | 100MB |
 
-## Notes:
-- The `PredictionServer` now takes an optional `worker_ctx`.
-- FastAPI endpoints pre-fetch data into `request.state` to be framework-agnostic for `PredictMixin`.
-- Sync operations (the actual model execution) are offloaded to a `ThreadPoolExecutor` to keep the FastAPI event loop responsive.
-- Error handling and response conversion are centralized.
-- Watchdog integration is preserved for NIM-based models.
+## Memory Management Summary
+
+| Payload Size | Handling | Location |
+|--------------|----------|----------|
+| < 10MB | In-memory bytes | RAM |
+| >= 10MB | SpooledTemporaryFile | Disk (auto) |
+| Streaming | AsyncIterator | Chunked |
+
+## Notes
+
+- **No Logic Duplication**: Routes call shared handler methods
+- **Resource Safety**: Executor and spooled files cleaned up via worker_ctx
+- **Memory Efficiency**: Large files automatically spooled to disk
+- **Streaming Support**: New `/predictionsStream/` endpoint for large responses
+- **K8s Ready**: `/livez` and `/readyz` endpoints added

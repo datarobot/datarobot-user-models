@@ -3,8 +3,8 @@ import os
 with open('file_list.txt', 'r') as f:
     files = f.readlines()
 
-markdown_content = "# Список файлов для проверки\n\n"
-markdown_content += "| № | Статус | Путь к файлу |\n"
+markdown_content = "# File list for verification\n\n"
+markdown_content += "| № | Status | File path |\n"
 markdown_content += "|---|:---:|---|\n"
 
 for i, file_path in enumerate(files, 1):

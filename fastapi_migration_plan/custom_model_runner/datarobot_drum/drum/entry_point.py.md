@@ -51,12 +51,22 @@ from datarobot_drum.drum.enum import ArgumentsOptions
 def _get_server_type() -> str:
     """
     Determine the server type from RuntimeParameters.
+    Auto-detects based on extension files if not explicitly set.
     
     Returns:
         Server type string: "flask" (default), "gunicorn", or "fastapi"
     """
     if not RuntimeParameters.has("DRUM_SERVER_TYPE"):
-        return "flask"  # Default to Flask development server
+        # Auto-fallback logic
+        from pathlib import Path
+        code_dir = RuntimeParameters.get("__custom_model_path__", ".")
+        has_flask = (Path(code_dir) / "custom_flask.py").exists()
+        has_fastapi = (Path(code_dir) / "custom_fastapi.py").exists()
+        
+        if has_flask and not has_fastapi:
+            return "flask"
+        
+        return "flask"  # Default unchanged for M1
     
     server_type = str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower()
     

@@ -1,6 +1,6 @@
-# Список файлов для проверки
+# File list for verification
 
-| № | Статус | Путь к файлу |
+| № | Status | File path |
 |---|:---:|---|
 | 1 | [ ] | custom_model_runner/bin/drum |
 | 2 | [ ] | custom_model_runner/CHANGELOG.md |

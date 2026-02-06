@@ -83,6 +83,9 @@ async def lifespan(app: FastAPI):
     # Start the DRUM runtime (loads model, initializes predictor, etc.)
     ctx.start()
     
+    # Store ctx in app state for request access
+    app.state.worker_ctx = ctx
+    
     logger.info("FastAPI lifespan startup complete")
     
     yield  # Application runs here

@@ -4,30 +4,67 @@ Add new dependencies for FastAPI support.
 
 ## New Dependencies
 
+> ⚠️ **IMPORTANT:** Use Phase 1 (Conservative) versions for initial migration to avoid Pydantic v2 conflicts.
+
+### Phase 1: Conservative (Pydantic v1 compatible) - RECOMMENDED FOR INITIAL MIGRATION
+
 Add the following to `requirements.txt`:
 
 ```
-# FastAPI and ASGI server
-fastapi>=0.100.0,<1.0.0
+# FastAPI and ASGI server (Pydantic v1 compatible)
+fastapi>=0.95.0,<0.100.0
 uvicorn[standard]>=0.23.0,<1.0.0
-starlette>=0.27.0,<1.0.0  # Usually comes with fastapi, but explicit for middleware
+starlette>=0.27.0,<0.33.0  # Compatible with FastAPI 0.99
+
+# Pydantic v1 (explicit for ML library compatibility)
+pydantic>=1.10.0,<2.0.0
 
 # Async HTTP client (REQUIRED for /directAccess/ and /nim/ proxy endpoints)
 httpx>=0.24.0,<1.0.0
 
+# Prometheus metrics
+prometheus-client>=0.17.0,<1.0.0
+
 # OpenTelemetry instrumentation for FastAPI
-opentelemetry-instrumentation-fastapi
+opentelemetry-instrumentation-fastapi>=0.40b0
+
+# Response comparison for testing
+deepdiff>=6.0.0  # For parity testing
+```
+
+### Phase 2: Modern (Post-stabilization, Pydantic v2)
+
+```
+# FastAPI and ASGI server (Pydantic v2)
+fastapi>=0.109.0,<1.0.0
+uvicorn[standard]>=0.27.0,<1.0.0
+starlette>=0.36.0,<1.0.0
+
+# Pydantic v2
+pydantic>=2.5.0,<3.0.0
+
+# Async HTTP client
+httpx>=0.27.0,<1.0.0
+
+# Prometheus metrics
+prometheus-client>=0.19.0,<1.0.0
+
+# OpenTelemetry instrumentation for FastAPI
+opentelemetry-instrumentation-fastapi>=0.43b0
 ```
 
 ## Dependency Details
 
-| Package | Purpose | Version Constraint |
-|---------|---------|-------------------|
-| `fastapi` | ASGI web framework | `>=0.100.0,<1.0.0` |
-| `uvicorn[standard]` | ASGI server (with uvloop, httptools) | `>=0.23.0,<1.0.0` |
-| `starlette` | ASGI toolkit (middleware, routing) | `>=0.27.0,<1.0.0` |
-| `httpx` | Async HTTP client for proxy endpoints | `>=0.24.0,<1.0.0` |
-| `opentelemetry-instrumentation-fastapi` | OTel auto-instrumentation | (latest compatible) |
+| Package | Purpose | Phase 1 Version | Phase 2 Version |
+|---------|---------|-----------------|-----------------|
+| `fastapi` | ASGI web framework | `>=0.95.0,<0.100.0` | `>=0.109.0,<1.0.0` |
+| `uvicorn[standard]` | ASGI server | `>=0.23.0,<1.0.0` | `>=0.27.0,<1.0.0` |
+| `starlette` | ASGI toolkit | `>=0.27.0,<0.33.0` | `>=0.36.0,<1.0.0` |
+| `pydantic` | Data validation | `>=1.10.0,<2.0.0` | `>=2.5.0,<3.0.0` |
+| `httpx` | Async HTTP client | `>=0.24.0,<1.0.0` | `>=0.27.0,<1.0.0` |
+| `prometheus-client` | Metrics endpoint | `>=0.17.0,<1.0.0` | `>=0.19.0,<1.0.0` |
+| `opentelemetry-instrumentation-fastapi` | OTel auto-instrumentation | `>=0.40b0` | `>=0.43b0` |
+| `deepdiff` | Response comparison | `>=6.0.0` | `>=6.0.0` |
 
 ## Why httpx is Required
 

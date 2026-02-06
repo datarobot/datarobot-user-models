@@ -1,6 +1,6 @@
-# Список файлов для проверки
+# File list for verification
 
-| № | Статус | Изменения не требуются | Имплементировано | Путь к файлу |
+| № | Status | No changes required | Implemented | File path |
 |---|:---:|:---:|:---:|---|
 | 1 | [x] | [x] | [ ] | custom_model_runner/bin/drum |
 | 2 | [x] | [x] | [ ] | custom_model_runner/CHANGELOG.md |
@@ -1137,7 +1137,7 @@
 | 1133 | [x] | [ ] | [x] | file_audit/flask_removal/custom_model_runner/datarobot_drum/drum/entry_point.py.md |
 | 1134 | [x] | [ ] | [x] | fastapi_migration_plan/custom_model_runner/datarobot_drum/drum/enum.py.md |
 | 1135 | [x] | [ ] | [x] | fastapi_migration_plan/model_templates/flask_extension_httpauth.md |
-| 1136 | [x] | [ ] | [ ] | model_templates/fastapi_extension_httpauth/ (новая директория) |
+| 1136 | [x] | [ ] | [ ] | model_templates/fastapi_extension_httpauth/ (new directory) |
 | 1137 | [x] | [ ] | [x] | file_audit/flask_removal/custom_model_runner/datarobot_drum/drum/runtime.py.md |
 | 1138 | [x] | [ ] | [x] | file_audit/flask_removal/custom_model_runner/datarobot_drum/drum/resource_monitor.py.md |
 | 1139 | [x] | [ ] | [x] | file_audit/flask_removal/custom_model_runner/datarobot_drum/drum/root_predictors/stdout_flusher.py.md |
@@ -1145,7 +1145,7 @@
 | 1141 | [x] | [ ] | [x] | fastapi_migration_plan/example_dropin_environments/requirements_update.md |
 | 1142 | [x] | [ ] | [x] | fastapi_migration_plan/tests/unit/test_prediction_server.py.md |
 | 1143 | [x] | [ ] | [x] | fastapi_migration_plan/tests/functional/test_mlops_monitoring.py.md |
-| 1144 | [x] | [ ] | [ ] | tests/functional/test_parity_flask_fastapi.py (новый файл) |
-| 1145 | [x] | [ ] | [ ] | tests/functional/test_streaming_responses.py (новый файл) |
-| 1146 | [x] | [ ] | [ ] | custom_model_runner/datarobot_drum/drum/fastapi/error_server.py (новый файл) |
-| 1147 | [x] | [ ] | [ ] | custom_model_runner/datarobot_drum/drum/fastapi/otel.py (новый файл) |
+| 1144 | [x] | [ ] | [ ] | tests/functional/test_parity_flask_fastapi.py (new file) |
+| 1145 | [x] | [ ] | [ ] | tests/functional/test_streaming_responses.py (new file) |
+| 1146 | [x] | [ ] | [ ] | custom_model_runner/datarobot_drum/drum/fastapi/error_server.py (new file) |
+| 1147 | [x] | [ ] | [ ] | custom_model_runner/datarobot_drum/drum/fastapi/otel.py (new file) |

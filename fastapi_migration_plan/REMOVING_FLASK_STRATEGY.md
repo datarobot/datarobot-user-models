@@ -5,7 +5,7 @@ Steps to completely decommission Flask from DRUM after FastAPI migration is stab
 ## Phase 0: Prerequisites & Environment Audit
 - **Python Version Audit**: Ensure all target environments and base images support Python 3.8+. FastAPI and Uvicorn require 3.8 or higher.
 - **Dependency Audit**: Check for potential conflicts with existing user dependencies (e.g., `pydantic` versions).
-- **Feature Flag Setup**: Implement `DRUM_FASTAPI_ENABLED` to allow controlled rollout.
+- **Feature Flag Setup**: Use `DRUM_SERVER_TYPE=fastapi` to allow controlled rollout.
 
 ## Phase 1: Cleanup
 - Remove `custom_model_runner/datarobot_drum/drum/gunicorn/` directory.
@@ -78,7 +78,7 @@ Steps to completely decommission Flask from DRUM after FastAPI migration is stab
 10. **Tests**: Verify parity and new functionality.
 
 ### Key Recommendations:
-- **Feature Flags**: Use `DRUM_FASTAPI_ENABLED` for gradual rollout.
+- **Feature Flags**: Use `DRUM_SERVER_TYPE=fastapi` for gradual rollout.
 - **Monitoring**: Update `test_mlops_monitoring.py` to ensure metrics parity.
     - Specifically, verify that `MLOpsContext` and `PredictionServer` correctly report metrics when running under FastAPI.
     - Test both embedded and sidecar monitoring modes.
@@ -91,9 +91,11 @@ Steps to completely decommission Flask from DRUM after FastAPI migration is stab
 
 | Stage | Duration | Activities |
 |-------|----------|------------|
-| **Beta (Current)** | 4-6 weeks | FastAPI available via `DRUM_SERVER_TYPE=fastapi`. Both Flask and FastAPI are supported. |
-| **Release Candidate** | 2-4 weeks | FastAPI becomes the default server for new environments. Flask remains for backward compatibility. |
-| **LTS Support** | 6 months | Flask-based server is deprecated but supported. Users are encouraged to migrate. |
-| **Decommissioning** | End of support | Flask, Gunicorn, and Gevent are removed from base images and DRUM codebase. |
+| **Phase 0** | 3-5 days | Dependencies & Constants |
+| **Phase 1** | 10-14 days | Core Infrastructure (Middleware, Config, Context, Routes) |
+| **Phase 2** | 10-14 days | Integration (entry_point, server.py, PredictionServer) |
+| **Phase 3** | 10-14 days | Testing, Benchmarks & Parity Verification |
+| **Phase 4** | 7-10 days | Environments Update |
+| **Phase 5** | 5-7 days | Default Switch |
 
 During the **LTS Support** period, all new features and performance optimizations will be prioritized for the FastAPI server. Flask-based server will only receive critical security updates.
