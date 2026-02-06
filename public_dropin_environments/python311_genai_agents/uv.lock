@@ -1029,7 +1029,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.3.5"
+version = "0.3.8"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ag-ui-protocol" },
@@ -1049,9 +1049,9 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/03/ae/4c080c4cf2bcbdb54669a08ee5b1f8ebd362e787f4aaaed65a0528493aae/datarobot_genai-0.3.5.tar.gz", hash = "sha256:b8d696b384b0825f05734ba9481d5aef087584a7e388686f86acc9c8692b14ea", size = 160965, upload-time = "2026-02-04T15:41:10.734Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/71/bb1294566b1f9d84bf4a8c75fe6fdc9d8b7e2105f4d41a45097054b6882f/datarobot_genai-0.3.8.tar.gz", hash = "sha256:1ebc818d805d5dd057b7a18f167d321a913eb86fc4abc175cf8b8eb173dfcf96", size = 162874, upload-time = "2026-02-06T15:14:04.889Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7d/fe/a35a688b50b17c8f38ffad1d4a070973297dee2231af8865577dd806f80a/datarobot_genai-0.3.5-py3-none-any.whl", hash = "sha256:b94e2d7b1b29c7dc78baa036c5e26fe3dfeaa3669cfaf7c772b72e481a09595e", size = 252650, upload-time = "2026-02-04T15:41:09.541Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/37/87eb0c2689ee05c19d3c87eb7b32b531eca062543408870792dfa405d57d/datarobot_genai-0.3.8-py3-none-any.whl", hash = "sha256:a7854d5c0667f4d9c4a18bb0fc24f00887b4fec7bd9b7ad88db1c4009bae7b0a", size = 254642, upload-time = "2026-02-06T15:14:03.362Z" },
 ]
 
 [package.optional-dependencies]
@@ -1110,8 +1110,7 @@ nat = [
     { name = "opentelemetry-instrumentation-llamaindex" },
 ]
 pydanticai = [
-    { name = "logfire" },
-    { name = "pydantic-ai" },
+    { name = "pydantic-ai-slim", extra = ["ag-ui", "anthropic", "bedrock", "cli", "cohere", "evals", "fastmcp", "google", "groq", "huggingface", "logfire", "mcp", "mistral", "openai", "retries", "vertexai"] },
 ]
 
 [[package]]
@@ -3974,18 +3973,6 @@ wheels = [
 ]
 
 [[package]]
-name = "nexus-rpc"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/ef/66/540687556bd28cf1ec370cc6881456203dfddb9dab047b8979c6865b5984/nexus_rpc-1.1.0.tar.gz", hash = "sha256:d65ad6a2f54f14e53ebe39ee30555eaeb894102437125733fb13034a04a44553", size = 77383, upload-time = "2025-07-07T19:03:58.368Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bf/2f/9e9d0dcaa4c6ffa22b7aa31069a8a264c753ff8027b36af602cce038c92f/nexus_rpc-1.1.0-py3-none-any.whl", hash = "sha256:d1b007af2aba186a27e736f8eaae39c03aed05b488084ff6c3d1785c9ba2ad38", size = 27743, upload-time = "2025-07-07T19:03:57.556Z" },
-]
-
-[[package]]
 name = "nltk"
 version = "3.9.2"
 source = { registry = "https://pypi.org/simple" }
@@ -5116,18 +5103,6 @@ email = [
 ]
 
 [[package]]
-name = "pydantic-ai"
-version = "1.8.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pydantic-ai-slim", extra = ["ag-ui", "anthropic", "bedrock", "cli", "cohere", "evals", "fastmcp", "google", "groq", "huggingface", "logfire", "mcp", "mistral", "openai", "retries", "temporal", "vertexai"] },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d9/33/b657e4e763d573b8d805f8ce76a77e1bb00257e9b03777e12a7d949446c2/pydantic_ai-1.8.0.tar.gz", hash = "sha256:f3c0d773f0bec445b522a1f7646c42e8f11621c605d2fa5c59b802212fd53d09", size = 100394405, upload-time = "2025-10-29T15:38:52.725Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/57/1bd0ee489efdac83dc4fb7ca1668d713323c3d04b272a62077bf7c08510a/pydantic_ai-1.8.0-py3-none-any.whl", hash = "sha256:1b6317db7e95ae3134d01f06fe000d2e26ae6be835fb121ce961413a553654fb", size = 11724, upload-time = "2025-10-29T15:38:38.875Z" },
-]
-
-[[package]]
 name = "pydantic-ai-slim"
 version = "1.8.0"
 source = { registry = "https://pypi.org/simple" }
@@ -5194,9 +5169,6 @@ openai = [
 ]
 retries = [
     { name = "tenacity" },
-]
-temporal = [
-    { name = "temporalio" },
 ]
 vertexai = [
     { name = "google-auth" },
@@ -6306,25 +6278,6 @@ wheels = [
 ]
 
 [[package]]
-name = "temporalio"
-version = "1.18.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "nexus-rpc" },
-    { name = "protobuf" },
-    { name = "types-protobuf" },
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/7e/20/b52c96b37bf00ead6e8a4a197075770ebad516db765cc3abca8396de0689/temporalio-1.18.0.tar.gz", hash = "sha256:7ff7f833eb1e7697084b4ed9d86c3167cbff1ec77f1b40df774313a5d0fd5f6d", size = 1781572, upload-time = "2025-09-19T23:40:52.511Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2f/28/c5a4ee259748450ac0765837f8c78cbfa36800264158d98bd2cde4496d87/temporalio-1.18.0-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:ac5d30d8b010c9b042065ea1259da7638db1a0a25e81ee4be0671a393ed329c5", size = 12734753, upload-time = "2025-09-19T23:40:06.575Z" },
-    { url = "https://files.pythonhosted.org/packages/be/94/24bd903b5594420a4d131bfa3de965313f9a409af77b47e9a9a56d85bb9e/temporalio-1.18.0-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:19315d192247230c9bd7c60a566c2b3a80ad4d9de891c6aa13df63d72d3ec169", size = 12323141, upload-time = "2025-09-19T23:40:16.817Z" },
-    { url = "https://files.pythonhosted.org/packages/6d/76/82415b43c68e2c6bb3a85e8800555d206767815088c8cad0ade9a06bd7ac/temporalio-1.18.0-cp39-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a023b25033e48b2e43f623a78737047a45b8cb553f69f457d09272fce5c723da", size = 12694061, upload-time = "2025-09-19T23:40:26.388Z" },
-    { url = "https://files.pythonhosted.org/packages/41/60/176a3224c2739fee270052dd9224ae36370c4e13d2ab1bb96a2f9bbb513c/temporalio-1.18.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:695211dddbcffc20077d5b3b9a9b41bd09f60393c4ff211bcc7d6d895d607cc1", size = 12879404, upload-time = "2025-09-19T23:40:37.487Z" },
-    { url = "https://files.pythonhosted.org/packages/e3/8d/e3809b356262d1d398d8cbb78df1e19d460c0a89e6ab64ca8d9c05d5fe5a/temporalio-1.18.0-cp39-abi3-win_amd64.whl", hash = "sha256:e3f691bd0a01a22c0fe40e87b6236cc8a292628e3a5a490880d1bf94709249c9", size = 13088041, upload-time = "2025-09-19T23:40:49.469Z" },
-]
-
-[[package]]
 name = "tenacity"
 version = "9.1.2"
 source = { registry = "https://pypi.org/simple" }
@@ -6509,15 +6462,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/21/ca/950278884e2ca20547ff3eb109478c6baf6b8cf219318e6bc4f666fad8e8/typer-0.19.2.tar.gz", hash = "sha256:9ad824308ded0ad06cc716434705f691d4ee0bfd0fb081839d2e426860e7fdca", size = 104755, upload-time = "2025-09-23T09:47:48.256Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/00/22/35617eee79080a5d071d0f14ad698d325ee6b3bf824fc0467c03b30e7fa8/typer-0.19.2-py3-none-any.whl", hash = "sha256:755e7e19670ffad8283db353267cb81ef252f595aa6834a0d1ca9312d9326cb9", size = 46748, upload-time = "2025-09-23T09:47:46.777Z" },
-]
-
-[[package]]
-name = "types-protobuf"
-version = "6.32.1.20251105"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f3/ab/0dce6a9841b5ebf3e37401879bb8cc20724ad9c770a7649bee997696cc75/types_protobuf-6.32.1.20251105.tar.gz", hash = "sha256:641002611ff87dd9fedc38a39a29cacb9907ae5ce61489b53e99ca2074bef764", size = 63846, upload-time = "2025-11-05T03:04:43.456Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/57/3a0d89b33b7485b7ffd99ec7cf53b0c5c89194c481f0bd673fd67e5f273f/types_protobuf-6.32.1.20251105-py3-none-any.whl", hash = "sha256:a15109d38f7cfefd2539ef86d3f93a6a41c7cad53924f8aa1a51eaddbb72a660", size = 77890, upload-time = "2025-11-05T03:04:42.067Z" },
 ]
 
 [[package]]
