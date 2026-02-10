@@ -181,6 +181,10 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
+# Both system python and venv python should look at both venv and system site
+# packages.
+ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-packages
+
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 

@@ -59,6 +59,10 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
+# Both system python and venv python should look at both venv and system site
+# packages.
+ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-packages
+
 # OMP_NUM_THREADS is an environment variable that controls the maximum number of threads used by programs that rely on OpenMP for parallel processing.
 # In libraries like XGBoost, it limits the number of CPU threads used for computation, helping to prevent resource contention and hangs in multi-worker environments.
 # Setting OMP_NUM_THREADS=1 forces XGBoost to use only one thread per process.
