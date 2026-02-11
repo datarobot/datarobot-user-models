@@ -1,4 +1,4 @@
-Pillow==10.3.0
+Pillow==12.1.1
 altair==4.2.0
 boto3==1.34.90
 cloudpickle==2.2.1
