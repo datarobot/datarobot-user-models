@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.3.2,<0.4.0",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.3.10,<0.4.0",
     "datarobot-moderations>=11.2.10,<11.3.0",
     "datarobot-drum>=1.17.5,<1.17.12",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops>=11.1.0",
@@ -17,6 +17,9 @@ dependencies = [
 
     "pdfminer.six>=20251230",  # CVE fix
     "langgraph-checkpoint>=3.0.0", # CVE fix
+
+    "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
+    "packaging>=25.0,<26.0",
 ]
 
 [project.optional-dependencies]

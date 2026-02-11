@@ -1,5 +1,6 @@
+anyio==4.11.0
 datarobot-drum==1.17.11
-datarobot-genai==0.3.5
+datarobot-genai==0.3.12
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.11
 ecs-logging==2.2.0
@@ -14,5 +15,6 @@ litellm==1.80.8
 openai==1.109.1
 opentelemetry-api==1.39.0
 opentelemetry-sdk==1.39.0
+packaging==25.0
 pdfminer-six==20251230
 psutil==5.9.8
