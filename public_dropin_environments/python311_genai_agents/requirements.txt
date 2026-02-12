@@ -40,7 +40,7 @@ browserbase==1.4.0
 build==1.2.2.post1
 cachetools==5.5.2
 certifi==2025.4.26
-cffi==1.17.1
+cffi==2.0.0
 charset-normalizer==3.4.2
 chromadb==1.1.1
 click==8.1.8
@@ -49,7 +49,7 @@ coloredlogs==15.0.1
 comm==0.2.2
 crewai==0.140.0
 crewai-tools==0.76.0
-cryptography==44.0.3
+cryptography==46.0.5
 dataclasses-json==0.6.7
 datarobot[auth]==3.8.2
 datarobot-drum==1.17.11
@@ -161,7 +161,7 @@ langgraph==0.4.10
 langgraph-checkpoint==3.0.1
 langgraph-prebuilt==0.2.3
 langgraph-sdk==0.1.66
-langsmith==0.4.49
+langsmith==0.7.1
 lark==1.2.2
 legacy-cgi==2.6.3
 litellm==1.72.6
@@ -373,6 +373,7 @@ typing-inspection==0.4.2
 tzdata==2025.2
 uri-template==1.3.0
 urllib3==2.6.3
+uuid-utils==0.14.0
 uv==0.7.3
 uvicorn[standard]==0.35.0
 uvloop==0.21.0
