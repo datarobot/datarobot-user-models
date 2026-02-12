@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
+import threading
 import trafaret as t
 from contextvars import ContextVar
 from urllib.parse import urlparse, urlunparse
@@ -43,6 +44,13 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+# Global lock to protect threading.Thread modification in _create_processor_with_real_thread.
+# This prevents race conditions if setup_otel() is ever called from multiple threads,
+# ensuring only one thread at a time modifies the global threading.Thread class.
+# Using RLock (reentrant lock) to allow the same thread to acquire it multiple times,
+# protecting against potential deadlocks in nested/recursive calls.
+_otel_thread_setup_lock = threading.RLock()
 
 
 ctx_request_id = ContextVar("request_id")
@@ -159,13 +167,26 @@ class _ExcludeOtelLogsFilter(logging.Filter):
 
 
 def _setup_otel_logging(resource, multiprocessing=False):
+    """Setup OpenTelemetry logging with gevent-compatible thread handling.
+
+    When gevent monkey patches threading, BatchLogRecordProcessor's background
+    threads become greenlets. In Python 3.12, this causes KeyError during shutdown
+    when greenlets try to remove themselves from threading._active dict.
+
+    Solution: Temporarily restore real threading.Thread during processor creation.
+    """
     logger_provider = LoggerProvider(resource=resource)
     set_logger_provider(logger_provider)
     exporter = OTLPLogExporter()
+
     if multiprocessing:
         logger_provider.add_log_record_processor(SimpleLogRecordProcessor(exporter))
     else:
-        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+        # Use real OS thread for BatchLogRecordProcessor background thread
+        # to prevent KeyError during shutdown in Python 3.12 + gevent
+        processor = _create_processor_with_real_thread(lambda: BatchLogRecordProcessor(exporter))
+        logger_provider.add_log_record_processor(processor)
+
     handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
     # Remove own logs to avoid infinite recursion if endpoint is not available
     handler.addFilter(_ExcludeOtelLogsFilter())
@@ -174,6 +195,14 @@ def _setup_otel_logging(resource, multiprocessing=False):
 
 
 def _setup_otel_metrics(resource):
+    """Setup OpenTelemetry metrics with gevent-compatible thread handling.
+
+    PeriodicExportingMetricReader creates a background thread. When gevent
+    monkey patches threading, this becomes a greenlet, causing KeyError
+    during shutdown in Python 3.12.
+
+    Solution: Temporarily restore real threading.Thread during reader creation.
+    """
     # OTEL SDK default termporarity is CUMULATIVE, but this is rarely what users
     # actualy want to work with, so here we switch default. Also in case of delta
     # PeriodicExportingMetricReader does not spam collector with same data.
@@ -183,21 +212,105 @@ def _setup_otel_metrics(resource):
         ObservableCounter: AggregationTemporality.DELTA,
     }
     metric_exporter = OTLPMetricExporter(preferred_temporality=preferred_temporality)
-    metric_reader = PeriodicExportingMetricReader(metric_exporter)
+
+    # Use real OS thread for PeriodicExportingMetricReader background thread
+    # to prevent KeyError during shutdown in Python 3.12 + gevent
+    metric_reader = _create_processor_with_real_thread(
+        lambda: PeriodicExportingMetricReader(metric_exporter)
+    )
+
     metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
     metrics.set_meter_provider(metric_provider)
     return metric_provider
 
 
 def _setup_otel_tracing(resource, multiprocessing=False):
+    """Setup OpenTelemetry tracing with gevent-compatible thread handling.
+
+    BatchSpanProcessor creates a background thread. When gevent monkey patches
+    threading, this becomes a greenlet, causing KeyError during shutdown in
+    Python 3.12.
+
+    Solution: Temporarily restore real threading.Thread during processor creation.
+    """
     otlp_exporter = OTLPSpanExporter()
     trace_provider = TracerProvider(resource=resource)
+
     if multiprocessing:
         trace_provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
     else:
-        trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+        # Use real OS thread for BatchSpanProcessor background thread
+        # to prevent KeyError during shutdown in Python 3.12 + gevent
+        processor = _create_processor_with_real_thread(lambda: BatchSpanProcessor(otlp_exporter))
+        trace_provider.add_span_processor(processor)
+
     trace.set_tracer_provider(trace_provider)
     return trace_provider
+
+
+def _create_processor_with_real_thread(factory_func):
+    """Create OTEL processor/reader using real OS threads instead of gevent greenlets.
+
+    OpenTelemetry's BatchSpanProcessor, BatchLogRecordProcessor, and
+    PeriodicExportingMetricReader create background threads during __init__.
+    When gevent has monkey-patched threading, these become greenlets.
+
+    In Python 3.12, greenlets trying to clean up as threads cause:
+        KeyError: <greenlet_id> in threading._delete()
+
+    This function temporarily restores the real threading.Thread class
+    during processor/reader creation to ensure background threads are real
+    OS threads, preventing the KeyError.
+
+    Thread-safety: Uses _otel_thread_setup_lock (RLock) to protect the global
+    threading.Thread modification from concurrent access, preventing race
+    conditions if this function is called from multiple threads simultaneously.
+
+    Args:
+        factory_func: Callable that creates the processor/reader
+
+    Returns:
+        The created processor/reader with real OS thread
+    """
+    # Check if gevent has monkey-patched threading
+    try:
+        from gevent import monkey
+
+        if not monkey.is_module_patched("threading"):
+            # Not patched, just create normally
+            return factory_func()
+    except ImportError:
+        # gevent not installed, create normally
+        return factory_func()
+
+    # Gevent is active - use lock to protect threading.Thread modification
+    # This prevents race conditions if multiple threads call setup_otel() concurrently
+    with _otel_thread_setup_lock:
+        original_thread_class = threading.Thread
+
+        try:
+            # Get the real (unpatched) Thread class
+            real_thread = monkey.get_original("threading", "Thread")
+            if not real_thread:
+                # Unable to get original Thread class, log warning and create normally
+                # This shouldn't happen, but better to be safe
+                log = logging.getLogger(__name__)
+                log.warning(
+                    "Could not get original threading.Thread from gevent. "
+                    "OpenTelemetry background threads may be greenlets, "
+                    "which could cause KeyError during shutdown in Python 3.12."
+                )
+                return factory_func()
+
+            # Replace with real Thread during processor creation
+            threading.Thread = real_thread
+
+            # Create the processor - its background thread will be a real OS thread
+            return factory_func()
+
+        finally:
+            # Always restore gevent's patched Thread class
+            threading.Thread = original_thread_class
 
 
 def setup_otel(runtime_parameters, options):

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from typing import Callable, Any, List, Tuple, Optional
@@ -164,6 +165,43 @@ class _GeventFutureWrapper:
     def __init__(self, fut):
         self._fut = fut
 
+    def __await__(self):
+        """Make the wrapper awaitable for asyncio compatibility.
+
+        This allows using 'await' or 'asyncio.gather' on the wrapper, which is
+        essential for models or libraries (like AsyncGuardExecutor) that use
+        async/await syntax even in gevent-patched environments.
+
+        The implementation intelligently uses asyncio.sleep when inside an event loop
+        (for efficient concurrent task scheduling in asyncio.gather) or falls back
+        to gevent-style polling in sync contexts.
+        """
+        try:
+            # Check if we're inside a running asyncio event loop
+            asyncio.get_running_loop()
+
+            async def _async_wait():
+                """Async polling using asyncio.sleep for proper event loop integration."""
+                poll_interval = 0.01  # Start with 10ms polling
+
+                while not self._fut.done():
+                    # Use asyncio.sleep to yield control to the event loop,
+                    # allowing other tasks (e.g., in asyncio.gather) to execute
+                    await asyncio.sleep(poll_interval)
+                    # Exponential backoff up to 100ms to reduce CPU usage
+                    poll_interval = min(poll_interval * 1.5, 0.1)
+
+                return self._fut.result()
+
+            return _async_wait().__await__()
+
+        except RuntimeError:
+            # No running loop - we're in sync context, use gevent-style polling
+            async def _wrapper():
+                return self.result()
+
+            return _wrapper().__await__()
+
     def result(self, timeout=None):
         """Get the result with gevent-safe cooperative waiting."""
         return _wait_for_future_gevent_safe(self._fut, timeout=timeout)
@@ -309,6 +347,7 @@ class WorkerCtx:
         - AsyncHTTPClient (datarobot_dome): bulk_upload_custom_metrics, predict, async_report_event
         - OpenTelemetry instrumentation: run_async
         - GuardExecutor (datarobot_dome): async_guard_executor
+        - LLMRails (nemoguardrails): generate_async
 
         All async operations are offloaded to the background loop via run_coroutine_threadsafe,
         preventing 'attached to a different loop' and 'non-thread-safe operation' errors.
@@ -318,27 +357,93 @@ class WorkerCtx:
         - Provides gevent-safe future waiting that yields cooperatively
         - Handles cleanup without blocking the gevent hub
         """
-        import asyncio
+
+        def _create_async_method_patch(bg_loop, _wrap_future, original_method):
+            """
+            Helper to create a standardized async method patch.
+
+            This reduces code duplication across _patch_guard_executor, _patch_nemo_rails, etc.
+            All patches follow the same pattern: offload to bg_loop via run_coroutine_threadsafe
+            and wrap the future appropriately for the calling context.
+
+            Args:
+                bg_loop: The background event loop to offload async operations to
+                _wrap_future: Function to wrap futures for the current execution context
+                original_method: The original async method to be wrapped
+
+            Returns:
+                A wrapper function that can replace the original method
+            """
+
+            def wrapper(self, *args, **kwargs):
+                """Thread-safe wrapper that offloads execution to the background loop."""
+                # Check if we're already in the background loop to avoid double-offloading
+                try:
+                    if asyncio.get_running_loop() is bg_loop:
+                        # We're in the bg_loop thread, call original method directly.
+                        # It will return a coroutine that the caller (which is also in bg_loop) can await.
+                        return original_method(self, *args, **kwargs)
+                except RuntimeError:
+                    # Not in any event loop
+                    pass
+
+                return _wrap_future(
+                    asyncio.run_coroutine_threadsafe(
+                        original_method(self, *args, **kwargs), bg_loop
+                    )
+                )
+
+            return wrapper
 
         def _wrap_future(fut):
             """
             Wrap concurrent.futures.Future for the current execution context.
 
-            - If inside an asyncio running loop: wrap as asyncio.Future
-            - If in gevent context: return a GeventFutureWrapper for cooperative waiting
+            - If inside bg_loop (async context in real thread): wrap as asyncio.Future (awaitable)
+            - If in gevent context without loop: return GeventFutureWrapper for cooperative waiting
             - Otherwise: return the raw future for blocking .result() calls
+
+            The key insight: bg_loop runs in a real OS thread (not greenlet), so
+            asyncio.wrap_future is safe there even with gevent active elsewhere.
             """
+            # First check if we're in an async context
             try:
-                asyncio.get_running_loop()
+                current_loop = asyncio.get_running_loop()
+                # We're in some running event loop
+
+                # If it's bg_loop, we're in the real OS thread - safe to use wrap_future
+                if current_loop is bg_loop:
+                    return asyncio.wrap_future(fut)
+
+                # If it's some other loop and gevent is active, we might be in a greenlet
+                # with an event loop.
+                if _is_gevent_patched():
+                    # Return GeventFutureWrapper for sync-style waiting and gevent-safe await.
+                    return _GeventFutureWrapper(fut)
+
+                # Not gevent, some other loop - safe to wrap
                 return asyncio.wrap_future(fut)
+
             except RuntimeError:
+                # No running loop - we're in sync context
                 pass
 
-            # In gevent context, wrap the future for cooperative waiting
+            # In gevent sync context (no loop), use cooperative wrapper
             if _is_gevent_patched():
                 return _GeventFutureWrapper(fut)
 
+            # Plain sync context
             return fut
+
+        def _wait_for_sync_result(fut, timeout=None):
+            """
+            Wait for a future and return its result, suitable for replacing sync methods.
+            Uses _wrap_future to get a gevent-safe wrapper and then calls .result().
+            """
+            wrapped = _wrap_future(fut)
+            if hasattr(wrapped, "result"):
+                return wrapped.result(timeout=timeout)
+            return wrapped
 
         # Background loop for thread-safe async execution in sync/gevent workers.
         # We store it on self.app to ensure it lives as long as the worker.
@@ -508,11 +613,56 @@ class WorkerCtx:
 
         self._patch_async_http_client(bg_loop, _wrap_future)
         self._patch_otel_utils(bg_loop, _wrap_future)
-        self._patch_guard_executor(bg_loop, _wrap_future)
+        self._patch_guard_executor(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
+        self._patch_nemo_rails(bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result)
+        self._patch_openai_client()
+
+    def _patch_openai_client(self):
+        """
+        Pre-cache the OpenAI client's _platform attribute to prevent asyncify(get_platform)().
+
+        The OpenAI SDK's AsyncAPIClient.request() lazily initializes self._platform by calling:
+            self._platform = await asyncify(get_platform)()
+
+        asyncify() delegates to asyncio.to_thread() → loop.run_in_executor() →
+        ThreadPoolExecutor.submit(). Inside submit(), Python acquires _global_shutdown_lock
+        (a native _thread.lock) together with the executor's _shutdown_lock (a gevent-patched
+        threading.Lock). When a Gunicorn WORKER TIMEOUT fires SIGABRT → sys.exit(1) during
+        this lock acquisition, the context manager's __exit__ tries to release a lock that
+        was never acquired, causing 'RuntimeError: release unlocked lock'.
+
+        The fix: call get_platform() synchronously once (it's a trivial function that reads
+        platform.system() / distro.id()) and patch AsyncAPIClient.__init__ to pre-set the
+        cached value, so the asyncify codepath is never reached.
+        """
+        try:
+            from openai._base_client import AsyncAPIClient, get_platform
+        except ImportError:
+            return
+
+        # Call get_platform() synchronously — it only reads platform info, no I/O.
+        try:
+            cached_platform = get_platform()
+        except Exception:
+            cached_platform = "Unknown"
+
+        _original_init = AsyncAPIClient.__init__
+
+        def patched_init(self, *args, **kwargs):
+            _original_init(self, *args, **kwargs)
+            # Pre-set _platform so request() never calls asyncify(get_platform)().
+            # This avoids ThreadPoolExecutor.submit() → _global_shutdown_lock,
+            # which causes "release unlocked lock" under gevent + SIGABRT.
+            self._platform = cached_platform
+
+        AsyncAPIClient.__init__ = patched_init
+        logger.info(
+            "Patched OpenAI AsyncAPIClient.__init__ to pre-cache _platform=%s",
+            cached_platform,
+        )
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
-        import asyncio
         import weakref
 
         try:
@@ -732,7 +882,6 @@ class WorkerCtx:
 
     def _patch_otel_utils(self, bg_loop, _wrap_future):
         """Patch OpenTelemetry instrumentation to run async tasks in the background loop."""
-        import asyncio
 
         try:
             import opentelemetry.instrumentation.openai.utils as otel_utils
@@ -758,28 +907,84 @@ class WorkerCtx:
 
         otel_utils.run_async = fixed_run_async
 
-    def _patch_guard_executor(self, bg_loop, _wrap_future):
-        """Patch GuardExecutor to run async_guard_executor in the background loop."""
-        import asyncio
-
+    def _patch_guard_executor(self, bg_loop, _wrap_future, _create_async_method_patch, _wait_for_sync_result):
+        """Patch AsyncGuardExecutor to run async operations in the background loop."""
         try:
-            from datarobot_dome.guard_executor import GuardExecutor
+            from datarobot_dome.guard_executor import AsyncGuardExecutor
         except ImportError:
             return
 
-        _orig_async_guard_executor = GuardExecutor.async_guard_executor
+        # Patch async_guard_executor to use background loop
+        AsyncGuardExecutor.async_guard_executor = _create_async_method_patch(
+            bg_loop, _wrap_future, AsyncGuardExecutor.async_guard_executor
+        )
 
-        def fixed_async_guard_executor(self, *args, **kwargs):
-            """
-            Thread-safe wrapper for GuardExecutor async tasks using the shared background loop.
-            """
-            return _wrap_future(
-                asyncio.run_coroutine_threadsafe(
-                    _orig_async_guard_executor(self, *args, **kwargs), bg_loop
-                )
+    def _patch_nemo_rails(self, bg_loop, _wrap_future, _create_async_method_patch):
+        """Patch LLMRails to run generate_async in the background loop."""
+        try:
+            from nemoguardrails import LLMRails
+        except ImportError:
+            return
+
+        # Patch generate_async - the main async method
+        LLMRails.generate_async = _create_async_method_patch(
+            bg_loop, _wrap_future, LLMRails.generate_async
+        )
+
+        # Patch other async methods
+        if hasattr(LLMRails, "generate_events_async"):
+            LLMRails.generate_events_async = _create_async_method_patch(
+                bg_loop, _wrap_future, LLMRails.generate_events_async
             )
 
-        GuardExecutor.async_guard_executor = fixed_async_guard_executor
+        if hasattr(LLMRails, "process_events_async"):
+            LLMRails.process_events_async = _create_async_method_patch(
+                bg_loop, _wrap_future, LLMRails.process_events_async
+            )
+
+        # CRITICAL: Patch synchronous methods that use loop.run_until_complete
+        # These methods are commonly called from Flask handlers in gunicorn+gevent
+
+        # Patch generate() - synchronous wrapper for generate_async
+        def patched_generate(self, prompt=None, messages=None, options=None, state=None):
+            """Patched generate to use background loop instead of loop.run_until_complete."""
+
+            # Run in background loop instead of get_or_create_event_loop().run_until_complete()
+            async def _coro():
+                return await self.generate_async(
+                    prompt=prompt,
+                    messages=messages,
+                    options=options,
+                    state=state,
+                )
+
+            return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+        LLMRails.generate = patched_generate
+
+        # Patch generate_events() - synchronous wrapper for generate_events_async
+        if hasattr(LLMRails, "generate_events"):
+            def patched_generate_events(self, events):
+                """Patched generate_events to use background loop."""
+
+                async def _coro():
+                    return await self.generate_events_async(events=events)
+
+                return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+            LLMRails.generate_events = patched_generate_events
+
+        # Patch process_events() - synchronous wrapper for process_events_async
+        if hasattr(LLMRails, "process_events"):
+            def patched_process_events(self, events, state=None, blocking=False):
+                """Patched process_events to use background loop."""
+
+                async def _coro():
+                    return await self.process_events_async(events, state, blocking)
+
+                return _wait_for_sync_result(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+            LLMRails.process_events = patched_process_events
 
     def start(self):
         """
@@ -791,7 +996,11 @@ class WorkerCtx:
         """
         self._running = True
 
-        self._setup_async_patches()
+        if _is_gevent_patched():
+            logger.info("Gevent worker detected, applying async patches")
+            self._setup_async_patches()
+        else:
+            logger.info("Sync worker detected, skipping async patches")
 
         from datarobot_drum.drum.main import main
 
