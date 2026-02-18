@@ -27,22 +27,14 @@ RUN apk add --no-cache \
 ENV R_HOME=/usr/lib/R
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
 
-# Fix chainguard broken libxml2 link
-# When broken, points to libxml2.so.16.1.1, which doesn't exist, but
-# libxml2.so.16.1.0 does.
-# TODO: Remove this when chainguard fixes upstream.
-RUN \
-  if [ ! -e /usr/lib/libxml2.so ]; then \
-    printf 'WARNING: broken libxml2.so link detected. Fixing\n' >&2; \
-    rm -f /usr/lib/libxml2.so; \
-    ln -s $(readlink /usr/lib/libxml2.so.16) /usr/lib/libxml2.so; \
-  fi
+RUN Rscript -e "install.packages(c('caret'), repos='https://cloud.r-project.org', Ncpus=4); library(caret)"
+RUN Rscript -e "install.packages(c('recipes'), repos='https://cloud.r-project.org', Ncpus=4); library(recipes)"
+RUN Rscript -e "install.packages(c('glmnet'), repos='https://cloud.r-project.org', Ncpus=4); library(glmnet)"
+RUN Rscript -e "install.packages(c('Rook'), repos='https://cloud.r-project.org', Ncpus=4); library(Rook)"
+RUN Rscript -e "install.packages(c('rjson'), repos='https://cloud.r-project.org', Ncpus=4); library(rjson)"
+RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org', Ncpus=4); library(e1071)"
+RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
 
-RUN Rscript -e "install.packages( \
-        c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse'), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )"
 
 # TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42.
 # Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
@@ -52,7 +44,7 @@ RUN Rscript -e "install.packages( \
 # This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
 # so compile works.
 RUN cd /tmp; \
-  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.5.tar.gz' \
+  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.6.tar.gz' \
   | gunzip -c \
   | tar -x; \
   cd later; \
