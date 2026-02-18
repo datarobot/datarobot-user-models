@@ -175,7 +175,7 @@ module = "datarobot.*"
 implicit_reexport = true
 
 [tool.uv]
-required-version = ">=0.7.0"
+required-version = ">=0.10.2"
 override-dependencies = [
     "fastapi>=0.118.2,<0.122.0",
     "ragas>=0.3.8",
