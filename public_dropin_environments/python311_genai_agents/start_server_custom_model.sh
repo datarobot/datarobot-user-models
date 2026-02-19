@@ -39,7 +39,7 @@ fi
 # Requires: ENABLE_NAT_SERVER runtime parameter set to True
 # -----------------------------------------------------------------------------
 if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
-    ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | uv run python3 -c "import sys,json; print(json.load(sys.stdin)['payload'])")
+    ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | python -c "import sys,json; print(json.load(sys.stdin)['payload'])")
     if [ "$ENABLE_NAT_SERVER" = "True" ]; then
         echo "Starting NAT server on port 8080"
         exec nat serve --port 8080
