@@ -35,7 +35,21 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = "1" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Option 1: Custom Model with DRUM Server
+# Option 1: NAT Server
+# Requires: ENABLE_NAT_SERVER runtime parameter set to True
+# -----------------------------------------------------------------------------
+if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
+    ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | python -c "import sys,json; print(json.load(sys.stdin)['payload'])")
+    if [ "$ENABLE_NAT_SERVER" = "True" ]; then
+        echo "Starting NAT server on port 8080"
+        exec nat serve --port 8080
+    else
+        echo "ENABLE_NAT_SERVER runtime parameter is present but set to False, skipping NAT server"
+    fi
+fi
+
+# -----------------------------------------------------------------------------
+# Option 2: Custom Model with DRUM Server
 # Requires: custom.py file in the same directory
 # -----------------------------------------------------------------------------
 if [ -f "$SCRIPT_DIR/custom.py" ]; then
@@ -46,12 +60,13 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
     echo "Executing command: drum server $*"
     echo
     exec drum server "$@"
+fi
 
 # -----------------------------------------------------------------------------
-# Option 2: MCP Server
+# Option 3: MCP Server
 # Requires: app/ directory in the same location
 # -----------------------------------------------------------------------------
-elif [ -d "$SCRIPT_DIR/app" ]; then
+if [ -d "$SCRIPT_DIR/app" ]; then
     echo "Starting Custom Model environment with MCP server"
 
     # Set Python path to script directory for module imports
@@ -59,14 +74,14 @@ elif [ -d "$SCRIPT_DIR/app" ]; then
 
     # Start the MCP server
     exec python -m app.main
+fi
 
 # -----------------------------------------------------------------------------
 # Error: No valid entry point found
 # -----------------------------------------------------------------------------
-else
-    echo "Error: Neither custom.py nor app/ directory found in $SCRIPT_DIR"
-    echo "This script requires either:"
-    echo "  - custom.py file for DRUM-based Custom Models"
-    echo "  - app/ directory for MCP Server applications"
-    exit 1
-fi
+echo "Error: No valid entry point found in $SCRIPT_DIR"
+echo "This script requires one of the following:"
+echo "  - ENABLE_NAT_SERVER runtime parameter set to True for NAT Server"
+echo "  - custom.py file for DRUM-based Custom Models"
+echo "  - app/ directory for MCP Server applications"
+exit 1
