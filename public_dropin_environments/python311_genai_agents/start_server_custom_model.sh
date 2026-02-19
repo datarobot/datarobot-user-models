@@ -46,6 +46,7 @@ if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
     else
         echo "ENABLE_NAT_SERVER runtime parameter is present but set to False, skipping NAT server"
     fi
+fi
 
 # -----------------------------------------------------------------------------
 # Option 2: Custom Model with DRUM Server
@@ -59,6 +60,7 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
     echo "Executing command: drum server $*"
     echo
     exec drum server "$@"
+fi
 
 # -----------------------------------------------------------------------------
 # Option 3: MCP Server
@@ -72,15 +74,14 @@ if [ -d "$SCRIPT_DIR/app" ]; then
 
     # Start the MCP server
     exec python -m app.main
+fi
 
 # -----------------------------------------------------------------------------
 # Error: No valid entry point found
 # -----------------------------------------------------------------------------
-else
-    echo "Error: No valid entry point found in $SCRIPT_DIR"
-    echo "This script requires one of the following:"
-    echo "  - ENABLE_NAT_SERVER runtime parameter set to True for NAT Server"
-    echo "  - custom.py file for DRUM-based Custom Models"
-    echo "  - app/ directory for MCP Server applications"
-    exit 1
-fi
+echo "Error: No valid entry point found in $SCRIPT_DIR"
+echo "This script requires one of the following:"
+echo "  - ENABLE_NAT_SERVER runtime parameter set to True for NAT Server"
+echo "  - custom.py file for DRUM-based Custom Models"
+echo "  - app/ directory for MCP Server applications"
+exit 1
