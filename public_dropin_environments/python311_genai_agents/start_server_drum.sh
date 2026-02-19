@@ -35,10 +35,23 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = "1" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Option 1: Custom Model with DRUM Server
+# Option 1: NAT Server
+# Requires: ENABLE_NAT_SERVER runtime parameter set to True
+# -----------------------------------------------------------------------------
+if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
+    ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | uv run python3 -c "import sys,json; print(json.load(sys.stdin)['payload'])")
+    if [ "$ENABLE_NAT_SERVER" = "True" ]; then
+        echo "Starting NAT server on port 8080"
+        exec nat serve --port 8080
+    else
+        echo "ENABLE_NAT_SERVER runtime parameter is present but not set to False, skipping NAT server"
+    fi
+
+# -----------------------------------------------------------------------------
+# Option 2: Custom Model with DRUM Server
 # Requires: custom.py file in the same directory
 # -----------------------------------------------------------------------------
-if [ -f "$SCRIPT_DIR/custom.py" ]; then
+elif [ -f "$SCRIPT_DIR/custom.py" ]; then
     echo "Starting Custom Model environment with DRUM prediction server"
 
     # Start DRUM server
@@ -48,7 +61,7 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
     exec drum server "$@"
 
 # -----------------------------------------------------------------------------
-# Option 2: MCP Server
+# Option 3: MCP Server
 # Requires: app/ directory in the same location
 # -----------------------------------------------------------------------------
 elif [ -d "$SCRIPT_DIR/app" ]; then
