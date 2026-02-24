@@ -26,7 +26,7 @@ datarobot-mlops==11.1.0a3
 datarobot-storage==0.0.0
 docker==7.1.0
 filechunkio==1.8
-flask==3.1.0
+flask==3.1.3
 flatbuffers==25.2.10
 gast==0.6.0
 google-api-core==1.34.0
