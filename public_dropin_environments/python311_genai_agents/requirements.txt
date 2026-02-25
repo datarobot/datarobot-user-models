@@ -10,7 +10,7 @@ jupyter-client==8.6.3
 jupyter-core==5.9.1
 jupyter-kernel-gateway==3.0.1
 langchain-litellm==0.3.2
-langgraph-checkpoint==3.0.1
+langgraph-checkpoint==4.0.0
 litellm==1.80.8
 nltk==3.9.3
 openai==1.109.1
