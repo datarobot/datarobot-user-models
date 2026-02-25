@@ -32,6 +32,7 @@ wheel>=0.46.2
 python-multipart>=0.0.22
 orjson>=3.11.5
 azure-core>=1.38.0
+nltk>=3.9.3
 
 # GenAI Environment
 click~=8.1.8

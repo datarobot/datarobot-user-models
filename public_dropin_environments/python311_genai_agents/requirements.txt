@@ -19,6 +19,7 @@ annoy==1.17.3
 anthropic==0.75.0
 anyio==4.9.0
 appdirs==1.4.4
+appnope==0.1.4
 argcomplete==3.6.2
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
@@ -208,7 +209,7 @@ nbformat==5.10.4
 nemoguardrails==0.14.0
 nest-asyncio==1.6.0
 networkx==3.4.2
-nltk==3.9.1
+nltk==3.9.3
 numpy==2.2.5
 oauthlib==3.2.2
 ollama==0.5.1
