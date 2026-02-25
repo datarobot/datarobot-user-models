@@ -24,7 +24,7 @@ h2~=4.3.0
 pdfminer.six>=20251230
 langgraph-checkpoint~=3.0.0
 aiohttp>=3.13.3
-pypdf>=6.6.2
+pypdf>=6.7.1
 filelock>=3.20.3
 werkzeug>=3.1.5
 pyasn1>=0.6.2
@@ -33,6 +33,8 @@ python-multipart>=0.0.22
 orjson>=3.11.5
 azure-core>=1.38.0
 nltk>=3.9.3
+uv>=0.10.2-r1
+google-cloud-aiplatform>=1.131.0
 
 # GenAI Environment
 click~=8.1.8
