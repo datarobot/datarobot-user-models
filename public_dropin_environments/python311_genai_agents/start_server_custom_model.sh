@@ -39,7 +39,7 @@ fi
 # Requires: ENABLE_NAT_SERVER runtime parameter set to True
 # -----------------------------------------------------------------------------
 if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
-    ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | python -c "import sys,json; print(json.load(sys.stdin)['payload'])")
+    ENABLE_NAT_SERVER=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('ENABLE_NAT_SERVER'))")
     if [ "$ENABLE_NAT_SERVER" = "True" ]; then
         ROOT_PATH_ARG=""
 
