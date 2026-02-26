@@ -41,8 +41,16 @@ fi
 if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
     ENABLE_NAT_SERVER=$(echo "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" | python -c "import sys,json; print(json.load(sys.stdin)['payload'])")
     if [ "$ENABLE_NAT_SERVER" = "True" ]; then
-        echo "Starting NAT server on port 8080"
-        exec nat serve --port 8080
+        ROOT_PATH_ARG=""
+
+      # When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
+      if [ -n "${URL_PREFIX:-}" ]; then
+          ROOT_PATH_ARG="--root_path ${URL_PREFIX}"
+      fi
+
+      echo "Executing command: nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --port 8080 $ROOT_PATH_ARG"
+      echo
+      exec nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --host 0.0.0.0 --port 8080 $ROOT_PATH_ARG
     else
         echo "ENABLE_NAT_SERVER runtime parameter is present but set to False, skipping NAT server"
     fi
