@@ -5,7 +5,7 @@ FROM ${BASE_ROOT_IMAGE} AS build
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
 
 USER root
 
