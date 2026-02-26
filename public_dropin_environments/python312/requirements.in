@@ -1,2 +1,2 @@
-git+https://github.com/datarobot/datarobot-user-models.git@master#subdirectory=custom_model_runner
+git+https://github.com/datarobot/datarobot-user-models.git@petro/qa-13093#subdirectory=custom_model_runner
 openai
