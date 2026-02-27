@@ -324,12 +324,7 @@ class CMRunner:
         )
 
         # if all the artifacts belong to the same language, set it
-        if (
-            bool(len(python_artifacts))
-            + bool(len(r_artifacts))
-            + bool(len(java_artifacts))
-            == 1
-        ):
+        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
             if len(python_artifacts) > 0:
                 artifact_language = RunLanguage.PYTHON
             elif len(r_artifacts) > 0:
@@ -420,7 +415,10 @@ class CMRunner:
 
         # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
         if len(custom_py_paths) + len(custom_r_paths) > 1:
-            raise_multiple_custom_files(custom_py_paths, custom_r_paths,)
+            raise_multiple_custom_files(
+                custom_py_paths,
+                custom_r_paths,
+            )
         # if only one custom file found, set it:
         elif len(custom_py_paths) == 1:
             custom_language = RunLanguage.PYTHON
