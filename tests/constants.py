@@ -34,7 +34,6 @@ PYTHON_PYTORCH = "python3_pytorch"
 PYTHON_ONNX = "python3_onnx"
 R_LANG = "r_lang"
 JAVA_CODEGEN = "java_codegen"
-JULIA = "julia"
 
 
 # Framework keywords
@@ -86,11 +85,6 @@ CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS = "custom_task_interface_pytorch_multic
 CUSTOM_TASK_INTERFACE_KERAS_REGRESSION = "custom_task_interface_keras_regression"
 CUSTOM_TASK_INTERFACE_XGB_REGRESSION = "custom_task_interface_xgboost_regression"
 
-MLJ = "mlj"
-MLJ_BINARY = "mlj_binary"
-MLJ_REGRESSION = "mlj_regression"
-MLJ_MULTICLASS = "mlj_multiclass"
-
 RDS = "rds"
 RDS_BINARY = "rds_binary"
 RDS_SPARSE = "rds_sparse"
@@ -99,9 +93,6 @@ CODEGEN = "jar"
 ## adding h2o pojo and mojo
 MOJO = "zip"
 POJO = "java"
-##
-## adding julia
-JLSO = "jlso"
 ##
 MULTI_ARTIFACT = "multiartifact"
 R_MULTI_ARTIFACT_NEGATIVE = "r_multiartifact_negative"
@@ -168,7 +159,6 @@ R_FIT = "R_fit"
 R_PREDICT_SPARSE = "R_predict_sparse"
 R_NO_ARTIFACTS = "r_no_artifacts"
 JAVA = "java"
-JULIA = "julia"
 GPU_TRITON = "triton"
 GPU_NIM = "nim"
 GPU_NIM_SIDECAR = "nim_sidecar"

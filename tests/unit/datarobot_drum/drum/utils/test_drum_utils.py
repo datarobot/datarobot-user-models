@@ -92,11 +92,6 @@ def test_filename_exists_and_is_file(tmp_path, caplog):
 
     caplog.clear()
 
-    Path(f"{tmp_path}/custom.jl").touch()
-    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.jl")
-    for f in glob.glob(f"{tmp_path}/*"):
-        os.remove(f)
-
     Path(f"{tmp_path}/custom.PY").touch()
     assert not DrumUtils.filename_exists_and_is_file(tmp_path, "custom.py")
     assert "Found filenames that case-insensitively match expected filenames" in caplog.text

@@ -44,9 +44,7 @@ from tests.conftest import skip_if_framework_not_in_env
 from tests.constants import (
     BINARY,
     CODEGEN,
-    JULIA,
     KERAS,
-    MLJ,
     MODEL_TEMPLATES_PATH,
     MOJO,
     MULTI_ARTIFACT,
@@ -147,9 +145,6 @@ class TestInference:
             (MOJO, MULTICLASS, NO_CUSTOM, None, False),
             (MOJO, MULTICLASS_BINARY, NO_CUSTOM, None, False),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None, False),
-            (MLJ, REGRESSION, JULIA, None, False),
-            (MLJ, BINARY, JULIA, None, False),
-            (MLJ, MULTICLASS, JULIA, None, False),
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None, False),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None, False),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None, False),
@@ -229,7 +224,6 @@ class TestInference:
             # POJO is not a relevant case. POJO artifact is a `.java` file which allowed to be only lowercase
             (MOJO, REGRESSION, NO_CUSTOM, None, False),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None, False),
-            (MLJ, REGRESSION, JULIA, None, False),
         ],
     )
     def test_custom_models_with_drum_capitalize_artifact_extensions(
@@ -301,9 +295,6 @@ class TestInference:
             (POJO, MULTICLASS, NO_CUSTOM, None),
             (POJO, MULTICLASS_BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (MLJ, BINARY, JULIA, None),
-            (MLJ, REGRESSION, JULIA, None),
-            (MLJ, MULTICLASS, JULIA, None),
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None),
