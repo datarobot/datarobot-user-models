@@ -86,12 +86,7 @@ def _create_custom_model_dir(
 
                 if capitalize_artifact_extension:
                     name, ext = os.path.splitext(source_filename)
-                    if (
-                        ext
-                        in PythonArtifacts.ALL
-                        + RArtifacts.ALL
-                        + JavaArtifacts.ALL
-                    ):
+                    if ext in PythonArtifacts.ALL + RArtifacts.ALL + JavaArtifacts.ALL:
                         ext = ext.upper()
                     dst = os.path.join(custom_model_dir, f"{name}{ext}")
                 shutil.copy2(source_filepath, dst)
