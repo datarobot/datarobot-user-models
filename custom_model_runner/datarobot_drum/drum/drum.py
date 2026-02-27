@@ -324,12 +324,7 @@ class CMRunner:
         )
 
         # if all the artifacts belong to the same language, set it
-        if (
-            bool(len(python_artifacts))
-            + bool(len(r_artifacts))
-            + bool(len(java_artifacts))
-            == 1
-        ):
+        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
             if len(python_artifacts) > 0:
                 artifact_language = RunLanguage.PYTHON
             elif len(r_artifacts) > 0:

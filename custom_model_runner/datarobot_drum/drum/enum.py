@@ -229,7 +229,6 @@ class JavaArtifacts:
     ALL = [JAR_EXTENSION, MOJO_EXTENSION, POJO_EXTENSION, MOJO_PIPELINE_EXTENSION]
 
 
-
 class ArgumentsOptions:
     ADDRESS = "--address"
     DIR = "--dir"
