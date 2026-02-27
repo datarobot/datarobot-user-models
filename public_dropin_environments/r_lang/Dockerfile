@@ -34,34 +34,7 @@ RUN Rscript -e "install.packages(c('Rook'), repos='https://cloud.r-project.org',
 RUN Rscript -e "install.packages(c('rjson'), repos='https://cloud.r-project.org', Ncpus=4); library(rjson)"
 RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org', Ncpus=4); library(e1071)"
 RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
-
-# TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42.
-# Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
-# package depends on `later`, which comes with its own version of
-# `tinycthread`. The upgrade to `glibc-2.43` caused a change in compile
-# behavior where overriding previously defined macros.
-# This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
-# so compile works.
-RUN cd /tmp; \
-  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.7.tar.gz' \
-  | gunzip -c \
-  | tar -x; \
-  cd later; \
-  sed -i 's/^  \(#define once_flag pthread_once_t\)/  \/\/ \1/' src/tinycthread.h; \
-  Rscript -e "install.packages(c('.'), repos=NULL, Ncpus=4)"; \
-  cd; \
-  rm -r /tmp/later
-
-RUN Rscript -e "install.packages( \
-        c('devtools'), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )" && \
-    Rscript -e "library(caret); install.packages( \
-        unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )"
+RUN Rscript -e "install.packages(c('devtools'), repos='https://cloud.r-project.org', Ncpus=4); library(devtools)"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
