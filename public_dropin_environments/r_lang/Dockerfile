@@ -24,8 +24,35 @@ RUN apk add --no-cache \
     libjpeg-turbo-dev && \
     ln -s /usr/lib/R/lib /usr/lib/R/lib64
 
+
+RUN apk add --no-cache \
+    build-base \
+    curl-dev
+
 ENV R_HOME=/usr/lib/R
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
+
+# TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42; keep `devtools` installation as a separte line
+# Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
+# package depends on `later`, which comes with its own version of
+# `tinycthread`. The upgrade to `glibc-2.43` caused a change in compile
+# behavior where overriding previously defined macros.
+# This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
+# so compile works.
+RUN cd /tmp && \
+    curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.7.tar.gz' -o later.tar.gz && \
+    tar -xf later.tar.gz && \
+    # Remove any lines containing the conflicting terms in both files
+    sed -i '/call_once/d' later/src/badthreads.h && \
+    sed -i '/once_flag/d' later/src/badthreads.h && \
+    sed -i '/THREADS_H_ERROR/d' later/src/badthreads.h && \
+    sed -i '/once_flag/d' later/src/tinycthread.h && \
+    # Install the modified local folder
+    Rscript -e "install.packages('later/', repos = NULL, type = 'source')" && \
+    # Install dependencies
+    Rscript -e "install.packages('devtools', repos='https://cloud.r-project.org', Ncpus=4)" && \
+    rm -rf /tmp/later*
+
 
 RUN Rscript -e "install.packages(c('caret'), repos='https://cloud.r-project.org', Ncpus=4); library(caret)"
 RUN Rscript -e "install.packages(c('recipes'), repos='https://cloud.r-project.org', Ncpus=4); library(recipes)"
@@ -36,33 +63,6 @@ RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org'
 RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
 
 
-# TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42.
-# Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
-# package depends on `later`, which comes with its own version of
-# `tinycthread`. The upgrade to `glibc-2.43` caused a change in compile
-# behavior where overriding previously defined macros.
-# This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
-# so compile works.
-RUN cd /tmp; \
-  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.6.tar.gz' \
-  | gunzip -c \
-  | tar -x; \
-  cd later; \
-  sed -i 's/^  \(#define once_flag pthread_once_t\)/  \/\/ \1/' src/tinycthread.h; \
-  Rscript -e "install.packages(c('.'), repos=NULL, Ncpus=4)"; \
-  cd; \
-  rm -r /tmp/later
-
-RUN Rscript -e "install.packages( \
-        c('devtools'), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )" && \
-    Rscript -e "library(caret); install.packages( \
-        unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
