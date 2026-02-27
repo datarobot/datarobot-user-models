@@ -1212,7 +1212,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-moderations"
-version = "11.2.16"
+version = "11.2.18"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1243,7 +1243,7 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/be/d79c5271542193387681d8617af45140550527fbd0beac5a2c3794d11d8e/datarobot_moderations-11.2.16-py3-none-any.whl", hash = "sha256:b5223581afc2e86d71b817b7c2afc186b172e2568224a5e14e8c2da2b7a0b01b", size = 78792, upload-time = "2026-02-18T14:30:34.32Z" },
+    { url = "https://files.pythonhosted.org/packages/28/ea/29ea95ee07182780f7bff0c34788266eb9808f8e49453cc6c1fdad2d888b/datarobot_moderations-11.2.18-py3-none-any.whl", hash = "sha256:5a9ae2679f2d3a1ef9b3a287d88ac97877fc3ed3cae97af7118edbabc204fa26", size = 78984, upload-time = "2026-02-25T15:23:13.566Z" },
 ]
 
 [[package]]
@@ -1516,7 +1516,7 @@ requires-dist = [
     { name = "datarobot-drum", specifier = "==1.17.11" },
     { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = "==0.5.7" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
-    { name = "datarobot-moderations", specifier = "==11.2.16" },
+    { name = "datarobot-moderations", specifier = "==11.2.18" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
     { name = "fastapi", extras = ["all"], marker = "extra == 'agentic-playground'", specifier = "==0.118.2" },
