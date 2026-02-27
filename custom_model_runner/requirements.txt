@@ -15,8 +15,6 @@ PyYAML
 texttable
 py4j~=0.10.9.0
 Pillow
-# constrained by Julia env
-julia<=0.5.7
 termcolor
 packaging
 markupsafe
