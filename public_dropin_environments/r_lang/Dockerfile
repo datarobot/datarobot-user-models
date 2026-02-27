@@ -27,27 +27,39 @@ RUN apk add --no-cache \
 ENV R_HOME=/usr/lib/R
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
 
-# Fix chainguard broken libxml2 link
-# When broken, points to libxml2.so.16.1.1, which doesn't exist, but
-# libxml2.so.16.1.0 does.
-# TODO: Remove this when chainguard fixes upstream.
-RUN \
-  if [ ! -e /usr/lib/libxml2.so ]; then \
-    printf 'WARNING: broken libxml2.so link detected. Fixing\n' >&2; \
-    rm -f /usr/lib/libxml2.so; \
-    ln -s $(readlink /usr/lib/libxml2.so.16) /usr/lib/libxml2.so; \
-  fi
-
-RUN Rscript -e "install.packages( \
-        c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse', 'devtools'), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )" && \
-    Rscript -e "library(caret); install.packages( \
-        unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), \
-        repos='https://cloud.r-project.org', \
-        Ncpus=4 \
-    )"
+# TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42; keep `devtools` installation as a separte line
+# Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
+# package depends on `later`, which comes with its own version of
+# `tinycthread`. The upgrade to `glibc-2.43` caused a change in compile
+# behavior where overriding previously defined macros.
+# This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
+# so compile works.
+# 1. Patch and install 'later' manually into the system library
+# 1. Install the prerequisite packages that 'later' needs
+RUN Rscript -e "install.packages(c('Rcpp', 'rlang'), repos='https://cloud.r-project.org')"
+RUN cd /tmp && \
+    curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.7.tar.gz' -o later.tar.gz && \
+    tar -xf later.tar.gz && \
+    # The Patch: Delete the glibc 2.43 conflict lines
+    sed -i '/call_once/d' later/src/badthreads.h && \
+    sed -i '/once_flag/d' later/src/badthreads.h && \
+    sed -i '/THREADS_H_ERROR/d' later/src/badthreads.h && \
+    sed -i '/once_flag/d' later/src/tinycthread.h && \
+    # The Install: Force it into the system library
+    Rscript -e "install.packages('later/', repos = NULL, type = 'source', lib = '/usr/lib/R/library')" && \
+    # Verification
+    Rscript -e "if (!library(later, logical.return=TRUE)) { stop('Later failed to install') }" && \
+    rm -rf /tmp/later*
+RUN Rscript -e "install.packages('devtools', repos='https://cloud.r-project.org', Ncpus=4)"
+RUN Rscript -e "install.packages(c('caret'), repos='https://cloud.r-project.org', Ncpus=4); library(caret)"
+RUN Rscript -e "install.packages(c('recipes'), repos='https://cloud.r-project.org', Ncpus=4); library(recipes)"
+RUN Rscript -e "install.packages(c('glmnet'), repos='https://cloud.r-project.org', Ncpus=4); library(glmnet)"
+RUN Rscript -e "install.packages(c('Rook'), repos='https://cloud.r-project.org', Ncpus=4); library(Rook)"
+RUN Rscript -e "install.packages(c('rjson'), repos='https://cloud.r-project.org', Ncpus=4); library(rjson)"
+RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org', Ncpus=4); library(e1071)"
+RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
+RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), repos='https://cloud.r-project.org', Ncpus=4)"
+RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), repos='https://cloud.r-project.org', Ncpus=4)"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
