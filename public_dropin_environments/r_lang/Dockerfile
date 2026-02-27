@@ -50,7 +50,7 @@ RUN cd /tmp; \
   sed -i 's/^  \(#define once_flag pthread_once_t\)/  \/\/ \1/' src/tinycthread.h; \
   Rscript -e "install.packages(c('.'), repos=NULL, Ncpus=4)"; \
   cd; \
-  rm -r /tmp/later
+  rm -rf /tmp/later
 
 RUN Rscript -e "install.packages( \
         c('devtools'), \
