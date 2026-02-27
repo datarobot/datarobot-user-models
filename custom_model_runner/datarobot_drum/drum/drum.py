@@ -43,7 +43,6 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import JavaArtifacts
-from datarobot_drum.drum.enum import JuliaArtifacts
 from datarobot_drum.drum.enum import ModelMetadataHyperParamTypes
 from datarobot_drum.drum.enum import ModelMetadataKeys
 from datarobot_drum.drum.enum import PythonArtifacts
@@ -318,39 +317,27 @@ class CMRunner:
 
         java_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
-        julia_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JuliaArtifacts.ALL)
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = DrumUtils.filename_exists_and_is_file(
             code_dir_abspath, "custom.R", "custom.r"
         )
-        is_custom_jl = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.jl")
 
         # if all the artifacts belong to the same language, set it
-        if (
-            bool(len(python_artifacts))
-            + bool(len(r_artifacts))
-            + bool(len(java_artifacts))
-            + bool(len(julia_artifacts))
-            == 1
-        ):
+        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
             if len(python_artifacts) > 0:
                 artifact_language = RunLanguage.PYTHON
             elif len(r_artifacts) > 0:
                 artifact_language = RunLanguage.R
             elif len(java_artifacts) > 0:
                 artifact_language = RunLanguage.JAVA
-            elif len(julia_artifacts) > 0:
-                artifact_language = RunLanguage.JULIA
 
         # if only one custom file found, set it:
-        if is_custom_py + is_custom_r + is_custom_jl == 1:
+        if is_custom_py + is_custom_r == 1:
             if is_custom_py:
                 custom_language = RunLanguage.PYTHON
             elif is_custom_r:
                 custom_language = RunLanguage.R
-            else:
-                custom_language = RunLanguage.JULIA
 
         # if both language values are None, or both are not None and not equal
         if (
@@ -362,18 +349,16 @@ class CMRunner:
                 "Can not detect language by artifacts and/or custom.py/R files.\n"
                 "Detected: language by artifacts - {}; language by custom - {}.\n"
                 "Code directory must have one or more model artifacts belonging to the same language:\n"
-                "Python/R/Java/Julia, with an extension:\n"
+                "Python/R/Java, with an extension:\n"
                 "Python models: {}\n"
                 "R models: {}\n"
                 "Java models: {}.\n"
-                "Julia models: {}.\n"
                 "Or one of custom.py/R files.".format(
                     "None" if artifact_language is None else artifact_language.value,
                     "None" if custom_language is None else custom_language.value,
                     PythonArtifacts.ALL,
                     RArtifacts.ALL,
                     JavaArtifacts.ALL,
-                    JuliaArtifacts.ALL,
                 )
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
@@ -392,7 +377,7 @@ class CMRunner:
         def raise_no_language(custom_language):
             custom_language = "None" if custom_language is None else custom_language.value
             error_mes = (
-                "Can not detect language by custom.py/R/jl files.\n"
+                "Can not detect language by custom.py/R files.\n"
                 "Detected: language by custom - {}.\n"
                 "Code directory must have either a custom.py/R file".format(
                     custom_language,
@@ -406,10 +391,10 @@ class CMRunner:
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
-        def raise_multiple_custom_files(py_paths, r_paths, jl_paths):
-            files_found = py_paths + r_paths + jl_paths
+        def raise_multiple_custom_files(py_paths, r_paths):
+            files_found = py_paths + r_paths
             error_mes = (
-                "Multiple custom.py/R/jl files were identified in the code directories sub directories.\n"
+                "Multiple custom.py/R files were identified in the code directories sub directories.\n"
                 "If using the output directory option select a directory that does not contain additional "
                 "output directories or code directories.\n\n"
                 "The following custom model files were found:\n"
@@ -427,18 +412,18 @@ class CMRunner:
         # check which custom code files present in the code dir
         custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
         custom_r_paths = list(Path(code_dir_abspath).rglob("{}.[rR]".format(CUSTOM_FILE_NAME)))
-        custom_jl_paths = list(Path(code_dir_abspath).rglob("{}.jl".format(CUSTOM_FILE_NAME)))
 
         # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
-        if len(custom_py_paths) + len(custom_r_paths) + len(custom_jl_paths) > 1:
-            raise_multiple_custom_files(custom_py_paths, custom_r_paths, custom_jl_paths)
+        if len(custom_py_paths) + len(custom_r_paths) > 1:
+            raise_multiple_custom_files(
+                custom_py_paths,
+                custom_r_paths,
+            )
         # if only one custom file found, set it:
         elif len(custom_py_paths) == 1:
             custom_language = RunLanguage.PYTHON
         elif len(custom_r_paths) == 1:
             custom_language = RunLanguage.R
-        elif len(custom_jl_paths) == 1:
-            custom_language = RunLanguage.Julia
         # if no custom files, look for any other python file to use
         elif len(custom_py_paths) + len(custom_r_paths) == 0:
             other_py = list(Path(code_dir_abspath).rglob("*.py"))
