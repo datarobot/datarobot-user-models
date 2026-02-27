@@ -229,10 +229,6 @@ class JavaArtifacts:
     ALL = [JAR_EXTENSION, MOJO_EXTENSION, POJO_EXTENSION, MOJO_PIPELINE_EXTENSION]
 
 
-class JuliaArtifacts:
-    JLSO_EXTENSION = ".jlso"
-    ALL = [JLSO_EXTENSION]
-
 
 class ArgumentsOptions:
     ADDRESS = "--address"
@@ -372,7 +368,6 @@ class RunLanguage(Enum):
     PYTHON = "python"
     R = "r"
     JAVA = "java"
-    JULIA = "julia"
 
     # useful in cases when model is expected to have multiple artifacts with mixed languages,
     # in this case a specific DRUM option is needed to invoke an appropriate language predictor
