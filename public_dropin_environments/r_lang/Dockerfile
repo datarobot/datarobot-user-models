@@ -60,9 +60,7 @@ RUN Rscript -e "install.packages(c('Rook'), repos='https://cloud.r-project.org',
 RUN Rscript -e "install.packages(c('rjson'), repos='https://cloud.r-project.org', Ncpus=4); library(rjson)"
 RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org', Ncpus=4); library(e1071)"
 RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
-RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), repos='https://cloud.r-project.org', Ncpus=4)"
-RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), repos='https://cloud.r-project.org', Ncpus=4)"
-
+RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), repos='https://cloud.r-project.org', Ncpus=4)"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
