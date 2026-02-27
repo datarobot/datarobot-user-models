@@ -43,14 +43,14 @@ RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.
 # This comments out the `tinycthread.h` duplicate of the `pthread_once_t` macro
 # so compile works.
 RUN cd /tmp; \
-  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.6.tar.gz' \
+  curl -L 'https://cloud.r-project.org/src/contrib/later_1.4.7.tar.gz' \
   | gunzip -c \
   | tar -x; \
   cd later; \
   sed -i 's/^  \(#define once_flag pthread_once_t\)/  \/\/ \1/' src/tinycthread.h; \
   Rscript -e "install.packages(c('.'), repos=NULL, Ncpus=4)"; \
   cd; \
-  rm -rf /tmp/later
+  rm -r /tmp/later
 
 RUN Rscript -e "install.packages( \
         c('devtools'), \
