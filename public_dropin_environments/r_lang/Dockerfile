@@ -34,7 +34,6 @@ RUN Rscript -e "install.packages(c('Rook'), repos='https://cloud.r-project.org',
 RUN Rscript -e "install.packages(c('rjson'), repos='https://cloud.r-project.org', Ncpus=4); library(rjson)"
 RUN Rscript -e "install.packages(c('e1071'), repos='https://cloud.r-project.org', Ncpus=4); library(e1071)"
 RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.org', Ncpus=4); library(tidyverse)"
-RUN Rscript -e "install.packages(c('devtools'), repos='https://cloud.r-project.org', Ncpus=4); library(devtools)"
 
 # TODO: Remove once `later` fixes the pthread conflict with glibc > 2.42.
 # Workaround for chainguard shipping glibc 2.43 unannounced. The `devtools` R
