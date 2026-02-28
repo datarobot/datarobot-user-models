@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only xgboost custom models. This environment contains xgboost and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6994982000511c34a4004738",
+  "environmentVersionId": "69a251998791b9082fc2be21",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_xgboost",
   "imageRepository": "env-python-xgboost",
   "tags": [
-    "v11.1-6994982000511c34a4004738",
-    "6994982000511c34a4004738",
+    "v11.1-69a251998791b9082fc2be21",
+    "69a251998791b9082fc2be21",
     "v11.1-latest"
   ]
 }
