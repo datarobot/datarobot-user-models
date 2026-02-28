@@ -47,7 +47,7 @@ pipeline:
                 value: <+pipeline.variables.source_branch>
               - name: targetref
                 type: String
-                value: <+pipeline.variables.target_branch>
+                value: origin/<+pipeline.variables.target_branch>
         tags: {}
         when:
           pipelineStatus: Success
