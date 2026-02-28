@@ -22,13 +22,11 @@ from datarobot_drum.drum.enum import (
     PythonArtifacts,
     RArtifacts,
     JavaArtifacts,
-    JuliaArtifacts,
 )
 
 logger = get_drum_logger(__name__)
 
 PYTHON = "python3"
-JULIA = "julia"
 R = "R"
 R_ALL_PREDICT_STRUCTURED_HOOKS = "R_all_predict_structured_hooks"
 R_FIT = "R_fit"
@@ -59,8 +57,6 @@ def _create_custom_model_dir(
         model_template_dir = resources.training_models(language, framework)
         if language == PYTHON:
             files = glob.glob(r"{}/*.py".format(model_template_dir))
-        elif language == JULIA:
-            files = glob.glob(r"{}/*.jl".format(model_template_dir))
         elif language in [R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT]:
             files = glob.glob(r"{}/*.r".format(model_template_dir)) + glob.glob(
                 r"{}/*.R".format(model_template_dir)
@@ -90,13 +86,7 @@ def _create_custom_model_dir(
 
                 if capitalize_artifact_extension:
                     name, ext = os.path.splitext(source_filename)
-                    if (
-                        ext
-                        in PythonArtifacts.ALL
-                        + RArtifacts.ALL
-                        + JavaArtifacts.ALL
-                        + JuliaArtifacts.ALL
-                    ):
+                    if ext in PythonArtifacts.ALL + RArtifacts.ALL + JavaArtifacts.ALL:
                         ext = ext.upper()
                     dst = os.path.join(custom_model_dir, f"{name}{ext}")
                 shutil.copy2(source_filepath, dst)

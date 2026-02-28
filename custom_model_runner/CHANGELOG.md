@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.17.13] - unreleased
 ##### Changed
 - Chat models no longer report deployment stats and prediction data to DataRobot by default.
+- Remove Julia library from DRUM base dependencies.
 
 #### [1.17.12] - 2026-01-27
 ##### Changed

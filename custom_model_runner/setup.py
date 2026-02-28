@@ -60,7 +60,7 @@ setup(
     include_package_data=True,
     packages=find_packages("."),
     package_data={
-        "": ["*.json", "*.jar", "*.R", "*.j2", "*.jl", "*.toml"],
+        "": ["*.json", "*.jar", "*.R", "*.j2", "*.toml"],
         "datarobot_drum.resource.pipelines": ["*"],
         "datarobot_drum.resource.default_typeschema": ["*.yaml"],
     },
