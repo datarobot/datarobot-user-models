@@ -105,12 +105,6 @@ class PredictionServer(PredictMixin):
             )
 
             predictor = JavaPredictor()
-        elif self._run_language == RunLanguage.JULIA:
-            from datarobot_drum.drum.language_predictors.julia_predictor.julia_predictor import (
-                JlPredictor,
-            )
-
-            predictor = JlPredictor()
         elif self._run_language == RunLanguage.R:
             # this import is here, because RPredictor imports rpy library,
             # which is not installed for Java and Python cases.
