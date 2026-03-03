@@ -12,7 +12,7 @@ numpy
 uwsgi
 
 # CVE Updates
-flask>=3.1.1
+flask>=3.1.3
 requests>=2.32.4
 protobuf>=6.33.5
 starlette>=0.49.1
@@ -24,9 +24,9 @@ h2~=4.3.0
 pdfminer.six>=20251230
 langgraph-checkpoint~=3.0.0
 aiohttp>=3.13.3
-pypdf>=6.7.1
+pypdf>=6.7.4
 filelock>=3.20.3
-werkzeug>=3.1.5
+werkzeug>=3.1.6
 pyasn1>=0.6.2
 wheel>=0.46.2
 python-multipart>=0.0.22
@@ -40,7 +40,7 @@ google-cloud-aiplatform>=1.131.0
 click~=8.1.8
 crewai==0.140.0
 crewai-tools>=0.48.0
-datarobot-drum==1.17.11
+datarobot-drum==1.17.11.post1
 datarobot-moderations==11.2.2
 datarobot-mlops>=11.1.0
 datarobot[auth]>=3.8.2
