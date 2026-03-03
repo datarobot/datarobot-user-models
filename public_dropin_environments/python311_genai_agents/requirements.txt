@@ -139,7 +139,6 @@ jsonpointer==3.0.0
 jsonref==1.1.0
 jsonschema[format-nongpl]==4.23.0
 jsonschema-specifications==2025.4.1
-julia==0.5.7
 jupyter-client==8.6.3
 jupyter-core==5.8.1
 jupyter-events==0.12.0
