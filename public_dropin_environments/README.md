@@ -13,7 +13,6 @@ In this repository, we provide several example environments that you can use and
 * [Python 3 + ONNX](python3_onnx)
 * [R + caret](r_lang)
 * [Java Scoring Code](java_codegen)
-* [Julia + MLJ](../example_dropin_environments/julia_mlj)
 
 These sample environments each define the libraries available in the environment 
 and are designed to allow for simple custom inference models to be made that 
