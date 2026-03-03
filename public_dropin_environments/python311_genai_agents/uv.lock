@@ -1002,7 +1002,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-drum"
-version = "1.17.11"
+version = "1.17.11.post1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
@@ -1014,7 +1014,6 @@ dependencies = [
     { name = "gevent" },
     { name = "gunicorn" },
     { name = "jinja2" },
-    { name = "julia" },
     { name = "markupsafe" },
     { name = "memory-profiler" },
     { name = "numpy" },
@@ -1038,7 +1037,7 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/53/61/63df4b66d2aef0fdd8a6d48518fb048db7b488b5f8c575d89a8ca9784c4f/datarobot_drum-1.17.11-py3-none-any.whl", hash = "sha256:3f86fbeb11037db69ac800efd77e5822a3ee3928c5f3c41c6c6fb9797d4b85d5", size = 10822163, upload-time = "2025-12-26T16:44:49.119Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/9f/48fd6eb0c192ef266ad1af15d1d252cb82b0d2c401743ed5feafb6ca05de/datarobot_drum-1.17.11.post1-py3-none-any.whl", hash = "sha256:f7e96cf0255393483ae9aedcbbcce210ebaf0932fc2e15b5d500480ba7c3a478", size = 10804773, upload-time = "2026-02-27T18:44:14.429Z" },
 ]
 
 [[package]]
@@ -1513,7 +1512,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
-    { name = "datarobot-drum", specifier = "==1.17.11" },
+    { name = "datarobot-drum", specifier = "==1.17.11.post1" },
     { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = "==0.5.7" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
     { name = "datarobot-moderations", specifier = "==11.2.20" },
@@ -2703,15 +2702,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/19/74/a633ee74eb36c44aa6d1095e7cc5569bebf04342ee146178e2d36600708b/jsonschema_specifications-2025.9.1.tar.gz", hash = "sha256:b540987f239e745613c7a9176f3edb72b832a4ac465cf02712288397832b5e8d", size = 32855, upload-time = "2025-09-08T01:34:59.186Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/41/45/1a4ed80516f02155c51f51e8cedb3c1902296743db0bbc66608a0db2814f/jsonschema_specifications-2025.9.1-py3-none-any.whl", hash = "sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe", size = 18437, upload-time = "2025-09-08T01:34:57.871Z" },
-]
-
-[[package]]
-name = "julia"
-version = "0.5.7"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/33/90/ba856cddadd923c94b7ce07dd3623d37cfea22b815076f0c70a47d867a3e/julia-0.5.7.tar.gz", hash = "sha256:f24b9788f3e30f33d53fc8854f2fcc54193c84412149cfbc652bde2edd6e8a85", size = 53313, upload-time = "2021-10-25T07:22:47.703Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ea/dc/454ff29992376548758fb749d99bbac7001f72b0c8cea7833cd2120ef844/julia-0.5.7-py2.py3-none-any.whl", hash = "sha256:d30019cac7332e08f4670730e10e473727c4a0a63a9a2f9e2ba77fa6beafcac5", size = 67635, upload-time = "2021-10-25T07:22:46.041Z" },
 ]
 
 [[package]]
