@@ -11,6 +11,7 @@ USER root
 
 # Most of the binaries below are just symlinks to busybox and some OCI build tools follow
 # symlinks (Docker buildkit) and some do not (Kaniko) so copy this in to be safe.
+RUN
 COPY --from=build /usr/bin/busybox /usr/bin/busybox
 
 # Required to run the entrypoint script
