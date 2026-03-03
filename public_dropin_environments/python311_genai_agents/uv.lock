@@ -1212,7 +1212,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-moderations"
-version = "11.2.18"
+version = "11.2.20"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1243,7 +1243,7 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/ea/29ea95ee07182780f7bff0c34788266eb9808f8e49453cc6c1fdad2d888b/datarobot_moderations-11.2.18-py3-none-any.whl", hash = "sha256:5a9ae2679f2d3a1ef9b3a287d88ac97877fc3ed3cae97af7118edbabc204fa26", size = 78984, upload-time = "2026-02-25T15:23:13.566Z" },
+    { url = "https://files.pythonhosted.org/packages/89/ad/1c6da6baa1752f55c719c43b1a5152e0351b9462a8d4fd97b1affa1057a3/datarobot_moderations-11.2.20-py3-none-any.whl", hash = "sha256:9fd9691bc47b002edfeb26f1af4de69dfcc2bfb045f75bc322ef51a84aaa135e", size = 79699, upload-time = "2026-03-03T12:15:18.096Z" },
 ]
 
 [[package]]
@@ -1516,7 +1516,7 @@ requires-dist = [
     { name = "datarobot-drum", specifier = "==1.17.11" },
     { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = "==0.5.7" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
-    { name = "datarobot-moderations", specifier = "==11.2.18" },
+    { name = "datarobot-moderations", specifier = "==11.2.20" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
     { name = "fastapi", extras = ["all"], marker = "extra == 'agentic-playground'", specifier = "==0.118.2" },
@@ -3457,15 +3457,15 @@ wheels = [
 
 [[package]]
 name = "llama-index-llms-langchain"
-version = "0.7.1"
+version = "0.7.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "langchain" },
     { name = "llama-index-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/54/59/2125b4efd3b92e81994f27071c4cd4c85a59b0dfc22fdd8547f01a08ff31/llama_index_llms_langchain-0.7.1.tar.gz", hash = "sha256:b28ff406f2538ee833d7dee2d64973741895e5d092f6adc08ec5b77c6429e993", size = 6035, upload-time = "2025-09-08T20:27:47.668Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/b9/87b76f270a424d07ed8e9524576136b9de675ad50f9da3c29708e5fbfbb2/llama_index_llms_langchain-0.7.2.tar.gz", hash = "sha256:86f2e5654c22d63dfaa94772569401d6148ef146bc04c427a5673503f23db00f", size = 6067, upload-time = "2026-02-19T21:53:44.951Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/c7/783fd5d09fca9b292c02508d989373d0baf01f204687bbd0a50f01510a3a/llama_index_llms_langchain-0.7.1-py3-none-any.whl", hash = "sha256:eaf9b465d98d30d5a0fa1355d2538cd8d31d37ff78d59109997ad0905cb34ce5", size = 6060, upload-time = "2025-09-08T20:27:46.947Z" },
+    { url = "https://files.pythonhosted.org/packages/58/fd/bdd96add193bd8b7604edbedd94fd9c71e0ab66f70a85e7405f70d2138d7/llama_index_llms_langchain-0.7.2-py3-none-any.whl", hash = "sha256:4c8af654237b3a03f886b8effec2126d66d2b06c0352f6805ee6193d51c16aa3", size = 6116, upload-time = "2026-02-19T21:53:43.985Z" },
 ]
 
 [[package]]
