@@ -48,8 +48,7 @@ ENV PATH="$VENV_PATH/bin:$PATH" \
 
 # hadolint ignore=SC1091
 RUN uv venv ${VENV_PATH} && \
-    . ${VENV_PATH}/bin/activate && \
-    uv pip install -U setuptools
+    . ${VENV_PATH}/bin/activate
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
