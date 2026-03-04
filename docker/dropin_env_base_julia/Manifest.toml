@@ -422,10 +422,10 @@ uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
 version = "1.0.3"
 
 [[MbedTLS_jll]]
-deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
-git-tree-sha1 = "0eef589dd1c26a3ac9d753fe1a8bcad63f956fa6"
+deps = ["Artifacts", "JLLWrappers", "Libdl"]
+git-tree-sha1 = "3cce3511ca2c6f87b19c34ffc623417ed2798cbd"
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
-version = "2.16.8+1"
+version = "2.28.10+0"
 
 [[Memento]]
 deps = ["Dates", "Distributed", "JSON", "Serialization", "Sockets", "Syslogs", "Test", "TimeZones", "UUIDs"]
