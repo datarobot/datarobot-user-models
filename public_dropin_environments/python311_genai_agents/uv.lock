@@ -1002,7 +1002,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-drum"
-version = "1.17.13"
+version = "1.17.11.post1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
@@ -1028,7 +1028,6 @@ dependencies = [
     { name = "progress" },
     { name = "py4j" },
     { name = "pydantic" },
-    { name = "pytz" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "scipy" },
@@ -1038,7 +1037,7 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9c/23/b9408aa79d84d200d67482edb3ff47b17abeda0dc0ecea359f2c0e501e2d/datarobot_drum-1.17.13-py3-none-any.whl", hash = "sha256:1e4a1e6763db0ddf9ca439655729b8a6997e070e633387156bd0bbbb2d8119e5", size = 10804979, upload-time = "2026-02-28T02:47:48.342Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/9f/48fd6eb0c192ef266ad1af15d1d252cb82b0d2c401743ed5feafb6ca05de/datarobot_drum-1.17.11.post1-py3-none-any.whl", hash = "sha256:f7e96cf0255393483ae9aedcbbcce210ebaf0932fc2e15b5d500480ba7c3a478", size = 10804773, upload-time = "2026-02-27T18:44:14.429Z" },
 ]
 
 [[package]]
@@ -1513,7 +1512,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
-    { name = "datarobot-drum", specifier = "==1.17.13" },
+    { name = "datarobot-drum", specifier = "==1.17.11.post1" },
     { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = "==0.5.7" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
     { name = "datarobot-moderations", specifier = "==11.2.20" },

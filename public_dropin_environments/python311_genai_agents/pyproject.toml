@@ -7,7 +7,7 @@ requires-python = ">=3.11, <3.12"
 dependencies = [
     "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai] ==0.5.7",
     "datarobot-moderations==11.2.20",
-    "datarobot-drum==1.17.13",
+    "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
     "openai>=1.81.0,<2.0.0",
     "litellm>=1.72.1,<2.0.0",
