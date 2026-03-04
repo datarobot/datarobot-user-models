@@ -14,9 +14,10 @@
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Configure UV package manager
-export UV_PROJECT=${CODE_DIR}
-unset UV_COMPILE_BYTECODE  # Disable compilation (already done in build)
-unset UV_CACHE_DIR         # Disable caching for reproducibility
+export UV_PROJECT=${CODE_DIR:-/opt/code}
+export UV_COMPILE_BYTECODE=0  # Disable compilation (already done in build)
+export UV_NO_CACHE=1       # Disable caching for reproducibility
+export UV_CACHE_DIR=/tmp/uv-cache  # Use writable temp dir (uv always needs a cache dir even with disabled cache)
 
 # Activate the virtual environment
 . ${VENV_PATH}/bin/activate
