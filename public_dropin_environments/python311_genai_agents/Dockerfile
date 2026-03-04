@@ -46,9 +46,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=SC1091
-RUN uv venv ${VENV_PATH} && \
-    . ${VENV_PATH}/bin/activate
+RUN uv venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
