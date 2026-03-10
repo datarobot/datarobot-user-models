@@ -187,6 +187,7 @@ override-dependencies = [
     # There is an incompatiblity between the opentelemetry-semantic-conventions-ai==0.4.14
     # and crewai==1.9.3. See BUZZOK-29568 for more info.
     "opentelemetry-semantic-conventions-ai==0.4.13",
+    "pydantic-ai-slim>=1.56.0", # CVE-2026-25580 fix
 ]
 package = true
 constraint-dependencies = ["gevent; sys_platform == 'never'"]
