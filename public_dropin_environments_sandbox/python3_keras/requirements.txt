@@ -61,7 +61,7 @@ mypy-extensions==1.0.0
 numpy==1.23.5
 oauthlib==3.2.2
 opt-einsum==3.4.0
-orjson==3.10.15
+orjson==3.11.6
 packaging==24.2
 pandas==2.0.3
 pillow==10.3.0
