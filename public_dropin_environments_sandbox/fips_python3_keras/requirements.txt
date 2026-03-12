@@ -48,7 +48,7 @@ joblib==1.4.2
 julia==0.5.7
 keras==3.8.0
 libclang==18.1.1
-markdown==3.7
+markdown==3.8.1
 markdown-it-py==3.0.0
 markupsafe==3.0.2
 mdurl==0.1.2
