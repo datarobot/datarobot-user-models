@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai] ==0.5.7",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat] ==0.6.17",
     "datarobot-moderations==11.2.21",
     "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
