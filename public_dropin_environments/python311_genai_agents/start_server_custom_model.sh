@@ -37,11 +37,11 @@ fi
 
 # -----------------------------------------------------------------------------
 # Option 1: NAT Server
-# Requires: ENABLE_NAT_SERVER runtime parameter set to True
+# Requires: ENABLE_DRAGENT_SERVER runtime parameter set to True
 # -----------------------------------------------------------------------------
-if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
-    ENABLE_NAT_SERVER=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('ENABLE_NAT_SERVER'))")
-    if [ "$ENABLE_NAT_SERVER" = "True" ]; then
+if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER" ]; then
+    ENABLE_DRAGENT_SERVER=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('ENABLE_DRAGENT_SERVER'))")
+    if [ "$ENABLE_DRAGENT_SERVER" = "True" ]; then
         ROOT_PATH_ARG=""
 
       # When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
@@ -53,7 +53,7 @@ if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_NAT_SERVER" ]; then
       echo
       exec nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --host 0.0.0.0 --port 8080 $ROOT_PATH_ARG
     else
-        echo "ENABLE_NAT_SERVER runtime parameter is present but set to False, skipping NAT server"
+        echo "ENABLE_DRAGENT_SERVER runtime parameter is present but set to False, skipping NAT server"
     fi
 fi
 
@@ -90,7 +90,7 @@ fi
 # -----------------------------------------------------------------------------
 echo "Error: No valid entry point found in $SCRIPT_DIR"
 echo "This script requires one of the following:"
-echo "  - ENABLE_NAT_SERVER runtime parameter set to True for NAT Server"
+echo "  - ENABLE_DRAGENT_SERVER runtime parameter set to True for NAT Server"
 echo "  - custom.py file for DRUM-based Custom Models"
 echo "  - app/ directory for MCP Server applications"
 exit 1
