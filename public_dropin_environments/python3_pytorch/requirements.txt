@@ -20,7 +20,7 @@ cryptography==46.0.5
 cuda-bindings==12.9.4
 cuda-pathfinder==1.4.0
 datarobot==3.12.0
-datarobot-drum==1.17.13
+datarobot-drum==1.17.12
 datarobot-mlops==11.1.0
 datarobot-storage==2.2.0
 docker==7.1.0
