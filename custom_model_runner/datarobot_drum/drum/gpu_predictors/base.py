@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
-    from openai import OpenAI
+    from openai import APIConnectionError as OpenAIConnectionError, APITimeoutError as OpenAITimeoutError, OpenAI
     from openai.resources.chat.completions import Completions
 
     COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
@@ -75,6 +75,32 @@ try:
 
 except ImportError:
     _HAS_OPENAI = False
+
+
+NETWORK_RETRY_ATTEMPTS = 2
+NETWORK_RETRY_BASE_DELAY = 0.5
+
+
+def retry_on_network_errors(func):
+    """Retry wrapper that only retries on network/connection errors, not on HTTP errors (5xx, 429)."""
+
+    def wrapper(*args, **kwargs):
+        for attempt in range(NETWORK_RETRY_ATTEMPTS):
+            try:
+                return func(*args, **kwargs)
+            except OpenAITimeoutError:
+                raise
+            except OpenAIConnectionError as err:
+                if attempt == NETWORK_RETRY_ATTEMPTS - 1:
+                    raise
+                sleep_time = NETWORK_RETRY_BASE_DELAY * (2 ** attempt)
+                logger.warning(
+                    "Network error on attempt %d/%d, retrying in %.1fs: %s",
+                    attempt + 1, NETWORK_RETRY_ATTEMPTS, sleep_time, err,
+                )
+                time.sleep(sleep_time)
+
+    return wrapper
 
 
 class ChatRoles:
@@ -171,7 +197,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         valid_params = set(COMPLETIONS_CREATE_SIGNATURE.parameters.keys())
         valid_kwargs = {k: v for k, v in completion_create_params.items() if k in valid_params}
         extra_kwargs = {k: v for k, v in completion_create_params.items() if k not in valid_params}
-        return self.ai_client.chat.completions.create(**valid_kwargs, extra_body=extra_kwargs)
+        return retry_on_network_errors(self.ai_client.chat.completions.create)(
+            **valid_kwargs, extra_body=extra_kwargs
+        )
 
     def _get_supported_llm_models(self):
         result = {"object": "list", "data": []}
@@ -193,9 +221,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def get_drum_openai_client_timeout():
         """
         Returns the timeout value (in seconds) for the OpenAI client.
-        Checks the 'DRUM_OPENAI_CLIENT_TIMEOUT' runtime parameter; defaults to 3600 if not set.
+        Checks the 'DRUM_OPENAI_CLIENT_TIMEOUT' runtime parameter; defaults to 600 if not set.
         """
-        timeout = 3600
+        timeout = 600
         if RuntimeParameters.has("DRUM_OPENAI_CLIENT_TIMEOUT"):
             timeout = int(RuntimeParameters.get("DRUM_OPENAI_CLIENT_TIMEOUT"))
         return timeout
@@ -227,6 +255,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1",
             api_key="fake",
             timeout=self.get_drum_openai_client_timeout(),
+            max_retries=0,
         )
 
         # In multi-container deployments DRUM does not manage OpenAI server processes.
@@ -378,7 +407,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt_value})
 
         try:
-            completions = self.ai_client.chat.completions.create(
+            completions = retry_on_network_errors(self.ai_client.chat.completions.create)(
                 model=self.served_model_name,
                 messages=messages,
                 n=self.num_choices_per_completion,
