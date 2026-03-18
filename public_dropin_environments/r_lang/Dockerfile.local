@@ -35,6 +35,7 @@ RUN Rscript -e "install.packages('caret', Ncpus=4)" && \
     Rscript -e "install.packages('Rook', Ncpus=4)" && \
     Rscript -e "install.packages('rjson', Ncpus=4)" && \
     Rscript -e "install.packages('e1071', Ncpus=4)" && \
+    Rscript -e "install.packages('pack', Ncpus=4)" && \
     Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)' && \
     Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)' && \
     rm -rf /tmp/downloaded_packages/ /tmp/*.rds
