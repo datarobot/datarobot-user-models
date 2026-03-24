@@ -53,7 +53,11 @@ logger = logging.getLogger(__name__)
 
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
-    from openai import APIConnectionError as OpenAIConnectionError, APITimeoutError as OpenAITimeoutError, OpenAI
+    from openai import (
+        APIConnectionError as OpenAIConnectionError,
+        APITimeoutError as OpenAITimeoutError,
+        OpenAI,
+    )
     from openai.resources.chat.completions import Completions
 
     COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
@@ -93,10 +97,13 @@ def retry_on_network_errors(func):
             except OpenAIConnectionError as err:
                 if attempt == NETWORK_RETRY_ATTEMPTS - 1:
                     raise
-                sleep_time = NETWORK_RETRY_BASE_DELAY * (2 ** attempt)
+                sleep_time = NETWORK_RETRY_BASE_DELAY * (2**attempt)
                 logger.warning(
                     "Network error on attempt %d/%d, retrying in %.1fs: %s",
-                    attempt + 1, NETWORK_RETRY_ATTEMPTS, sleep_time, err,
+                    attempt + 1,
+                    NETWORK_RETRY_ATTEMPTS,
+                    sleep_time,
+                    err,
                 )
                 time.sleep(sleep_time)
 
