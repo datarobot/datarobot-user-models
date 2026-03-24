@@ -1,9 +1,9 @@
-setuptools==70.0.0
+setuptools==80.10.2
 ecs-logging==2.2.0
 jupyter-client==8.6.3
 jupyter_kernel_gateway==3.0.1
 jupyter_core==5.8.1
 ipykernel==6.30.0
-pandas==1.5.3
+pandas==2.3.3
 numpy<2.0.0
 mistune==2.0.4
