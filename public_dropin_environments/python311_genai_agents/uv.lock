@@ -1498,7 +1498,7 @@ requires-dist = [
     { name = "jupyter-kernel-gateway", marker = "extra == 'agentic-playground'", specifier = ">=3.0.1" },
     { name = "langchain-litellm", specifier = ">=0.2.3" },
     { name = "langgraph-checkpoint", specifier = ">=4.0.1" },
-    { name = "litellm", specifier = ">=1.72.1,<2.0.0" },
+    { name = "litellm", specifier = ">=1.72.1,!=1.82.7,!=1.82.8,<2.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15.0" },
     { name = "nltk", specifier = ">=3.9.3" },
     { name = "openai", specifier = ">=1.81.0,<2.0.0" },
