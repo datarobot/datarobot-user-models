@@ -59,7 +59,7 @@ pyasn1-modules==0.4.1
 pycparser==2.22
 pydantic==2.10.6
 pydantic-core==2.27.2
-pyjwt[crypto]==2.10.1
+pyjwt[crypto]==2.12.0
 python-dateutil==2.9.0.post0
 python-rapidjson==1.20
 pytz==2025.1
