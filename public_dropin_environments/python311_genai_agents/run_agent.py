@@ -40,9 +40,16 @@ ENABLE_STDOUT_REDIRECT = str(os.environ.get("ENABLE_STDOUT_REDIRECT", 0)).lower(
 # prepends custom venv paths in sys.path, causing all following libs to be imported from there.
 _VENV_DIR = os.environ.get("VENV_DIR", "/opt/venv")
 _VENV_SITE_PACKAGES = str(
-    Path(_VENV_DIR) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+    Path(_VENV_DIR)
+    / "lib"
+    / f"python{sys.version_info.major}.{sys.version_info.minor}"
+    / "site-packages"
 )
-if _VENV_SITE_PACKAGES not in sys.path and os.path.exists(CURRENT_DIR / "pyproject.toml") and os.path.exists(CURRENT_DIR / "uv.lock"):
+if (
+    _VENV_SITE_PACKAGES not in sys.path
+    and os.path.exists(CURRENT_DIR / "pyproject.toml")
+    and os.path.exists(CURRENT_DIR / "uv.lock"
+):
     with open(VENV_LOG_PATH, "a") as venvfd:
         subprocess.run(
             ["uv", "sync", "--frozen", "--no-dev", "--no-progress"],
@@ -111,9 +118,7 @@ def argparse_args() -> argparse.Namespace:
         default="{}",
         help="OpenAI default_headers as json string",
     )
-    parser.add_argument(
-        "--output_path", type=str, default=None, help="json output file location"
-    )
+    parser.add_argument("--output_path", type=str, default=None, help="json output file location")
     parser.add_argument(
         "--otel_entity_id",
         type=str,
@@ -168,9 +173,7 @@ def setup_otel_env_variables(entity_id: str) -> None:
     if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get(
         "OTEL_EXPORTER_OTLP_HEADERS"
     ):
-        root.info(
-            "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping"
-        )
+        root.info("OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping")
         return
 
     datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT", "")
@@ -193,9 +196,7 @@ def setup_otel_env_variables(entity_id: str) -> None:
         stripped_url = (parsed_url.scheme, parsed_url.netloc, "otel", "", "", "")
         otlp_endpoint = urlunparse(stripped_url)
 
-    otlp_headers = (
-        f"X-DataRobot-Api-Key={datarobot_api_token},X-DataRobot-Entity-Id={entity_id}"
-    )
+    otlp_headers = f"X-DataRobot-Api-Key={datarobot_api_token},X-DataRobot-Entity-Id={entity_id}"
     os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = otlp_endpoint
     os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = otlp_headers
     root.info(
