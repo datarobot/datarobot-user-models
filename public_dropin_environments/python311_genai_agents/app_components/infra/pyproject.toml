@@ -1,0 +1,22 @@
+[project]
+name = "infra"
+version = "11.1.4"
+description = """
+This is a template for DataRobot Agents.
+"""
+requires-python = ">=3.11"
+dependencies = [
+    "datarobot-pulumi-utils>=0.0.2.post11",
+    "pulumi>=3.175.0",
+    # Update Dockerfile whenever changing version of pulumi-datarobot. Plugin and library versions must match.
+    "pulumi-datarobot==0.10.30",
+    "jinja2>=3.1.5,<4.0"
+]
+
+[dependency-groups]
+dev = [
+    "pytest-cov>=6.1.1",
+    "pytest>=7.4.0",
+    "mypy>=1.8.0",
+    "ruff>=0.3.0",
+]

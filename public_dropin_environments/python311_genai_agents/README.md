@@ -24,12 +24,43 @@ For specific version information and the complete list of included packages, see
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
-_The Dockerfile.local should be used when customizing the Dockerfile or building locally._
+*The Dockerfile.local should be used when customizing the Dockerfile or building locally.*
 
-### Creating models for this environment
+## [Development] Updating dependencies in Agentic Execution Env
 
-To use this environment, your custom model archive will typically contain a `custom.py` file containing the necessary hooks, as well as other files needed for your workflow. You can implement the hook functions such as `load_model` and `score_unstructured`, as documented [here](../../custom_model_runner/README.md)
+> ⚠️ **WARNING:** `recipe-datarobot-agent-templates` repo must be considered source of truth for all dependencies. Whenever you need to update deps, please merge your changes there first, release new version of agentic template, and follow steps below to synchronize changes afterwards. Please do not update deps directly here. 
 
-Within your `custom.py` code, by importing the necessary dependencies found in this environment, you can implement your Python code under the related custom hook functions, to build your GenAI workflows.
+### Updating agentic template component dependencies.
+1. Within `recipe-datarobot-agent-templates` perform necessary updates to component dependencies, either manually or full lock upgrade if needed, for example.
+```bash
+  cd <recipe-datarobot-agent-templates>
+  # Targeted update.
+  cd agent_crewai
+  uv lock --upgrade-package <package-name>
 
-If you need additional dependencies, you can add those packages in your `requirements.txt` file that you include within your custom model archive and DataRobot will make them available to your custom Python code after you build the environment.
+  # Bump all dependencies to latest.
+  task update
+```
+2. Export context from `recipe-datarobot-agent-templates`. Replace `path/to/` with the approprite path of your local environment:
+```bash
+  cd <recipe-datarobot-agent-templates>
+  task execenv:update-context AGENT_PATH=/path/to/datarobot-user-models/public_dropin_environments/python311_genai_agents
+```
+
+This will synchronize `app_components` folder with `toml/lock` files for all components.
+
+### Updating codespace requirements.
+Codespace requirements live in `requirements.in` and are actually installed into venv in image. They should also be kept in sync with `recipe-datarobot-agent-templates`, and only updated/modified if absolutely necessary.
+1. Update `requirements.in` in `recipe-datarobot-agent-templates`.
+```bash
+  cd <recipe-datarobot-agent-templates>/docker_context
+  vim requirements.in
+```
+2. Compile dependencies into requirements.txt (Python 3.11 and `pip-tools` are required for that):
+```bash
+  pip-compile --no-annotate --no-emit-index-url --no-emit-trusted-host --output-file=requirements.txt requirements.in
+```
+3. Copy both files to your local environment manually:
+```bash
+  cp -vf <recipe-datarobot-agent-templates>/docker_context/requirements* </path/to>
+```

@@ -8,6 +8,8 @@
 
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
+ARG UV_CACHE_DIR=/data/.uv_cache
+ARG PULUMI_PLUGIN_CACHE_DIR=/data/.pulumi_plugin_cache
 ARG VENV_PATH=${WORKDIR}/.venv
 
 ARG UNAME=notebooks
@@ -21,6 +23,8 @@ ARG UID
 ARG GID
 ARG WORKDIR
 ARG AGENTDIR
+ARG PULUMI_PLUGIN_CACHE_DIR
+ARG UV_CACHE_DIR
 ARG VENV_PATH
 
 USER root
@@ -30,23 +34,24 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
   openjdk-11 vim nano procps tzdata poppler-utils
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache rust sqlite
+RUN apk add --no-cache rust sqlite task pulumi pulumi-language-python
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    PULUMI_PLUGIN_CACHE_DIR=${PULUMI_PLUGIN_CACHE_DIR} \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
     DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
-  PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
+    PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=DL3013
-RUN uv venv ${VENV_PATH} && \
-    source ${VENV_PATH}/bin/activate && \
-    uv pip install -U pip setuptools
+# hadolint ignore=SC1091
+RUN uv venv ${VENV_PATH} && mkdir -p ${UV_CACHE_DIR} ${PULUMI_PLUGIN_CACHE_DIR} /tmp/.cache_venv
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
@@ -70,7 +75,7 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Adding SSHD requirements
-RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
+RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} ${UV_CACHE_DIR} ${PULUMI_PLUGIN_CACHE_DIR} /tmp/.cache_venv /home/notebooks /etc/ssh /etc/authorized_keys \
   # sshd prep
   && touch /etc/profile.d/notebooks-load-env.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
@@ -91,16 +96,45 @@ FROM base AS builder
 ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
 
 ARG WORKDIR
+ARG UV_CACHE_DIR
+ARG PULUMI_PLUGIN_CACHE_DIR
 ARG VENV_PATH
+ARG TARGETOS
+ARG TARGETARCH
 
-COPY ./requirements.txt ${WORKDIR}/
-COPY ./agent/requirements-agent.txt ${WORKDIR}/
+COPY --chown=${UNAME}:${UNAME} ./requirements.txt ${WORKDIR}/
+# Workspace files needed for `uv sync` to populate cache with lock-file-compatible URL keys
+COPY --chown=${UNAME}:${UNAME} ./app_components/ ${WORKDIR}/app_components/
 
+ENV UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    PULUMI_PLUGIN_CACHE_DIR=${PULUMI_PLUGIN_CACHE_DIR}
+
+# Use `uv sync` (not `uv pip install`) to populate the UV cache into a temp venv.
+# This ensures cache entries are keyed by the exact URLs in uv.lock files,
+# so that in codespace or deployment `uv sync --frozen` can find every package via URL lookup.
+# Cache is populated from runtime and dev dependencies of all agents, infra projects, etc.
+# UV_PROJECT_ENVIRONMENT redirects the venv away from VENV_PATH (cache-only goal).
+# --no-install-workspace: downloads and caches all deps without needing package source code.
+# Permission on cache dir are modified to allow using this cache by another user (deployment and
+# codespace run under different users).
+# hadolint ignore=DL3003
+RUN for component_dir in "${WORKDIR}"/app_components/*/; do \
+        UV_PROJECT_ENVIRONMENT="${component_dir}.venv" \
+        uv sync --project "${component_dir}" --frozen --no-install-workspace; \
+    done && \
+    chmod -R a+rwX ${UV_CACHE_DIR} && \
+    rm -rf ${WORKDIR}/app_components
+
+# Install runtime dependencies into the baked venv. Packages are served from the
+# cache populated above, so no network access is needed here.
 # hadolint ignore=DL3013, SC1091
 RUN source ${VENV_PATH}/bin/activate && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
-    uv pip uninstall uv
+    uv pip install -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
+
+# Download pulumi plugin into cache directory.
+RUN wget -q -P ${PULUMI_PLUGIN_CACHE_DIR} https://github.com/datarobot-community/pulumi-datarobot/releases/download/v0.10.30/pulumi-resource-datarobot-v0.10.30-$TARGETOS-$TARGETARCH.tar.gz && \
+    wget -q -P ${PULUMI_PLUGIN_CACHE_DIR} https://github.com/pulumi/pulumi-command/releases/download/v1.2.1/pulumi-resource-command-v1.2.1-$TARGETOS-$TARGETARCH.tar.gz
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
@@ -116,15 +150,32 @@ FROM base AS kernel
 
 ARG UNAME
 ARG WORKDIR
+ARG PULUMI_PLUGIN_CACHE_DIR
+ARG UV_CACHE_DIR
 ARG GIT_COMMIT
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
-RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
+USER root
+RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks && \
+    # Ensure directory for dynamic venv creation is writable in LRS.
+    mkdir -p /opt/venv && chmod a+rwx /opt/venv
+USER $UNAME
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+COPY --from=builder --chown=$UNAME $UV_CACHE_DIR $UV_CACHE_DIR
+COPY --from=builder --chown=$UNAME $PULUMI_PLUGIN_CACHE_DIR $PULUMI_PLUGIN_CACHE_DIR
+RUN chmod a+rwx ${UV_CACHE_DIR}
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
+ENV VENV_DIR=/opt/venv \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    UV_FROZEN=1 \
+    PULUMI_SKIP_UPDATE_CHECK=1 \
+    PULUMI_PLUGIN_CACHE_DIR=${PULUMI_PLUGIN_CACHE_DIR} \
+    PULUMI_DISABLE_AUTOMATIC_PLUGIN_ACQUISITION=1
+
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
