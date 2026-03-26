@@ -48,7 +48,7 @@ _VENV_SITE_PACKAGES = str(
 if (
     _VENV_SITE_PACKAGES not in sys.path
     and os.path.exists(CURRENT_DIR / "pyproject.toml")
-    and os.path.exists(CURRENT_DIR / "uv.lock"
+    and os.path.exists(CURRENT_DIR / "uv.lock")
 ):
     with open(VENV_LOG_PATH, "a") as venvfd:
         subprocess.run(
