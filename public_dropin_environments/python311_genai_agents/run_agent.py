@@ -17,15 +17,57 @@ import json
 import logging
 import os
 import socket
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO, cast
 from urllib.parse import urlparse, urlunparse
 
+CURRENT_DIR = Path(__file__).parent
+VENV_LOG_PATH = CURRENT_DIR / "venv.log"
+DEFAULT_OUTPUT_LOG_PATH = CURRENT_DIR / "output.log"
+DEFAULT_OUTPUT_JSON_PATH = CURRENT_DIR / "output.json"
+ENABLE_STDOUT_REDIRECT = str(os.environ.get("ENABLE_STDOUT_REDIRECT", 0)).lower() in [
+    1,
+    "1",
+    "true",
+    "True",
+]
+
+# Bootstarp: new agentic env doesn't have agent dependencies pre-installed and updated
+# template has it's own toml/lock file that should be used to set up venv with runtime deps.
+# Code below bootstraps agent's venv, if it's not there and toml/lock files are present, and
+# prepends custom venv paths in sys.path, causing all following libs to be imported from there.
+_VENV_DIR = os.environ.get("VENV_DIR", "/opt/venv")
+_VENV_SITE_PACKAGES = str(
+    Path(_VENV_DIR)
+    / "lib"
+    / f"python{sys.version_info.major}.{sys.version_info.minor}"
+    / "site-packages"
+)
+if (
+    _VENV_SITE_PACKAGES not in sys.path
+    and os.path.exists(CURRENT_DIR / "pyproject.toml")
+    and os.path.exists(CURRENT_DIR / "uv.lock")
+):
+    with open(VENV_LOG_PATH, "a") as venvfd:
+        subprocess.run(
+            ["uv", "sync", "--frozen", "--no-dev", "--no-progress"],
+            cwd=Path(__file__).parent,
+            env={**os.environ, "UV_PROJECT_ENVIRONMENT": _VENV_DIR},
+            check=True,
+            stdout=sys.stdout if not ENABLE_STDOUT_REDIRECT else venvfd,
+            stderr=sys.stderr if not ENABLE_STDOUT_REDIRECT else subprocess.STDOUT,
+        )
+    sys.path.insert(0, _VENV_SITE_PACKAGES)
+    os.environ["PATH"] = str(Path(_VENV_DIR) / "bin") + os.pathsep + os.environ.get("PATH", "")
+    os.environ["VIRTUAL_ENV"] = _VENV_DIR
+
 import requests
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
+from httpx import Timeout
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
 from openai.types.chat.completion_create_params import (
@@ -244,6 +286,7 @@ def execute_drum(
             api_key="not-required",
             default_headers=default_headers,
             max_retries=0,
+            timeout=Timeout(timeout=1200, connect=5.0),
         )
         completion = client.chat.completions.create(**chat_completion)
 
