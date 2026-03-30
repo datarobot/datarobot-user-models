@@ -75,7 +75,7 @@ pyasn1-modules==0.4.1
 pycparser==2.22
 pydantic==2.10.6
 pydantic-core==2.27.2
-pygments==2.19.1
+pygments==2.20.0
 pyjwt[crypto]==2.10.1
 python-dateutil==2.9.0.post0
 pytz==2025.1
