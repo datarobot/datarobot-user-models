@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.17.14] - 2026-04-01
+##### Changed
+- Default charset for unstructured predictions is "utf-8" instead of "utf8".
+
 #### [1.17.13] - 2026-02-28
 ##### Changed
 - Chat models no longer report deployment stats and prediction data to DataRobot by default.

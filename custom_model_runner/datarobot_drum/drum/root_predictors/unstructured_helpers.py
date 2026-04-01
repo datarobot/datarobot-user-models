@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.enum import UnstructuredDtoKeys, PredictionServerMimetypes
 
-CHARSET_DEFAULT = "utf8"
+CHARSET_DEFAULT = "utf-8"
 MIMETYPE_TEXT_DEFAULT = PredictionServerMimetypes.TEXT_PLAIN
 MIMETYPE_BINARY_DEFAULT = PredictionServerMimetypes.APPLICATION_OCTET_STREAM
 
