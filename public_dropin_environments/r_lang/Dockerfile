@@ -23,7 +23,8 @@ RUN apk update && apk add --no-cache \
     fribidi-dev \
     libpng-dev \
     tiff-dev \
-    libjpeg-turbo-dev && \
+    libjpeg-turbo-dev \
+    libuv-dev && \
     ln -s /usr/lib/R/lib /usr/lib/R/lib64
 
 ENV R_HOME=/usr/lib/R
@@ -82,6 +83,7 @@ COPY --from=build /usr/lib/libevent-2.1* /usr/lib/
 COPY --from=build /usr/lib/libsasl2* /usr/lib/
 COPY --from=build /usr/lib/libbrotlicommon* /usr/lib/
 COPY --from=build /usr/lib/libzstd* /usr/lib/
+COPY --from=build /usr/lib/libuv* /usr/lib/
 
 COPY --from=build /etc/R /etc/R
 COPY --from=build /usr/share/R /usr/share/R
