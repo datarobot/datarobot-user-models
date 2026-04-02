@@ -46,7 +46,7 @@ from tests.constants import (
 
 from tests.conftest import skip_if_framework_not_in_env
 
-UTF8 = "utf8"
+UTF8 = "utf-8"
 UTF16 = "utf16"
 
 
