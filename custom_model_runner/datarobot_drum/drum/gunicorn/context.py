@@ -85,6 +85,145 @@ class WorkerCtx:
     def defer_cleanup(self, fn: Callable[[], None], *, order: int = 0, desc: str = "on_cleanup"):
         self._on_cleanup.append((order, fn, desc))
 
+    def _setup_async_patches(self):
+        """
+        Sets up monkey patches for async libraries to ensure thread-safe execution
+        in Gunicorn workers (sync/gevent).
+
+        This method creates a dedicated background event loop and patches:
+        - AsyncHTTPClient (datarobot_dome): bulk_upload_custom_metrics, predict, async_report_event
+        - OpenTelemetry instrumentation: run_async
+        - GuardExecutor (datarobot_dome): async_guard_executor
+
+        All async operations are offloaded to the background loop via run_coroutine_threadsafe,
+        preventing 'attached to a different loop' and 'non-thread-safe operation' errors.
+        """
+        import asyncio
+
+        def _wrap_future(fut):
+            """Wrap concurrent.futures.Future as asyncio.Future if inside a running loop."""
+            try:
+                asyncio.get_running_loop()
+                return asyncio.wrap_future(fut)
+            except RuntimeError:
+                return fut
+
+        # Background loop for thread-safe async execution in sync/gevent workers.
+        # We store it on self.app to ensure it lives as long as the worker.
+        if not hasattr(self.app, "_drum_bg_loop"):
+            loop = asyncio.new_event_loop()
+            t = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
+            t.start()
+            self.app._drum_bg_loop = loop
+
+        bg_loop = self.app._drum_bg_loop
+
+        self._patch_async_http_client(bg_loop, _wrap_future)
+        self._patch_otel_utils(bg_loop, _wrap_future)
+        self._patch_guard_executor(bg_loop, _wrap_future)
+
+    def _patch_async_http_client(self, bg_loop, _wrap_future):
+        """Patch AsyncHTTPClient methods to run in the background loop."""
+        import asyncio
+
+        try:
+            from datarobot_dome.async_http_client import AsyncHTTPClient
+        except ImportError:
+            return
+
+        def patch_method(method_name):
+            _orig_method = getattr(AsyncHTTPClient, method_name)
+
+            def fixed_method(self, *args, **kwargs):
+                """
+                Thread-safe wrapper that offloads the async execution to a dedicated background loop.
+                This prevents 'attached to a different loop' and 'non-thread-safe operation' errors.
+                """
+
+                async def _coro():
+                    try:
+                        # 1. Ensure the client's internal loop pointer matches our background loop
+                        for attr in ["loop", "_loop"]:
+                            if hasattr(self, attr) and getattr(self, attr) is not bg_loop:
+                                setattr(self, attr, bg_loop)
+
+                        # 2. Session affinity: aiohttp session MUST match the background loop
+                        if hasattr(self, "session") and self.session:
+                            session_loop = getattr(self.session, "_loop", None)
+                            if session_loop and session_loop is not bg_loop:
+                                # Force recreation in the correct loop
+                                try:
+                                    await self.session.close()
+                                except Exception:
+                                    pass
+                                self.session = None
+
+                        if not self.session:
+                            import aiohttp
+
+                            # Use a default timeout as it's not always stored in the instance
+                            timeout = 30
+                            client_timeout = aiohttp.ClientTimeout(
+                                connect=timeout, sock_connect=timeout, sock_read=timeout
+                            )
+                            self.session = aiohttp.ClientSession(timeout=client_timeout)
+
+                        return await _orig_method(self, *args, **kwargs)
+                    except Exception:
+                        logger.exception(f"AsyncHTTPClient.{method_name} failed")
+                        return None
+
+                # run_coroutine_threadsafe is safe from any thread (Flask, Gevent, gthread)
+                return _wrap_future(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+            setattr(AsyncHTTPClient, method_name, fixed_method)
+
+        # Patch all entry points that might be called from sync code
+        patch_method("bulk_upload_custom_metrics")
+        patch_method("predict")
+        patch_method("async_report_event")
+
+    def _patch_otel_utils(self, bg_loop, _wrap_future):
+        """Patch OpenTelemetry instrumentation to run async tasks in the background loop."""
+        import asyncio
+
+        try:
+            import opentelemetry.instrumentation.openai.utils as otel_utils
+        except ImportError:
+            return
+
+        def fixed_run_async(method):
+            """
+            Thread-safe wrapper for OTEL async tasks using the shared background loop.
+            """
+            # Schedule the coroutine safely in the background loop
+            return _wrap_future(asyncio.run_coroutine_threadsafe(method, bg_loop))
+
+        otel_utils.run_async = fixed_run_async
+
+    def _patch_guard_executor(self, bg_loop, _wrap_future):
+        """Patch GuardExecutor to run async_guard_executor in the background loop."""
+        import asyncio
+
+        try:
+            from datarobot_dome.guard_executor import GuardExecutor
+        except ImportError:
+            return
+
+        _orig_async_guard_executor = GuardExecutor.async_guard_executor
+
+        def fixed_async_guard_executor(self, *args, **kwargs):
+            """
+            Thread-safe wrapper for GuardExecutor async tasks using the shared background loop.
+            """
+            return _wrap_future(
+                asyncio.run_coroutine_threadsafe(
+                    _orig_async_guard_executor(self, *args, **kwargs), bg_loop
+                )
+            )
+
+        GuardExecutor.async_guard_executor = fixed_async_guard_executor
+
     def start(self):
         """
         Starts background tasks for the worker context.
@@ -95,39 +234,7 @@ class WorkerCtx:
         """
         self._running = True
 
-        # fix RuntimeError: asyncio.run() cannot be called from a running event loop
-        import asyncio
-
-        try:
-            import opentelemetry.instrumentation.openai.utils as otel_utils
-        except ImportError:
-            otel_utils = None
-
-        if otel_utils:
-
-            def fixed_run_async(method):
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = None
-
-                if loop and loop.is_running():
-
-                    def handle_task_result(task):
-                        try:
-                            task.result()  # retrieve exception if any
-                        except Exception:
-                            # Log or handle exceptions here if needed
-                            logger.error("OpenTelemetry async task error")
-
-                    # Schedule the coroutine safely and add done callback to handle errors
-                    task = loop.create_task(method)
-                    task.add_done_callback(handle_task_result)
-                else:
-                    asyncio.run(method)
-
-            # Apply monkey patch
-            otel_utils.run_async = fixed_run_async
+        self._setup_async_patches()
 
         from datarobot_drum.drum.main import main
 
