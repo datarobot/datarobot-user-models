@@ -11,6 +11,7 @@ from setuptools import setup, find_packages
 # The directory containing this file
 root = Path(__file__).absolute().parent
 
+
 # It is not safe to import modules from the package we are building so this is an
 # idiomatic way to keep things DRY.
 meta = {}
