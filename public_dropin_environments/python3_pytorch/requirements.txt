@@ -108,7 +108,7 @@ sympy==1.14.0
 termcolor==3.3.0
 texttable==1.7.0
 threadpoolctl==3.6.0
-torch==2.10.0
+torch==2.11.0
 trafaret==2.1.1
 triton==3.6.0
 typing-extensions==4.15.0
