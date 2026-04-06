@@ -27,7 +27,6 @@ overrides = [
     { name = "pdfminer-six", specifier = ">=20251230" },
     { name = "pyarrow", specifier = "==21.0.0" },
     { name = "pymilvus", marker = "sys_platform == 'never'" },
-    { name = "ragas", specifier = ">=0.3.8" },
     { name = "ragas", specifier = ">=0.4.3" },
     { name = "starlette", specifier = ">=0.49.1,<1.0.0" },
 ]
