@@ -7,6 +7,8 @@ USER root
 # hadolint ignore=DL3018
 RUN apk add --no-cache uv
 
+USER nonroot
+
 # This makes print statements show up in the logs API
 ENV PYTHONUNBUFFERED=1
 
