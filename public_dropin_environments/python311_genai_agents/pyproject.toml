@@ -188,10 +188,12 @@ override-dependencies = [
 
     # CVE fixes
     "litellm>=1.83.0,<2.0.0",
-    "nltk>=3.9.3",
+    "nltk>=3.9.4",
     "pdfminer.six>=20251230",
     "langgraph-checkpoint>=3.0.0",
     "ragas>=0.4.3",
+    "aiohttp>=3.13.4",
+    "pygments>=2.20.0",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
@@ -199,6 +201,7 @@ override-dependencies = [
     "fastembed; sys_platform == 'never'",  # not used; therefore removed
     "langchain-milvus; sys_platform == 'never'",  # not used and having CVEs
     "pymilvus; sys_platform == 'never'",  # not used and having CVEs
+    "diskcache; sys_platform == 'never'",    # not used and having CVEs
 ]
 package = true
 environments = [
