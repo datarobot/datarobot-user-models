@@ -12,9 +12,6 @@ supported-markers = [
     "sys_platform == 'win32'",
 ]
 
-[options]
-prerelease-mode = "allow"
-
 [manifest]
 overrides = [
     { name = "crewai", extras = ["litellm"], specifier = ">=1.1.0,<2.0.0" },
@@ -1082,11 +1079,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.12.0.dev1256"
-source = { registry = "https://test.pypi.org/simple/" }
-sdist = { url = "https://test-files.pythonhosted.org/packages/23/f5/f4e3b63da25c7d6c041f05634271cc640d426ca1d7c0150dd471a33d81e7/datarobot_genai-0.12.0.dev1256.tar.gz", hash = "sha256:debd36ea1eb62ac4345a2798492787cca5b3857bd22cd144f8f1d27b1a35fad9", size = 225782, upload-time = "2026-04-08T07:31:05.054Z" }
+version = "0.13.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/21/49deb4c0cde3e07c0059a6f935393d3d83ba751a63b4cc8dcadda7988d35/datarobot_genai-0.13.0.tar.gz", hash = "sha256:f8592efc84a9c4a97cb2384a762f1f9c82d1f0822da0e4dff7a39e697ecc930a", size = 226283, upload-time = "2026-04-08T14:05:04.236Z" }
 wheels = [
-    { url = "https://test-files.pythonhosted.org/packages/3f/39/81a6102f06de50af72ef2b15e9b1eda51776f6fd8db0d85b27ac469b66e2/datarobot_genai-0.12.0.dev1256-py3-none-any.whl", hash = "sha256:48b77c25a7aa3570637d1fe4dfd0cffcbaa904a749d219f46a011bf62c0630b5", size = 334120, upload-time = "2026-04-08T07:31:03.115Z" },
+    { url = "https://files.pythonhosted.org/packages/c8/56/ddb8bdb8a939617c8735437b24c0e917c16c549dcf88fbbfb81f8c78810d/datarobot_genai-0.13.0-py3-none-any.whl", hash = "sha256:545d1c527c680720362874194795731f337a474cd2a6414219a2fb5d5f265575", size = 334619, upload-time = "2026-04-08T14:05:01.726Z" },
 ]
 
 [package.optional-dependencies]
@@ -1575,7 +1572,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
     { name = "datarobot-drum", specifier = "==1.17.11.post1" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat"], specifier = "==0.12.0.dev1256", index = "https://test.pypi.org/simple/" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat"], specifier = "==0.13.0" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
     { name = "datarobot-moderations", specifier = "==11.2.23" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
