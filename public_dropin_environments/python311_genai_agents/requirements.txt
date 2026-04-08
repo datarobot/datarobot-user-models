@@ -82,7 +82,7 @@ pydantic[email]==2.12.5
 pydantic-core==2.41.5
 pydantic-extra-types==2.11.1
 pydantic-settings==2.13.1
-pygments==2.19.2
+pygments==2.20.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-json-logger==4.0.0
@@ -90,7 +90,7 @@ python-multipart==0.0.22
 pyyaml==6.0.3
 pyzmq==27.1.0
 referencing==0.37.0
-requests==2.33.0
+requests==2.33.1
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
