@@ -16,7 +16,7 @@ supported-markers = [
 overrides = [
     { name = "aiohttp", specifier = ">=3.13.4" },
     { name = "crewai", extras = ["litellm"], specifier = ">=1.1.0,<2.0.0" },
-    { name = "diskcache", marker = "sys_platform == 'neve'" },
+    { name = "diskcache", marker = "sys_platform == 'never'" },
     { name = "fastapi", specifier = ">=0.118.2,<0.133.0" },
     { name = "fastembed", marker = "sys_platform == 'never'" },
     { name = "gevent", marker = "sys_platform == 'never'" },

@@ -201,7 +201,7 @@ override-dependencies = [
     "fastembed; sys_platform == 'never'",  # not used; therefore removed
     "langchain-milvus; sys_platform == 'never'",  # not used and having CVEs
     "pymilvus; sys_platform == 'never'",  # not used and having CVEs
-    "diskcache; sys_platform == 'neve'",    # not used and having CVEs
+    "diskcache; sys_platform == 'never'",    # not used and having CVEs
 ]
 package = true
 environments = [
