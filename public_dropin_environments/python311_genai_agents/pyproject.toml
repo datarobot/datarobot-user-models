@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat]==0.10.3",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat]==0.12.0.dev1256",
     "datarobot-moderations==11.2.23",
     "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
@@ -211,6 +211,15 @@ environments = [
 # [[tool.uv.index]]
 # name = "mirror"
 # url = "https://mirror_url/"
+
+# Temporary: TestPyPI for datarobot-genai dev build (BUZZOK-30087, remove after release)
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+explicit = true
+
+[tool.uv.sources]
+datarobot-genai = { index = "testpypi" }
 
 [dependency-groups]
 extras = []
