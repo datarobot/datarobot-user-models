@@ -10,6 +10,7 @@ if [[ $(echo -e "$current_version\n$min_required_version" | sort -V | head -n 1)
     apt-get update
     apt-get install -y \
       python${min_required_version} \
+      python${min_required_version}-dev \
       python${min_required_version}-venv \
       python${min_required_version}-doc \
       binfmt-support
