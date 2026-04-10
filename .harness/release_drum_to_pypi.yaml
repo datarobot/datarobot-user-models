@@ -23,7 +23,7 @@ pipeline:
                   name: Build DRUM and publish to Pypi
                   identifier: build_drum_and_publish_to_pypi
                   spec:
-                    connectorRef: datarobot_user_models_read_write
+                    connectorRef: genai_systems_dockerhub_rw_hhi
                     image: datarobotdev/drum-builder:ubuntu-24-04
                     shell: Bash
                     command: |-
