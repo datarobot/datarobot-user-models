@@ -31,9 +31,15 @@ dependencies = [
 ]
 
 [tool.uv]
+required-version = ">=0.10.0"
 exclude-dependencies = [
     "uv",
     "diskcache",    # Not supported anymore, and not directly required by ragas. CVE-2025-69872.
+]
+constraint-dependencies = [
+    # CVE fixes - constraints for transitive dependencies.
+    "cryptography>=46.0.7",
+    "langchain-core>=1.2.28",
 ]
 
 [dependency-groups]

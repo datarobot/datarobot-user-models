@@ -20,3 +20,7 @@ dev = [
     "mypy>=1.8.0",
     "ruff>=0.3.0",
 ]
+
+[tool.uv]
+required-version = ">=0.10.0"
+constraint-dependencies = []
