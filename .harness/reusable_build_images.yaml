@@ -124,7 +124,7 @@ pipeline:
                   name: Build and push to dockerhub
                   identifier: Build_and_push_to_dockerhub
                   spec:
-                    connectorRef: datarobot_user_models_read_write
+                    connectorRef: genai_systems_dockerhub_rw_hhi
                     repo: datarobotdev/<+matrix.image.repository>
                     tags:
                       - <+matrix.image.tag>
