@@ -8,3 +8,7 @@ requires-python = ">=3.10"
 
 dependencies = [
 ]
+
+[tool.uv]
+required-version = ">=0.10.0"
+constraint-dependencies = []
