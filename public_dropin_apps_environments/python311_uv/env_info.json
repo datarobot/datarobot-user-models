@@ -7,6 +7,7 @@
   "environmentVersionId": "69d63f9600733f45e60021e0",
   "environmentVersionDescription": "Python 3.11 + uv",
   "isPublic": false,
+  "isDownloadable": true,
   "useCases": [
     "customApplication"
   ],
