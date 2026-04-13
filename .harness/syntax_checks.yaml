@@ -25,7 +25,7 @@ pipeline:
                       identifier: Run_1
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: python:3.9
+                        image: python:3.12
                         shell: Bash
                         command: |-
                           set -exuo pipefail
@@ -56,7 +56,7 @@ pipeline:
                       identifier: pylint_step
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: python:3.9
+                        image: python:3.12
                         shell: Bash
                         command: |-
                           set -exuo pipefail
