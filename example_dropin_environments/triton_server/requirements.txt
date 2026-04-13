@@ -48,7 +48,7 @@ numpy==2.0.2
 orjson==3.10.15
 packaging==24.2
 pandas==2.2.3
-pillow==11.1.0
+pillow==12.2.0
 portalocker==2.10.1
 progress==1.6
 protobuf==3.20.3
