@@ -14,7 +14,6 @@ import trafaret as t
 from pathlib import Path
 
 from pydantic import create_model
-from ruamel.yaml import YAMLError
 from strictyaml import (
     load,
     Map,
@@ -25,6 +24,7 @@ from strictyaml import (
     Int,
     Any,
     StrictYAMLError,
+    YAMLError,
     YAMLValidationError,
 )
 from typing import Optional as PythonTypingOptional, List, Dict, Union
