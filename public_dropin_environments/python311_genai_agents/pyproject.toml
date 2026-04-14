@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
     "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat]==0.13.0",
-    "datarobot-moderations[all]==11.2.24",
+    "datarobot-moderations[all]==11.2.25",
     "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
     "langchain-litellm>=0.2.3",
@@ -22,7 +22,7 @@ dev = [
     "pre-commit>=4.2.0",
     "pydantic>=2.6.1",
     "pytest-cov>=6.1.1",
-    "pytest>=7.4.0",
+    "pytest>=9.0.3",
     "pytest-asyncio>=1.2.0",
     "requests-mock>=1.12.1",
     "ruff>=0.12.0",
@@ -187,13 +187,18 @@ override-dependencies = [
     "crewai[litellm]>=1.1.0,<2.0.0",
 
     # CVE fixes
+    "aiohttp>=3.13.4",
+    "cryptography>=46.0.7",
+    "langchain-core>=1.2.28",
+    "langgraph-checkpoint>=3.0.0",
     "litellm>=1.83.0,<2.0.0",
     "nltk>=3.9.4",
     "pdfminer.six>=20251230",
-    "langgraph-checkpoint>=3.0.0",
-    "ragas>=0.4.3",
-    "aiohttp>=3.13.4",
+    "pillow>=12.2.0",
     "pygments>=2.20.0",
+    "pypdf>=6.10.0",
+    "ragas>=0.4.3",
+    "uv>=0.11.6",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
