@@ -6,17 +6,6 @@
 # The copyright notice above does not evidence any actual or intended
 # publication of such source code.
 
-
-###################   !NOTA BENE!   #######################
-#   All the files, parameters and packages are necessary  #
-#   for the proper functioning of Notebooks.              #
-#   If needed, you can include any system package         #
-#   that will be installed through microdnf or            #
-#   add a required package to the requirements.txt file.  #
-#   Please note that removing predefined packages         #
-#   may result in issues with Notebooks functionality.    #
-###########################################################
-
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
@@ -25,18 +14,9 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-# You can specify a different python version here
-# be sure that package available in microdnf repo
-# to check use this bash commands:
-# ```bash```
-# docker run --rm -it registry.access.redhat.com/ubi9/ubi-minimal:9.5 bash
-# microdnf repoquery python3*
-# ```
-ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.13
-
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS base
-# some globally required dependencies
+# This is a private production chain-guard image that is stored in DataRobot's private registry.
+# Replace it with your own production chain-guard image if you build your own.
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -44,22 +24,17 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
-ARG PYTHON_VERSION
-ARG PYTHON_EXACT_VERSION
 ARG GIT_COMMIT
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Add any package that will be installed on system level here:
-RUN echo "[Python$PYTHON_VERSION] GIT_COMMIT: $GIT_COMMIT" \
-    && microdnf update -y \
-    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
-  gcc-11.5.0 gcc-c++-11.5.0 glib2-devel-2.68.4 libffi-devel-3.4.2 graphviz-2.44.0 python$PYTHON_VERSION-pip \
-  openblas-0.3.29 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
-  java-11-openjdk-headless vim-minimal nano \
-  && microdnf clean all
+USER root
+RUN echo "[Python3.11] GIT_COMMIT: $GIT_COMMIT" && \
+  apk update && apk add --no-cache gcc libstdc++ glibc-dev libffi-dev graphviz \
+  openblas git openssh-server gzip zip unzip wget curl openjdk-11 vim nano \
+  && rm -rf /var/cache/apk/
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -70,7 +45,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-RUN python3.11 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
+RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
@@ -87,14 +62,11 @@ RUN cp -a /etc/ssh /etc/ssh.cache && rm -rf /var/cache/apk/*
 RUN mkdir /etc/authorized_keys
 
 # Custom user to run the image from
-RUN groupadd -g $GID -o $UNAME && \
-    useradd -l -m -u $UID -g $GID -o -s /bin/bash $UNAME
+RUN addgroup -g "$GID" "$UNAME" && \
+    adduser -D -u "$UID" -G "$UNAME" -s /bin/bash "$UNAME"
 
 # Prompt customizations
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
-
-# remove microdnf
-RUN microdnf remove microdnf -y
 
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
@@ -116,14 +88,14 @@ EXPOSE 8888
 EXPOSE 22
 
 FROM base AS minimal
-# this stage has only bare minimal of dependencies installed to optimize build time for the local development
+# this stage has only bare minimum of dependencies installed to optimize build time for local development
 
 ARG WORKDIR
 ARG VENV_PATH
 
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
-RUN python3.11 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
-    && python3.11 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
+RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
+    && python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
     && rm ${WORKDIR}/dr_requirements.txt \
     && rm ${WORKDIR}/requirements-agent.txt \
     && rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json \
@@ -137,7 +109,6 @@ FROM minimal AS builder
 
 ARG WORKDIR
 ARG VENV_PATH
-ARG PYTHON_VERSION
 
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
@@ -145,7 +116,7 @@ RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
   && rm ${WORKDIR}/requirements.txt
 
 FROM base AS kernel
-# this stage is what actually going to be run as kernel image and it's clean from all build junks
+# this stage is what is actually going to be run as kernel image and it's clean from all build junk
 
 ARG UNAME
 
