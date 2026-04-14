@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    exclude-paths:
+      - "public_dropin_notebook_environments/python311_notebook/"
+      - "public_dropin_notebook_environments/python39_notebook_gpu/"
+      - "public_dropin_notebook_environments/python39_notebook_gpu_rapids/"
+      - "public_dropin_notebook_environments/python39_notebook_gpu_tf/"
+      - "public_dropin_notebook_environments/r_notebook/"
