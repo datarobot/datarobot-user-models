@@ -1,6 +1,6 @@
 {
   "id": "69d63f96005c6f304f0034a9",
-  "name": "[DataRobot] Python 3.11 UV",
+  "name": "[DataRobot][Workload] Python 3.11",
   "description": "Base environment for Python 3.11 applications using uv package manager. No pre-installed dependencies \u2014 user dependencies are installed at build time via uv sync.",
   "programmingLanguage": "python",
   "label": "",
