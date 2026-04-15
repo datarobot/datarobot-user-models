@@ -80,7 +80,7 @@ s3transfer==0.16.0
 scipy==1.17.1
 six==1.17.0
 strenum==0.4.15
-strictyaml==1.4.2
+strictyaml==1.7.3
 termcolor==3.3.0
 texttable==1.7.0
 trafaret==2.1.1
