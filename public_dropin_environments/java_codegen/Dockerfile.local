@@ -4,6 +4,7 @@
 
 FROM python:3.12-alpine
 
+# Local dev only; JDK major should match production (see Dockerfile for pinned OpenJDK).
 RUN apk add --no-cache build-base python3-dev linux-headers openjdk11
 
 COPY requirements.txt requirements.txt
