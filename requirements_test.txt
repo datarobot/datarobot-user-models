@@ -6,6 +6,6 @@ PyYAML>=3.11
 requests>=2.24.0,<=2.32.0
 retry
 scipy>=1.1,<2
-urllib3>=1.25.0,<2.0.0
+urllib3>=1.25.0,<3.0.0
 # strictly not needed for testing, but used when updating environment
 bson
