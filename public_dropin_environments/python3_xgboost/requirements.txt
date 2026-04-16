@@ -18,7 +18,7 @@ charset-normalizer==3.4.7
 click==8.3.2
 cryptography==46.0.6
 datarobot==3.13.0
-datarobot-drum==1.17.14
+datarobot-drum==1.17.15
 datarobot-mlops==11.1.0
 datarobot-storage==2.2.0
 docker==7.1.0
@@ -77,13 +77,12 @@ pytz==2026.1.post1
 pyyaml==6.0.3
 requests==2.33.1
 requests-toolbelt==1.0.0
-ruamel-yaml==0.17.4
 s3transfer==0.16.0
 scikit-learn==1.6.1
 scipy==1.17.1
 six==1.17.0
 strenum==0.4.15
-strictyaml==1.4.2
+strictyaml==1.7.3
 termcolor==3.3.0
 texttable==1.7.0
 threadpoolctl==3.6.0
