@@ -94,7 +94,6 @@ pyyaml==6.0.3
 requests==2.33.1
 requests-toolbelt==1.0.0
 rich==14.3.3
-ruamel-yaml==0.17.4
 s3transfer==0.16.0
 scikeras==0.13.0
 scikit-learn==1.6.1
