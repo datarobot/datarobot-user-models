@@ -207,9 +207,9 @@ class TestStreamingChatHelpers:
         chunks = [
             'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hel"},"finish_reason":null}]}\n\n',
             b'data: {"choices":[{"index":0,"delta":{"content":"lo"},"finish_reason":"stop"}]}\n\n',
-            'event: ping\n',
-            'data: not-json\n',
-            'data: [DONE]\n\n',
+            "event: ping\n",
+            "data: not-json\n",
+            "data: [DONE]\n\n",
         ]
 
         response = reconstruct_chat_response_from_sse(chunks)
@@ -227,10 +227,10 @@ class TestStreamingChatHelpers:
     def test_iter_stream_with_span_sets_attributes_and_closes_span(self):
         chunks = [
             'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hi"},"finish_reason":"stop"}]}\n\n',
-            'data: [DONE]\n\n',
+            "data: [DONE]\n\n",
         ]
         span = mock.Mock()
-        span_cm = mock.Mock()
+        span_cm = mock.MagicMock()
 
         streamed = list(iter_stream_with_span(chunks, span, span_cm))
 
@@ -261,7 +261,7 @@ class TestStreamingChatHelpers:
                 raise RuntimeError("stream failed")
 
         span = mock.Mock()
-        span_cm = mock.Mock()
+        span_cm = mock.MagicMock()
 
         with pytest.raises(RuntimeError, match="stream failed"):
             list(iter_stream_with_span(BrokenIterable(), span, span_cm))
@@ -270,5 +270,9 @@ class TestStreamingChatHelpers:
         attributes = span.set_attributes.call_args[0][0]
         assert attributes["gen_ai.response.model"] == "gpt-4o"
         assert attributes["gen_ai.completion.0.content"] == "Par"
-        span_cm.__exit__.assert_called_once_with(None, None, None)
-
+        span_cm.__exit__.assert_called_once()
+        exc_type, exc, tb = span_cm.__exit__.call_args[0]
+        assert exc_type is RuntimeError
+        assert isinstance(exc, RuntimeError)
+        assert str(exc) == "stream failed"
+        assert tb is not None

@@ -45,7 +45,6 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
-
 ctx_request_id = ContextVar("request_id")
 
 
@@ -261,6 +260,24 @@ def otel_context(tracer, span_name, carrier):
         context.detach(token)
 
 
+def _normalize_chat_content_to_parts(content):
+    parts = []
+    if isinstance(content, str):
+        parts.append({"type": "text", "content": content})
+    elif isinstance(content, list):
+        for content_part in content:
+            if not isinstance(content_part, dict):
+                continue
+            content_part_type = content_part.get("type")
+            if content_part_type == "text" and "text" in content_part:
+                parts.append({"type": "text", "content": content_part["text"]})
+            else:
+                parts.append(content_part)
+    elif content is not None:
+        parts.append({"type": "text", "content": str(content)})
+    return parts
+
+
 def extract_chat_request_attributes(completion_params):
     """Extracts otel related attributes from chat request payload
 
@@ -283,20 +300,7 @@ def extract_chat_request_attributes(completion_params):
         # last prompt wins
         attributes["gen_ai.prompt"] = content
 
-        parts = []
-        if isinstance(content, str):
-            parts.append({"type": "text", "content": content})
-        elif isinstance(content, list):
-            for content_part in content:
-                if not isinstance(content_part, dict):
-                    continue
-                content_part_type = content_part.get("type")
-                if content_part_type == "text" and "text" in content_part:
-                    parts.append({"type": "text", "content": content_part["text"]})
-                else:
-                    parts.append(content_part)
-        elif content is not None:
-            parts.append({"type": "text", "content": str(content)})
+        parts = _normalize_chat_content_to_parts(content)
 
         message = {"role": role}
         if parts:
@@ -350,20 +354,7 @@ def extract_chat_response_attributes(response):
         # last completion wins
         attributes["gen_ai.completion"] = content
 
-        parts = []
-        if isinstance(content, str):
-            parts.append({"type": "text", "content": content})
-        elif isinstance(content, list):
-            for content_part in content:
-                if not isinstance(content_part, dict):
-                    continue
-                content_part_type = content_part.get("type")
-                if content_part_type == "text" and "text" in content_part:
-                    parts.append({"type": "text", "content": content_part["text"]})
-                else:
-                    parts.append(content_part)
-        elif content is not None:
-            parts.append({"type": "text", "content": str(content)})
+        parts = _normalize_chat_content_to_parts(content)
 
         message = {"role": role}
         if parts:
@@ -440,12 +431,18 @@ def iter_stream_with_span(iterable, span, span_cm):
     completion response, sets span attributes, then closes the span context
     manager once the stream is exhausted (or on error).
     """
+
     chunks = []
     try:
         for chunk in iterable:
             chunks.append(chunk)
             yield chunk
-    finally:
+    except Exception as exc:
+        reconstructed = reconstruct_chat_response_from_sse(chunks)
+        span.set_attributes(extract_chat_response_attributes(reconstructed))
+        span_cm.__exit__(type(exc), exc, exc.__traceback__)
+        raise
+    else:
         reconstructed = reconstruct_chat_response_from_sse(chunks)
         span.set_attributes(extract_chat_response_attributes(reconstructed))
         span_cm.__exit__(None, None, None)

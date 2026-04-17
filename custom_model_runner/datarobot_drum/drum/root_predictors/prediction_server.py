@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 import sys
@@ -251,11 +252,13 @@ class PredictionServer(PredictMixin):
                     elif isinstance(response, Response):
                         # For streaming responses, iter_stream_with_span keeps the span open
                         # until the generator is exhausted, then sets attributes and closes it.
-                        return Response(
-                            iter_stream_with_span(response.response, span, span_cm),
-                            mimetype="text/event-stream",
-                        ), response_status
-
+                        return (
+                            Response(
+                                iter_stream_with_span(response.response, span, span_cm),
+                                mimetype="text/event-stream",
+                            ),
+                            response_status,
+                        )
 
                 span_cm.__exit__(None, None, None)
             except Exception as exc:
