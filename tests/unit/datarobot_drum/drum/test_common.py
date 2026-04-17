@@ -276,3 +276,38 @@ class TestStreamingChatHelpers:
         assert isinstance(exc, RuntimeError)
         assert str(exc) == "stream failed"
         assert tb is not None
+
+    def test_iter_stream_with_span_finalizes_on_generator_exit(self):
+        chunks = [
+            'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hi"},"finish_reason":"stop"}]}\n\n',
+            "data: [DONE]\n\n",
+        ]
+        span = mock.Mock()
+        span_cm = mock.MagicMock()
+
+        stream = iter_stream_with_span(chunks, span, span_cm)
+
+        assert next(stream) == chunks[0]
+        stream.close()
+
+        span.set_attributes.assert_called_once_with(
+            {
+                "gen_ai.response.model": "gpt-4o",
+                "gen_ai.completion.0.role": "assistant",
+                "gen_ai.completion.0.content": "Hi",
+                "gen_ai.completion": "Hi",
+                "gen_ai.output.messages": json.dumps(
+                    [
+                        {
+                            "role": "assistant",
+                            "parts": [{"type": "text", "content": "Hi"}],
+                            "finish_reason": "stop",
+                        }
+                    ]
+                ),
+            }
+        )
+        span_cm.__exit__.assert_called_once()
+        exc_type, exc, _ = span_cm.__exit__.call_args[0]
+        assert exc_type is GeneratorExit
+        assert isinstance(exc, GeneratorExit)

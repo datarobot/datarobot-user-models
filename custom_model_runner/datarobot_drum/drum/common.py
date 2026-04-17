@@ -433,16 +433,19 @@ def iter_stream_with_span(iterable, span, span_cm):
     """
 
     chunks = []
+    exc_type = exc = exc_tb = None
     try:
         for chunk in iterable:
             chunks.append(chunk)
             yield chunk
-    except Exception as exc:
-        reconstructed = reconstruct_chat_response_from_sse(chunks)
-        span.set_attributes(extract_chat_response_attributes(reconstructed))
-        span_cm.__exit__(type(exc), exc, exc.__traceback__)
+    except BaseException as err:
+        exc_type = type(err)
+        exc = err
+        exc_tb = err.__traceback__
         raise
-    else:
-        reconstructed = reconstruct_chat_response_from_sse(chunks)
-        span.set_attributes(extract_chat_response_attributes(reconstructed))
-        span_cm.__exit__(None, None, None)
+    finally:
+        try:
+            reconstructed = reconstruct_chat_response_from_sse(chunks)
+            span.set_attributes(extract_chat_response_attributes(reconstructed))
+        finally:
+            span_cm.__exit__(exc_type, exc, exc_tb)
