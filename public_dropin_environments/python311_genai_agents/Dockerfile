@@ -104,6 +104,8 @@ USER $UNAME
 
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
+    # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
+    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 
