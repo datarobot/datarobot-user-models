@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
+import json
 import logging
 import os
 import sys
@@ -265,13 +266,46 @@ def extract_chat_request_attributes(completion_params):
 
     Used to populate span with relevant monitoring attriubtes.
     """
+    completion_params = completion_params or {}
+
     attributes = {}
     attributes["gen_ai.request.model"] = completion_params.get("model")
+    gen_ai_input_messages = []
     for i, m in enumerate(completion_params.get("messages", [])):
-        attributes[f"gen_ai.prompt.{i}.role"] = m.get("role")
-        attributes[f"gen_ai.prompt.{i}.content"] = m.get("content")
-        # last promt wins
-        attributes["gen_ai.prompt"] = m.get("content")
+        if not isinstance(m, dict):
+            continue
+
+        role = m.get("role")
+        content = m.get("content")
+
+        attributes[f"gen_ai.prompt.{i}.role"] = role
+        attributes[f"gen_ai.prompt.{i}.content"] = content
+        # last prompt wins
+        attributes["gen_ai.prompt"] = content
+
+        parts = []
+        if isinstance(content, str):
+            parts.append({"type": "text", "content": content})
+        elif isinstance(content, list):
+            for content_part in content:
+                if not isinstance(content_part, dict):
+                    continue
+                content_part_type = content_part.get("type")
+                if content_part_type == "text" and "text" in content_part:
+                    parts.append({"type": "text", "content": content_part["text"]})
+                else:
+                    parts.append(content_part)
+        elif content is not None:
+            parts.append({"type": "text", "content": str(content)})
+
+        message = {"role": role}
+        if parts:
+            message["parts"] = parts
+        gen_ai_input_messages.append(message)
+
+    # Spans do not always support native structured values, so serialize to JSON.
+    attributes["gen_ai.input.messages"] = json.dumps(gen_ai_input_messages)
+
     return attributes
 
 
@@ -294,12 +328,124 @@ def extract_chat_response_attributes(response):
 
     Used to populate span with relevant monitoring attriubtes.
     """
+    response = response or {}
+
     attributes = {}
     attributes["gen_ai.response.model"] = response.get("model")
+    gen_ai_output_messages = []
+
     for i, c in enumerate(response.get("choices", [])):
+        if not isinstance(c, dict):
+            continue
+
         m = c.get("message", {})
-        attributes[f"gen_ai.completion.{i}.role"] = m.get("role")
-        attributes[f"gen_ai.completion.{i}.content"] = m.get("content")
+        if not isinstance(m, dict):
+            m = {}
+
+        role = m.get("role")
+        content = m.get("content")
+
+        attributes[f"gen_ai.completion.{i}.role"] = role
+        attributes[f"gen_ai.completion.{i}.content"] = content
         # last completion wins
-        attributes["gen_ai.completion"] = m.get("content")
+        attributes["gen_ai.completion"] = content
+
+        parts = []
+        if isinstance(content, str):
+            parts.append({"type": "text", "content": content})
+        elif isinstance(content, list):
+            for content_part in content:
+                if not isinstance(content_part, dict):
+                    continue
+                content_part_type = content_part.get("type")
+                if content_part_type == "text" and "text" in content_part:
+                    parts.append({"type": "text", "content": content_part["text"]})
+                else:
+                    parts.append(content_part)
+        elif content is not None:
+            parts.append({"type": "text", "content": str(content)})
+
+        message = {"role": role}
+        if parts:
+            message["parts"] = parts
+
+        finish_reason = c.get("finish_reason")
+        if finish_reason is not None:
+            message["finish_reason"] = finish_reason
+
+        gen_ai_output_messages.append(message)
+
+    # Spans do not always support native structured values, so serialize to JSON.
+    attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
+
     return attributes
+
+
+def reconstruct_chat_response_from_sse(chunks):
+    """Reconstruct a chat completion response dict from collected SSE event chunks."""
+    model = None
+    choices_content = {}  # index -> accumulated content
+    choices_role = {}  # index -> role
+    choices_finish_reason = {}  # index -> finish_reason
+
+    for chunk in chunks:
+        if isinstance(chunk, bytes):
+            chunk = chunk.decode("utf-8")
+        for line in chunk.splitlines():
+            line = line.strip()
+            if not line.startswith("data:"):
+                continue
+            data = line[5:].strip()
+            if data == "[DONE]":
+                continue
+            try:
+                parsed = json.loads(data)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            if model is None:
+                model = parsed.get("model")
+            for choice in parsed.get("choices", []):
+                idx = choice.get("index", 0)
+                delta = choice.get("delta", {})
+                role = delta.get("role")
+                if role:
+                    choices_role[idx] = role
+                content = delta.get("content")
+                if content:
+                    choices_content[idx] = choices_content.get(idx, "") + content
+                finish_reason = choice.get("finish_reason")
+                if finish_reason:
+                    choices_finish_reason[idx] = finish_reason
+
+    all_indices = sorted(
+        set(list(choices_content) + list(choices_role) + list(choices_finish_reason))
+    )
+    choices = [
+        {
+            "message": {
+                "role": choices_role.get(idx),
+                "content": choices_content.get(idx),
+            },
+            "finish_reason": choices_finish_reason.get(idx),
+        }
+        for idx in all_indices
+    ]
+    return {"model": model, "choices": choices}
+
+
+def iter_stream_with_span(iterable, span, span_cm):
+    """Yield chunks from a streaming response while keeping the span open.
+
+    Collects all SSE chunks as they pass through, reconstructs the full chat
+    completion response, sets span attributes, then closes the span context
+    manager once the stream is exhausted (or on error).
+    """
+    chunks = []
+    try:
+        for chunk in iterable:
+            chunks.append(chunk)
+            yield chunk
+    finally:
+        reconstructed = reconstruct_chat_response_from_sse(chunks)
+        span.set_attributes(extract_chat_response_attributes(reconstructed))
+        span_cm.__exit__(None, None, None)

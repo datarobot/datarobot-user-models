@@ -9,6 +9,10 @@ from unittest import mock
 import pytest
 
 from datarobot_drum.drum.common import setup_otel
+from datarobot_drum.drum.common import extract_chat_request_attributes
+from datarobot_drum.drum.common import extract_chat_response_attributes
+from datarobot_drum.drum.common import reconstruct_chat_response_from_sse
+from datarobot_drum.drum.common import iter_stream_with_span
 
 from datarobot_drum import RuntimeParameters
 
@@ -84,3 +88,187 @@ class TestOtel:
         ):
             result = setup_otel(RuntimeParameters, options)
             assert result == ("tracer", "metrics", "logger")
+
+
+class TestChatRequestAttributes:
+    def test_extract_chat_request_attributes_text_messages(self):
+        payload = {
+            "model": "gpt-4o",
+            "messages": [
+                {"role": "system", "content": "You are helpful."},
+                {"role": "user", "content": "Hello"},
+            ],
+        }
+
+        attrs = extract_chat_request_attributes(payload)
+
+        assert attrs["gen_ai.request.model"] == "gpt-4o"
+        assert attrs["gen_ai.prompt.0.role"] == "system"
+        assert attrs["gen_ai.prompt.1.role"] == "user"
+        assert attrs["gen_ai.prompt"] == "Hello"
+        assert json.loads(attrs["gen_ai.input.messages"]) == [
+            {
+                "role": "system",
+                "parts": [{"type": "text", "content": "You are helpful."}],
+            },
+            {
+                "role": "user",
+                "parts": [{"type": "text", "content": "Hello"}],
+            },
+        ]
+
+    def test_extract_chat_request_attributes_structured_content(self):
+        payload = {
+            "model": "gpt-4o",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Weather in Paris?"},
+                        {"type": "image_url", "image_url": {"url": "https://img"}},
+                    ],
+                }
+            ],
+        }
+
+        attrs = extract_chat_request_attributes(payload)
+
+        assert json.loads(attrs["gen_ai.input.messages"]) == [
+            {
+                "role": "user",
+                "parts": [
+                    {"type": "text", "content": "Weather in Paris?"},
+                    {"type": "image_url", "image_url": {"url": "https://img"}},
+                ],
+            }
+        ]
+
+
+class TestChatResponseAttributes:
+    def test_extract_chat_response_attributes_text_messages(self):
+        response = {
+            "model": "gpt-4o",
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {"role": "assistant", "content": "Hi there"},
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+
+        attrs = extract_chat_response_attributes(response)
+
+        assert attrs["gen_ai.response.model"] == "gpt-4o"
+        assert attrs["gen_ai.completion.0.role"] == "assistant"
+        assert attrs["gen_ai.completion.0.content"] == "Hi there"
+        assert attrs["gen_ai.completion"] == "Hi there"
+        assert json.loads(attrs["gen_ai.output.messages"]) == [
+            {
+                "role": "assistant",
+                "parts": [{"type": "text", "content": "Hi there"}],
+                "finish_reason": "stop",
+            }
+        ]
+
+    def test_extract_chat_response_attributes_structured_content(self):
+        response = {
+            "choices": [
+                {
+                    "index": 0,
+                    "message": {
+                        "role": "assistant",
+                        "content": [
+                            {"type": "text", "text": "Result:"},
+                            {"type": "tool_call", "name": "get_weather", "arguments": {}},
+                        ],
+                    },
+                    "finish_reason": "tool_calls",
+                }
+            ]
+        }
+
+        attrs = extract_chat_response_attributes(response)
+
+        assert json.loads(attrs["gen_ai.output.messages"]) == [
+            {
+                "role": "assistant",
+                "parts": [
+                    {"type": "text", "content": "Result:"},
+                    {"type": "tool_call", "name": "get_weather", "arguments": {}},
+                ],
+                "finish_reason": "tool_calls",
+            }
+        ]
+
+
+class TestStreamingChatHelpers:
+    def test_reconstruct_chat_response_from_sse(self):
+        chunks = [
+            'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hel"},"finish_reason":null}]}\n\n',
+            b'data: {"choices":[{"index":0,"delta":{"content":"lo"},"finish_reason":"stop"}]}\n\n',
+            'event: ping\n',
+            'data: not-json\n',
+            'data: [DONE]\n\n',
+        ]
+
+        response = reconstruct_chat_response_from_sse(chunks)
+
+        assert response == {
+            "model": "gpt-4o",
+            "choices": [
+                {
+                    "message": {"role": "assistant", "content": "Hello"},
+                    "finish_reason": "stop",
+                }
+            ],
+        }
+
+    def test_iter_stream_with_span_sets_attributes_and_closes_span(self):
+        chunks = [
+            'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hi"},"finish_reason":"stop"}]}\n\n',
+            'data: [DONE]\n\n',
+        ]
+        span = mock.Mock()
+        span_cm = mock.Mock()
+
+        streamed = list(iter_stream_with_span(chunks, span, span_cm))
+
+        assert streamed == chunks
+        span.set_attributes.assert_called_once_with(
+            {
+                "gen_ai.response.model": "gpt-4o",
+                "gen_ai.completion.0.role": "assistant",
+                "gen_ai.completion.0.content": "Hi",
+                "gen_ai.completion": "Hi",
+                "gen_ai.output.messages": json.dumps(
+                    [
+                        {
+                            "role": "assistant",
+                            "parts": [{"type": "text", "content": "Hi"}],
+                            "finish_reason": "stop",
+                        }
+                    ]
+                ),
+            }
+        )
+        span_cm.__exit__.assert_called_once_with(None, None, None)
+
+    def test_iter_stream_with_span_finalizes_on_iterable_error(self):
+        class BrokenIterable:
+            def __iter__(self):
+                yield 'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Par"},"finish_reason":null}]}\n\n'
+                raise RuntimeError("stream failed")
+
+        span = mock.Mock()
+        span_cm = mock.Mock()
+
+        with pytest.raises(RuntimeError, match="stream failed"):
+            list(iter_stream_with_span(BrokenIterable(), span, span_cm))
+
+        span.set_attributes.assert_called_once()
+        attributes = span.set_attributes.call_args[0][0]
+        assert attributes["gen_ai.response.model"] == "gpt-4o"
+        assert attributes["gen_ai.completion.0.content"] == "Par"
+        span_cm.__exit__.assert_called_once_with(None, None, None)
+

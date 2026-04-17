@@ -53,6 +53,7 @@ from datarobot_drum.drum.common import (
     otel_context,
     extract_chat_request_attributes,
     extract_chat_response_attributes,
+    iter_stream_with_span,
 )
 from opentelemetry.trace.status import StatusCode
 
@@ -233,7 +234,9 @@ class PredictionServer(PredictMixin):
         @model_api.route("/v1/chat/completions", methods=["POST"])
         def chat():
             logger.debug("Entering chat endpoint")
-            with otel_context(tracer, "drum.chat.completions", request.headers) as span:
+            span_cm = otel_context(tracer, "drum.chat.completions", request.headers)
+            span = span_cm.__enter__()
+            try:
                 span.set_attributes(extract_chat_request_attributes(request.json))
                 span.set_attributes(extract_request_headers(request.headers))
                 self._pre_predict_and_transform()
@@ -242,8 +245,22 @@ class PredictionServer(PredictMixin):
                 finally:
                     self._post_predict_and_transform()
 
-                if isinstance(response, dict) and response_status == 200:
-                    span.set_attributes(extract_chat_response_attributes(response))
+                if response_status == 200:
+                    if isinstance(response, dict):
+                        span.set_attributes(extract_chat_response_attributes(response))
+                    elif isinstance(response, Response):
+                        # For streaming responses, iter_stream_with_span keeps the span open
+                        # until the generator is exhausted, then sets attributes and closes it.
+                        return Response(
+                            iter_stream_with_span(response.response, span, span_cm),
+                            mimetype="text/event-stream",
+                        ), response_status
+
+
+                span_cm.__exit__(None, None, None)
+            except Exception as exc:
+                span_cm.__exit__(type(exc), exc, exc.__traceback__)
+                raise
 
             return response, response_status
 
