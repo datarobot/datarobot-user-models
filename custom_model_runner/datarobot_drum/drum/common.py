@@ -424,28 +424,24 @@ def reconstruct_chat_response_from_sse(chunks):
     return {"model": model, "choices": choices}
 
 
-def iter_stream_with_span(iterable, span, span_cm):
-    """Yield chunks from a streaming response while keeping the span open.
+def iter_stream_with_span(tracer, parent_span, iterable):
+    """Yield chunks from a streaming response inside a dedicated child span.
 
-    Collects all SSE chunks as they pass through, reconstructs the full chat
-    completion response, sets span attributes, then closes the span context
-    manager once the stream is exhausted (or on error).
+    The child span uses the request span as parent so stream lifecycle and
+    response attributes are recorded separately from the initial request work.
+    Attributes are set in a finally block so they are always recorded regardless
+    of how the generator terminates (normal exhaustion, error, or GeneratorExit
+    on client disconnect).
     """
-
-    chunks = []
-    exc_type = exc = exc_tb = None
-    try:
-        for chunk in iterable:
-            chunks.append(chunk)
-            yield chunk
-    except BaseException as err:
-        exc_type = type(err)
-        exc = err
-        exc_tb = err.__traceback__
-        raise
-    finally:
+    parent_context = trace.set_span_in_context(parent_span)
+    with tracer.start_as_current_span(
+        "drum.chat.completions.stream", context=parent_context
+    ) as stream_span:
+        chunks = []
         try:
-            reconstructed = reconstruct_chat_response_from_sse(chunks)
-            span.set_attributes(extract_chat_response_attributes(reconstructed))
+            for chunk in iterable:
+                chunks.append(chunk)
+                yield chunk
         finally:
-            span_cm.__exit__(exc_type, exc, exc_tb)
+            reconstructed = reconstruct_chat_response_from_sse(chunks)
+            stream_span.set_attributes(extract_chat_response_attributes(reconstructed))

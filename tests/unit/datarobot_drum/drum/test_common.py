@@ -229,13 +229,25 @@ class TestStreamingChatHelpers:
             'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hi"},"finish_reason":"stop"}]}\n\n',
             "data: [DONE]\n\n",
         ]
-        span = mock.Mock()
-        span_cm = mock.MagicMock()
+        parent_span = mock.Mock()
+        tracer = mock.Mock()
+        stream_span = mock.Mock()
+        context_token = object()
 
-        streamed = list(iter_stream_with_span(chunks, span, span_cm))
+        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
+
+        with patch(
+            "datarobot_drum.drum.common.trace.set_span_in_context",
+            return_value=context_token,
+        ) as set_span_in_context:
+            streamed = list(iter_stream_with_span(tracer, parent_span, chunks))
 
         assert streamed == chunks
-        span.set_attributes.assert_called_once_with(
+        set_span_in_context.assert_called_once_with(parent_span)
+        tracer.start_as_current_span.assert_called_once_with(
+            "drum.chat.completions.stream", context=context_token
+        )
+        stream_span.set_attributes.assert_called_once_with(
             {
                 "gen_ai.response.model": "gpt-4o",
                 "gen_ai.completion.0.role": "assistant",
@@ -252,7 +264,6 @@ class TestStreamingChatHelpers:
                 ),
             }
         )
-        span_cm.__exit__.assert_called_once_with(None, None, None)
 
     def test_iter_stream_with_span_finalizes_on_iterable_error(self):
         class BrokenIterable:
@@ -260,54 +271,37 @@ class TestStreamingChatHelpers:
                 yield 'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Par"},"finish_reason":null}]}\n\n'
                 raise RuntimeError("stream failed")
 
-        span = mock.Mock()
-        span_cm = mock.MagicMock()
+        parent_span = mock.Mock()
+        tracer = mock.Mock()
+        stream_span = mock.Mock()
+
+        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
 
         with pytest.raises(RuntimeError, match="stream failed"):
-            list(iter_stream_with_span(BrokenIterable(), span, span_cm))
+            list(iter_stream_with_span(tracer, parent_span, BrokenIterable()))
 
-        span.set_attributes.assert_called_once()
-        attributes = span.set_attributes.call_args[0][0]
-        assert attributes["gen_ai.response.model"] == "gpt-4o"
-        assert attributes["gen_ai.completion.0.content"] == "Par"
-        span_cm.__exit__.assert_called_once()
-        exc_type, exc, tb = span_cm.__exit__.call_args[0]
-        assert exc_type is RuntimeError
-        assert isinstance(exc, RuntimeError)
-        assert str(exc) == "stream failed"
-        assert tb is not None
+        stream_span.set_attributes.assert_called_once()
+        response_attrs = stream_span.set_attributes.call_args[0][0]
+        assert response_attrs["gen_ai.response.model"] == "gpt-4o"
+        assert response_attrs["gen_ai.completion.0.content"] == "Par"
 
     def test_iter_stream_with_span_finalizes_on_generator_exit(self):
         chunks = [
             'data: {"model":"gpt-4o","choices":[{"index":0,"delta":{"role":"assistant","content":"Hi"},"finish_reason":"stop"}]}\n\n',
             "data: [DONE]\n\n",
         ]
-        span = mock.Mock()
-        span_cm = mock.MagicMock()
+        parent_span = mock.Mock()
+        tracer = mock.Mock()
+        stream_span = mock.Mock()
 
-        stream = iter_stream_with_span(chunks, span, span_cm)
+        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
 
+        stream = iter_stream_with_span(tracer, parent_span, chunks)
         assert next(stream) == chunks[0]
         stream.close()
 
-        span.set_attributes.assert_called_once_with(
-            {
-                "gen_ai.response.model": "gpt-4o",
-                "gen_ai.completion.0.role": "assistant",
-                "gen_ai.completion.0.content": "Hi",
-                "gen_ai.completion": "Hi",
-                "gen_ai.output.messages": json.dumps(
-                    [
-                        {
-                            "role": "assistant",
-                            "parts": [{"type": "text", "content": "Hi"}],
-                            "finish_reason": "stop",
-                        }
-                    ]
-                ),
-            }
-        )
-        span_cm.__exit__.assert_called_once()
-        exc_type, exc, _ = span_cm.__exit__.call_args[0]
-        assert exc_type is GeneratorExit
-        assert isinstance(exc, GeneratorExit)
+        # response attributes reconstructed from the single chunk seen before close
+        stream_span.set_attributes.assert_called_once()
+        response_attrs = stream_span.set_attributes.call_args[0][0]
+        assert response_attrs["gen_ai.response.model"] == "gpt-4o"
+        assert response_attrs["gen_ai.completion.0.content"] == "Hi"
