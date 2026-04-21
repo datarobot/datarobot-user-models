@@ -39,7 +39,6 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
     UV_COMPILE_BYTECODE=1 \
-    UV_CACHE_DIR=${UV_CACHE_DIR} \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
@@ -80,7 +79,13 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
   # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
-  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
+  && mkdir -p "${UV_CACHE_DIR}" \
+  && chown -R "$UNAME:$UNAME" "${UV_CACHE_DIR}"
+
+# Set after root `uv venv` / chown so Kaniko/BuildKit: `uv sync` as notebooks does not inherit a
+# root-owned ${UV_CACHE_DIR} (see sdists-v9/.git permission denied).
+ENV UV_CACHE_DIR=${UV_CACHE_DIR}
 
 USER $UNAME
 
