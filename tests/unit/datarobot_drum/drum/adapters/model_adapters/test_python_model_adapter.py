@@ -374,6 +374,52 @@ class TestPythonModelAdapterPrivateHelpers:
                 adapter._detect_model_artifact_file()
 
 
+
+    def test_log_and_raise_final_error_with_model_error(self):
+        from datarobot_drum.drum.exceptions import DrumPythonModelAdapterError
+        from datarobot_drum import ModelError
+        
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        
+        custom_err = ModelError("User error", status_code=418)
+        with pytest.raises(ModelError) as exc_info:
+            adapter._log_and_raise_final_error(custom_err, "Failed!")
+        assert getattr(exc_info.value, "status_code", None) == 418
+        assert str(exc_info.value) == "user error"
+
+        # Duck-typed exception should fail and be wrapped
+        class DuckError(Exception):
+            status_code = 400
+        
+        duck_err = DuckError("Duck error")
+        with pytest.raises(DrumPythonModelAdapterError, match="Duck error"):
+            adapter._log_and_raise_final_error(duck_err, "Failed!")
+
+        generic_err = Exception("Some infrastructure bug")
+        with pytest.raises(DrumPythonModelAdapterError, match="Some infrastructure bug"):
+            adapter._log_and_raise_final_error(generic_err, "Failed!")
+
+    def test_log_and_raise_final_error_with_empty_model_error(self):
+        from datarobot_drum import ModelError
+        
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        
+        custom_err = ModelError()
+        with pytest.raises(ModelError) as exc_info:
+            adapter._log_and_raise_final_error(custom_err, "Failed!")
+        assert getattr(exc_info.value, "status_code", None) == 400
+        assert str(exc_info.value) == "User error in custom model"
+        
+    def test_model_error_status_code_validation(self):
+        from datarobot_drum import ModelError
+        
+        with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
+            ModelError(status_code=500)
+            
+        with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
+            ModelError(status_code=399)
+
+
 class TestPredictResultSplitter:
     """
     Test the method that takes the predict output DataFrame and splits it to predictions DataFrame

@@ -53,6 +53,7 @@ from datarobot_drum.drum.exceptions import (
     DrumException,
     DrumTransformException,
     DrumSerializationError,
+    ModelError,
 )
 from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
@@ -171,6 +172,11 @@ class PythonModelAdapter(AbstractModelAdapter):
             # Just log that no moderation info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
+        if isinstance(exc, ModelError):
+            self._logger.error(f"{message} Exception: {exc!r}")
+            # Only allow ModelError to pass through unwrapped
+            raise exc
+
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
 

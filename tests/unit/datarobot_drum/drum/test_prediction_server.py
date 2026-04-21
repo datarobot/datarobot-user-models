@@ -298,3 +298,27 @@ def test_drum_version_in_flask_app(test_flask_app):
 
     response = prediction_client.get("/info/")
     assert response.headers["x-drum-version"] == drum_version
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_custom_status_code(test_flask_app):
+    from datarobot_drum import ModelError
+
+    with patch("datarobot_drum.drum.root_predictors.prediction_server.PredictionServer.do_predict_structured") as mock_predict:
+        mock_predict.side_effect = ModelError("Custom bad error", status_code=418)
+
+        client = test_flask_app.test_client()
+        response = client.post("/predict/")
+
+        assert response.status_code == 418
+        assert response.json["message"] == "Custom bad error"
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_standard_error(test_flask_app):
+    with patch("datarobot_drum.drum.root_predictors.prediction_server.PredictionServer.do_predict_structured") as mock_predict:
+        mock_predict.side_effect = Exception("User error")
+
+        client = test_flask_app.test_client()
+        response = client.post("/predict/")
+
+        assert response.status_code == 500
+        assert "ERROR: User error" in response.json["message"]

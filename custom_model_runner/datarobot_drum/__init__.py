@@ -6,3 +6,5 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
 from .runtime_parameters import RuntimeParameters
+
+from .drum.exceptions import ModelError

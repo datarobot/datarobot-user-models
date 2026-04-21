@@ -231,3 +231,39 @@ class TestDrumServerFailures:
             )
             assert response.status_code == 422
             assert response.json()["message"] == error_message
+
+
+    @pytest.mark.parametrize(
+        "with_error_server, production, docker",
+        [(False, False, None)],
+    )
+    def test_e2e_predict_fails_custom_status_code(self, resources, params, with_error_server, production, docker):
+        framework, problem, custom_model_dir, server_run_args = params
+
+        # rewrite custom.py to throw a custom status code error
+        custom_py_path = os.path.join(custom_model_dir, "custom.py")
+        with open(custom_py_path, "w") as f:
+            f.write('''
+from datarobot_drum import ModelError
+
+def score(data, model, **kwargs):
+    raise ModelError("ModelError failure", status_code=422)
+''')
+
+        drum_server_run = DrumServerRun(
+            docker=docker,
+            with_error_server=with_error_server,
+            production=production,
+            **server_run_args
+        )
+
+        with drum_server_run as run:
+            input_dataset = resources.datasets(framework, problem)
+
+            response = requests.post(
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
+            )
+
+            assert response.status_code == 422
+            assert "ModelError failure" in response.json()["message"]
+
