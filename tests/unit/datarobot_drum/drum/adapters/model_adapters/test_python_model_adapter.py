@@ -38,7 +38,9 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     AbstractSecret,
     reset_outputs_to_allow_secrets,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    DrumPythonModelAdapterError,
+)
 from datarobot_drum.drum.enum import (
     TargetType,
     MODERATIONS_HOOK,
@@ -46,7 +48,10 @@ from datarobot_drum.drum.enum import (
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    ModelError,
+)
 
 
 def get_all_logging_filters():
@@ -373,14 +378,9 @@ class TestPythonModelAdapterPrivateHelpers:
             with pytest.raises(DrumCommonException, match="Multiple serialized model files found."):
                 adapter._detect_model_artifact_file()
 
-
-
     def test_log_and_raise_final_error_with_model_error(self):
-        from datarobot_drum.drum.exceptions import DrumPythonModelAdapterError
-        from datarobot_drum import ModelError
-        
         adapter = TestingPythonModelAdapter(Mock(), Mock())
-        
+
         custom_err = ModelError("User error", status_code=418)
         with pytest.raises(ModelError) as exc_info:
             adapter._log_and_raise_final_error(custom_err, "Failed!")
@@ -401,18 +401,18 @@ class TestPythonModelAdapterPrivateHelpers:
 
     def test_log_and_raise_final_error_with_empty_model_error(self):
         from datarobot_drum import ModelError
-        
+
         adapter = TestingPythonModelAdapter(Mock(), Mock())
-        
+
         custom_err = ModelError()
         with pytest.raises(ModelError) as exc_info:
             adapter._log_and_raise_final_error(custom_err, "Failed!")
         assert getattr(exc_info.value, "status_code", None) == 400
         assert str(exc_info.value) == "User error in custom model"
-        
+
     def test_model_error_status_code_validation(self):
         from datarobot_drum import ModelError
-        
+
         with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
             ModelError(status_code=500)
 

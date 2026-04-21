@@ -301,6 +301,7 @@ def test_drum_version_in_flask_app(test_flask_app):
     response = prediction_client.get("/info/")
     assert response.headers["x-drum-version"] == drum_version
 
+
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server_custom_status_code(test_flask_app):
     with patch(
