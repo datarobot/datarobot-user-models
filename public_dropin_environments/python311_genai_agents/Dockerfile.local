@@ -62,6 +62,7 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 USER root
 
@@ -77,6 +78,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
     UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
@@ -120,7 +122,9 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
   # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
-  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
+  && mkdir -p /opt \
+  && chown "$UNAME:$UNAME" /opt
 
 USER $UNAME
 
@@ -151,6 +155,16 @@ RUN . ${VENV_PATH}/bin/activate && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
     rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
+
+# DRUM / custom-model interpreter: same dependency set as kernel .venv, under /opt/venv
+# (VENV_DIR / UV_PROJECT_ENVIRONMENT in start_server_custom_model.sh).
+RUN uv venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    cd "${WORKDIR}" && \
+    uv sync --frozen --extra agentic_playground && \
+    rm -rf /opt/venv/lib/python3.11/site-packages/.vscode \
+        /opt/venv/lib/python3.11/site-packages/vscode_extension \
+        /opt/venv/lib/python3.11/site-packages/.venv || true
 WORKDIR /
 
 # Copy agent runtime into work directory
@@ -168,15 +182,28 @@ EXPOSE 8889
 FROM builder AS kernel
 # this stage is what actually going to be run as kernel image and it's clean from all build junks
 
+ARG UNAME=notebooks
 ARG GIT_COMMIT
 ARG VENV_PATH
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
+USER root
+RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+USER $UNAME
+
 # Warm the heavy dependencies
 RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
+RUN . /opt/venv/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
-ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV VENV_DIR=/opt/venv \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    UV_FROZEN=1 \
+    HOME=/opt \
+    CODE_DIR=/opt/code \
+    ADDRESS=0.0.0.0:8080

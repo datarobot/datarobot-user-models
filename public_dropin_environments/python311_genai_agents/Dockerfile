@@ -22,6 +22,8 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
+# Writable at build and runtime (custom model / uv); override with --build-arg if needed.
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 USER root
 
@@ -37,7 +39,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
@@ -91,7 +93,6 @@ FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
 ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
     ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
 
 ARG WORKDIR
@@ -120,20 +121,32 @@ COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 # Monitoring agent port
 EXPOSE 8889
 
-# Final image continues from builder (not base + COPY --from=builder). Kaniko's snapshotter
-# can break venv symlinks / ownership when re-tarring and extracting the whole WORKDIR across
-# stages; inheriting the same filesystem avoids that path (see CMPT-5321).
+# CMPT-5321 / Kaniko: continue from builder so the kernel .venv is not re-tarred across
+# COPY --from=builder (snapshot symlink / ownership issues).
 FROM builder AS kernel
+# this stage is what actually going to be run as kernel image and it's clean from all build junks
 
+ARG UNAME=notebooks
 ARG GIT_COMMIT
 ARG VENV_PATH
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
+
+USER root
+RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+USER $UNAME
 
 # Warm the heavy dependencies
 RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
-ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV VENV_DIR=/opt/venv \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    UV_FROZEN=1 \
+    HOME=/opt \
+    CODE_DIR=/opt/code \
+    ADDRESS=0.0.0.0:8080
