@@ -244,14 +244,14 @@ class TestDrumServerFailures:
         # rewrite custom.py to throw a custom status code error
         custom_py_path = os.path.join(custom_model_dir, "custom.py")
         with open(custom_py_path, "w") as f:
-            f.write(
+            f.write(textwrap.dedent(
                 """
                 from datarobot_drum import ModelError
-                
+
                 def score(data, model, **kwargs):
                     raise ModelError("ModelError failure", status_code=422)
                 """
-            )
+            ))
 
         drum_server_run = DrumServerRun(
             docker=docker,

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import openai
 import pytest
-from datarobot_drum import ModelError
+
 from openai import NotFoundError
 from openai import Stream
 from openai.types.chat import (

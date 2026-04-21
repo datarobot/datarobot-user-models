@@ -40,6 +40,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     DrumPythonModelAdapterError,
+    PythonModelAdapter,
 )
 from datarobot_drum.drum.enum import (
     TargetType,
