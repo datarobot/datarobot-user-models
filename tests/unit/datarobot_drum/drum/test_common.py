@@ -232,9 +232,11 @@ class TestStreamingChatHelpers:
         parent_span = mock.Mock()
         tracer = mock.Mock()
         stream_span = mock.Mock()
+        span_cm = mock.MagicMock()
         context_token = object()
 
-        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
+        tracer.start_as_current_span.return_value = span_cm
+        span_cm.__enter__.return_value = stream_span
 
         with patch(
             "datarobot_drum.drum.common.trace.set_span_in_context",
@@ -274,8 +276,10 @@ class TestStreamingChatHelpers:
         parent_span = mock.Mock()
         tracer = mock.Mock()
         stream_span = mock.Mock()
+        span_cm = mock.MagicMock()
 
-        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
+        tracer.start_as_current_span.return_value = span_cm
+        span_cm.__enter__.return_value = stream_span
 
         with pytest.raises(RuntimeError, match="stream failed"):
             list(iter_stream_with_span(tracer, parent_span, BrokenIterable()))
@@ -293,8 +297,10 @@ class TestStreamingChatHelpers:
         parent_span = mock.Mock()
         tracer = mock.Mock()
         stream_span = mock.Mock()
+        span_cm = mock.MagicMock()
 
-        tracer.start_as_current_span.return_value.__enter__.return_value = stream_span
+        tracer.start_as_current_span.return_value = span_cm
+        span_cm.__enter__.return_value = stream_span
 
         stream = iter_stream_with_span(tracer, parent_span, chunks)
         assert next(stream) == chunks[0]
