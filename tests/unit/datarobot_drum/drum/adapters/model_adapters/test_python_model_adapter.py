@@ -385,12 +385,12 @@ class TestPythonModelAdapterPrivateHelpers:
         with pytest.raises(ModelError) as exc_info:
             adapter._log_and_raise_final_error(custom_err, "Failed!")
         assert getattr(exc_info.value, "status_code", None) == 418
-        assert str(exc_info.value) == "user error"
+        assert str(exc_info.value) == "User error"
 
         # Duck-typed exception should fail and be wrapped
         class DuckError(Exception):
             status_code = 400
-        
+
         duck_err = DuckError("Duck error")
         with pytest.raises(DrumPythonModelAdapterError, match="Duck error"):
             adapter._log_and_raise_final_error(duck_err, "Failed!")
@@ -415,7 +415,7 @@ class TestPythonModelAdapterPrivateHelpers:
         
         with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
             ModelError(status_code=500)
-            
+
         with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
             ModelError(status_code=399)
 
