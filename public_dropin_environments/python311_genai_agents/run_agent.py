@@ -40,9 +40,16 @@ ENABLE_STDOUT_REDIRECT = str(os.environ.get("ENABLE_STDOUT_REDIRECT", 0)).lower(
 # prepends custom venv paths in sys.path, causing all following libs to be imported from there.
 _VENV_DIR = os.environ.get("VENV_DIR", "/opt/venv")
 _VENV_SITE_PACKAGES = str(
-    Path(_VENV_DIR) / "lib" / f"python{sys.version_info.major}.{sys.version_info.minor}" / "site-packages"
+    Path(_VENV_DIR)
+    / "lib"
+    / f"python{sys.version_info.major}.{sys.version_info.minor}"
+    / "site-packages"
 )
-if _VENV_SITE_PACKAGES not in sys.path and os.path.exists(CURRENT_DIR / "pyproject.toml") and os.path.exists(CURRENT_DIR / "uv.lock"):
+if (
+    _VENV_SITE_PACKAGES not in sys.path
+    and os.path.exists(CURRENT_DIR / "pyproject.toml")
+    and os.path.exists(CURRENT_DIR / "uv.lock")
+):
     with open(VENV_LOG_PATH, "a") as venvfd:
         subprocess.run(
             ["uv", "sync", "--frozen", "--no-dev", "--no-progress"],
@@ -74,6 +81,7 @@ trace.set_tracer_provider(TracerProvider())
 tracer = trace.get_tracer(__name__)
 
 root = logging.getLogger()
+
 
 def argparse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
