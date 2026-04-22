@@ -185,9 +185,6 @@ USER root
 RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
 USER $UNAME
 
-# Warm the heavy dependencies
-RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
-
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
 ENV VENV_DIR=/opt/venv \
