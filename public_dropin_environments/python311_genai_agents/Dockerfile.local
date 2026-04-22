@@ -9,10 +9,11 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
-
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# Writable at build and runtime (custom model / uv); override with --build-arg if needed.
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 # This reproduces a open source variant of https://images.chainguard.dev/directory/image/python
 # hadolint ignore=DL3007
@@ -62,14 +63,15 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
-ARG UV_CACHE_DIR=/tmp/uv-cache
+ARG UV_CACHE_DIR
 
 USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
-  openjdk-11 vim nano procps tzdata poppler-utils
+RUN apk add --no-cache uv graphviz openblas openssh-server \
+    gzip zip unzip curl \
+    openjdk-11 vim nano procps tzdata poppler-utils
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
@@ -88,9 +90,7 @@ ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 # hadolint ignore=SC1091
-RUN uv venv ${VENV_PATH} && \
-    . ${VENV_PATH}/bin/activate && \
-    uv pip install -U setuptools
+RUN uv venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
@@ -139,9 +139,7 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
-ENV UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
-    ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+ENV UV_COMPILE_BYTECODE=1
 
 ARG WORKDIR
 ARG VENV_PATH
@@ -158,16 +156,6 @@ RUN . ${VENV_PATH}/bin/activate && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
     rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
-
-# DRUM / custom-model interpreter: same dependency set as kernel .venv, under /opt/venv
-# (VENV_DIR / UV_PROJECT_ENVIRONMENT in start_server_custom_model.sh).
-RUN uv venv /opt/venv && \
-    . /opt/venv/bin/activate && \
-    cd "${WORKDIR}" && \
-    uv sync --frozen --extra agentic_playground && \
-    rm -rf /opt/venv/lib/python3.11/site-packages/.vscode \
-        /opt/venv/lib/python3.11/site-packages/vscode_extension \
-        /opt/venv/lib/python3.11/site-packages/.venv || true
 WORKDIR /
 
 # Copy agent runtime into work directory
@@ -199,7 +187,6 @@ USER $UNAME
 
 # Warm the heavy dependencies
 RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
-RUN . /opt/venv/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh

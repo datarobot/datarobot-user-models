@@ -30,7 +30,7 @@ uv venv "${UV_PROJECT_ENVIRONMENT}"
 # --frozen: Skip dependency resolution, use exact versions from lock file
 # --extra: Install the 'agentic_playground' optional dependency group
 # Note: Compilation disabled since kernel venv is already compiled
-uv sync --frozen --active --no-progress --color never --extra agentic_playground || true
+uv sync --frozen --active --no-progress --color never || true
 
 # Optional: Dump environment variables for debugging
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = "1" ]; then

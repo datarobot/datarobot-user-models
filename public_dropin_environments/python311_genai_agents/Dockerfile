@@ -9,10 +9,11 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
-
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# Writable at build and runtime (custom model / uv); override with --build-arg if needed.
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
@@ -22,8 +23,7 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
-# Writable at build and runtime (custom model / uv); override with --build-arg if needed.
-ARG UV_CACHE_DIR=/tmp/uv-cache
+ARG UV_CACHE_DIR
 
 USER root
 
@@ -97,8 +97,7 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
-ENV UV_COMPILE_BYTECODE=1 \
-    ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+ENV UV_COMPILE_BYTECODE=1
 
 ARG WORKDIR
 ARG VENV_PATH
