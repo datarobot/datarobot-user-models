@@ -59,8 +59,4 @@ class ModelError(DrumException):
 
     def __init__(self, message: str = "User error in custom model", status_code: int = 400):
         super().__init__(message)
-        if not (400 <= status_code <= 499):
-            raise ValueError(
-                f"ModelError status_code must be between 400 and 499, got {status_code}"
-            )
         self.status_code = status_code

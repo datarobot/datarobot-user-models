@@ -308,7 +308,7 @@ class PredictionServer(PredictMixin):
             logger.exception(e)
 
             if isinstance(e, ModelError):
-                return {"message": "{}".format(e)}, getattr(e, "status_code", 400)
+                return {"message": str(e)}, status_code
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
                 return jsonify(error=e.description), e.code

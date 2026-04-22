@@ -172,11 +172,6 @@ class PythonModelAdapter(AbstractModelAdapter):
             # Just log that no moderation info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
-        if isinstance(exc, ModelError):
-            self._logger.error(f"{message} Exception: {exc!r}")
-            # Only allow ModelError to pass through unwrapped
-            raise exc
-
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
 
@@ -332,6 +327,8 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         try:
             model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
+        except ModelError:
+            raise
         except Exception as exc:
             self._log_and_raise_final_error(exc, "'load_model' hook failed to load the model.")
 
@@ -474,6 +471,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) and try_hook:
             try:
                 data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](binary_data)
+            except ModelError:
+                raise
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'read_input_data' hook failed to read input data."
@@ -608,6 +607,8 @@ class PythonModelAdapter(AbstractModelAdapter):
                 predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return RawPredictResponse(predictions_df.values, predictions_df.columns)
+        except ModelError:
+            raise
         except Exception as exc:
             self._log_and_raise_final_error(exc, "Model 'score' hook failed to make predictions.")
 
@@ -638,6 +639,8 @@ class PythonModelAdapter(AbstractModelAdapter):
                 else:
                     # noinspection PyCallingNonCallable
                     predictions_df = score_fn(data, model, **kwargs)
+            except ModelError:
+                raise
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'score' hook failed to make predictions."
@@ -651,6 +654,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         else:
             try:
                 predictions, model_labels = self._predictor_to_use.predict(data, model, **kwargs)
+            except ModelError:
+                raise
             except Exception as exc:
                 self._log_and_raise_final_error(exc, "Failure when making predictions.")
 
@@ -666,6 +671,8 @@ class PythonModelAdapter(AbstractModelAdapter):
             try:
                 # noinspection PyCallingNonCallable
                 predictions_df = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+            except ModelError:
+                raise
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'post_process' hook failed to post-process predictions."
