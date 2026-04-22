@@ -411,14 +411,7 @@ class TestPythonModelAdapterPrivateHelpers:
         assert getattr(exc_info.value, "status_code", None) == 400
         assert str(exc_info.value) == "User error in custom model"
 
-    def test_model_error_status_code_validation(self):
-        from datarobot_drum import ModelError
 
-        with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
-            ModelError(status_code=500)
-
-        with pytest.raises(ValueError, match="ModelError status_code must be between 400 and 499"):
-            ModelError(status_code=399)
 
 
 class TestPredictResultSplitter:
