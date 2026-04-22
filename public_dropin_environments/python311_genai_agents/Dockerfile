@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-FROM 703320575624.dkr.ecr.us-east-1.amazonaws.com/ephemeral-image:test AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
