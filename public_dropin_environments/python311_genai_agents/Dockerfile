@@ -9,10 +9,11 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
-
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# Writable at build and runtime (custom model / uv); override with --build-arg if needed.
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
@@ -22,6 +23,7 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
+ARG UV_CACHE_DIR
 
 USER root
 
@@ -29,7 +31,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache uv graphviz openblas openssh-server \
     gzip zip unzip curl \
-    openjdk-11 vim nano procps tzdata poppler-utils
+    openjdk-11 vim nano procps tzdata
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
@@ -77,7 +79,13 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
   # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
-  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
+  && mkdir -p "${UV_CACHE_DIR}" \
+  && chown -R "$UNAME:$UNAME" "${UV_CACHE_DIR}"
+
+# Set after root `uv venv` / chown so Kaniko/BuildKit: `uv sync` as notebooks does not inherit a
+# root-owned ${UV_CACHE_DIR} (see sdists-v9/.git permission denied).
+ENV UV_CACHE_DIR=${UV_CACHE_DIR}
 
 USER $UNAME
 
@@ -89,8 +97,7 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
-ENV UV_COMPILE_BYTECODE=1 \
-    ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+ENV UV_COMPILE_BYTECODE=1
 
 ARG WORKDIR
 ARG VENV_PATH
@@ -118,24 +125,29 @@ COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 # Monitoring agent port
 EXPOSE 8889
 
-FROM base AS kernel
+# CMPT-5321 / Kaniko: continue from builder so the kernel .venv is not re-tarred across
+# COPY --from=builder (snapshot symlink / ownership issues).
+FROM builder AS kernel
 # this stage is what actually going to be run as kernel image and it's clean from all build junks
 
-ARG UNAME
-ARG WORKDIR
+ARG UNAME=notebooks
 ARG GIT_COMMIT
 ARG VENV_PATH
+ARG UV_CACHE_DIR=/tmp/uv-cache
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
-RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
-
-COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
-
-# Warm the heavy dependencies
-RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
+USER root
+RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+USER $UNAME
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
-ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV VENV_DIR=/opt/venv \
+    UV_CACHE_DIR=${UV_CACHE_DIR} \
+    UV_LINK_MODE=copy \
+    UV_FROZEN=1 \
+    HOME=/opt \
+    CODE_DIR=/opt/code \
+    ADDRESS=0.0.0.0:8080
