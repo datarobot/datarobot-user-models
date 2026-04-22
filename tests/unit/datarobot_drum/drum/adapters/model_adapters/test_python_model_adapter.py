@@ -379,39 +379,26 @@ class TestPythonModelAdapterPrivateHelpers:
             with pytest.raises(DrumCommonException, match="Multiple serialized model files found."):
                 adapter._detect_model_artifact_file()
 
-    def test_log_and_raise_final_error_with_model_error(self):
-        adapter = TestingPythonModelAdapter(Mock(), Mock())
-
-        custom_err = ModelError("User error", status_code=418)
-        with pytest.raises(ModelError) as exc_info:
-            adapter._log_and_raise_final_error(custom_err, "Failed!")
-        assert getattr(exc_info.value, "status_code", None) == 418
-        assert str(exc_info.value) == "User error"
-
-        # Duck-typed exception should fail and be wrapped
-        class DuckError(Exception):
-            status_code = 400
-
-        duck_err = DuckError("Duck error")
-        with pytest.raises(DrumPythonModelAdapterError, match="Duck error"):
-            adapter._log_and_raise_final_error(duck_err, "Failed!")
-
-        generic_err = Exception("Some infrastructure bug")
-        with pytest.raises(DrumPythonModelAdapterError, match="Some infrastructure bug"):
-            adapter._log_and_raise_final_error(generic_err, "Failed!")
-
-    def test_log_and_raise_final_error_with_empty_model_error(self):
+    def test_predict_new_drum_custom_status_code(self):
         from datarobot_drum import ModelError
 
-        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._custom_task_class_instance = Mock()
 
-        custom_err = ModelError()
+        custom_err = ModelError("Custom validation failure", status_code=422)
+        adapter._custom_task_class_instance.predict.side_effect = custom_err
+
+        # It should bypass the wrapper and raise ModelError directly
         with pytest.raises(ModelError) as exc_info:
-            adapter._log_and_raise_final_error(custom_err, "Failed!")
-        assert getattr(exc_info.value, "status_code", None) == 400
-        assert str(exc_info.value) == "User error in custom model"
+            adapter._predict_new_drum(Mock())
 
+        assert getattr(exc_info.value, "status_code", None) == 422
+        assert str(exc_info.value) == "Custom validation failure"
 
+        # A standard exception should be wrapped
+        adapter._custom_task_class_instance.predict.side_effect = Exception("Standard error")
+        with pytest.raises(DrumPythonModelAdapterError, match="Standard error"):
+            adapter._predict_new_drum(Mock())
 
 
 class TestPredictResultSplitter:
