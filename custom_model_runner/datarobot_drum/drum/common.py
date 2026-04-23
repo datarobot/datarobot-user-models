@@ -307,7 +307,6 @@ def extract_chat_request_attributes(completion_params):
             logger.exception(f"Error normalizing chat content for span attributes")
             continue
 
-
         message = {"role": role}
         if parts:
             message["parts"] = parts
@@ -367,7 +366,6 @@ def extract_chat_response_attributes(response):
         except Exception:
             logger.exception(f"Error normalizing chat content for span attributes")
             continue
-        
 
         message = {"role": role}
         if parts:
