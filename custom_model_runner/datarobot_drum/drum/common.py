@@ -304,7 +304,7 @@ def extract_chat_request_attributes(completion_params):
         try:
             parts = _normalize_chat_content_to_parts(content)
         except Exception:
-            logger.exception(f"Error normalizing chat content for span attributes")
+            logger.exception("Error normalizing chat content for span attributes")
             continue
 
         message = {"role": role}
@@ -314,7 +314,10 @@ def extract_chat_request_attributes(completion_params):
 
     # Spans do not always support native structured values, so serialize to JSON.
     if gen_ai_input_messages:
-        attributes["gen_ai.input.messages"] = json.dumps(gen_ai_input_messages)
+        try:
+            attributes["gen_ai.input.messages"] = json.dumps(gen_ai_input_messages)
+        except Exception:
+            logger.exception("Error serializing chat input messages for span attributes")
 
     return attributes
 
@@ -364,7 +367,7 @@ def extract_chat_response_attributes(response):
         try:
             parts = _normalize_chat_content_to_parts(content)
         except Exception:
-            logger.exception(f"Error normalizing chat content for span attributes")
+            logger.exception("Error normalizing chat content for span attributes")
             continue
 
         message = {"role": role}
@@ -379,7 +382,10 @@ def extract_chat_response_attributes(response):
 
     # Spans do not always support native structured values, so serialize to JSON.
     if gen_ai_output_messages:
-        attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
+        try:
+            attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
+        except Exception:
+            logger.exception("Error serializing chat output messages for span attributes") 
 
     return attributes
 
