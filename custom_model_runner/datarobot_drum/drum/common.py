@@ -23,6 +23,7 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.common import get_drum_logger
 from opentelemetry import trace, context, metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -46,6 +47,8 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 ctx_request_id = ContextVar("request_id")
+
+logger = get_drum_logger(__name__)
 
 
 @contextmanager
@@ -443,5 +446,8 @@ def iter_stream_with_span(tracer, parent_span, iterable):
                 chunks.append(chunk)
                 yield chunk
         finally:
-            reconstructed = reconstruct_chat_response_from_sse(chunks)
-            stream_span.set_attributes(extract_chat_response_attributes(reconstructed))
+            try:
+                reconstructed = reconstruct_chat_response_from_sse(chunks)
+                stream_span.set_attributes(extract_chat_response_attributes(reconstructed))
+            except Exception:
+                logger.exception(f"Error reconstructing chat response for span attributes")
