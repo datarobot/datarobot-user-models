@@ -23,7 +23,6 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import get_drum_logger
 from opentelemetry import trace, context, metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
@@ -47,8 +46,6 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 ctx_request_id = ContextVar("request_id")
-
-logger = get_drum_logger(__name__)
 
 
 @contextmanager
@@ -287,6 +284,7 @@ def extract_chat_request_attributes(completion_params):
     Used to populate span with relevant monitoring attriubtes.
     """
     completion_params = completion_params or {}
+    logger = get_drum_logger(__name__)
 
     attributes = {}
     attributes["gen_ai.request.model"] = completion_params.get("model")
@@ -303,7 +301,12 @@ def extract_chat_request_attributes(completion_params):
         # last prompt wins
         attributes["gen_ai.prompt"] = content
 
-        parts = _normalize_chat_content_to_parts(content)
+        try:
+            parts = _normalize_chat_content_to_parts(content)
+        except Exception:
+            logger.exception(f"Error normalizing chat content for span attributes")
+            continue
+
 
         message = {"role": role}
         if parts:
@@ -311,7 +314,8 @@ def extract_chat_request_attributes(completion_params):
         gen_ai_input_messages.append(message)
 
     # Spans do not always support native structured values, so serialize to JSON.
-    attributes["gen_ai.input.messages"] = json.dumps(gen_ai_input_messages)
+    if gen_ai_input_messages:
+        attributes["gen_ai.input.messages"] = json.dumps(gen_ai_input_messages)
 
     return attributes
 
@@ -340,6 +344,7 @@ def extract_chat_response_attributes(response):
     attributes = {}
     attributes["gen_ai.response.model"] = response.get("model")
     gen_ai_output_messages = []
+    logger = get_drum_logger(__name__)
 
     for i, c in enumerate(response.get("choices", [])):
         if not isinstance(c, dict):
@@ -357,7 +362,12 @@ def extract_chat_response_attributes(response):
         # last completion wins
         attributes["gen_ai.completion"] = content
 
-        parts = _normalize_chat_content_to_parts(content)
+        try:
+            parts = _normalize_chat_content_to_parts(content)
+        except Exception:
+            logger.exception(f"Error normalizing chat content for span attributes")
+            continue
+        
 
         message = {"role": role}
         if parts:
@@ -370,7 +380,8 @@ def extract_chat_response_attributes(response):
         gen_ai_output_messages.append(message)
 
     # Spans do not always support native structured values, so serialize to JSON.
-    attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
+    if gen_ai_output_messages:
+        attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
 
     return attributes
 
@@ -450,4 +461,5 @@ def iter_stream_with_span(tracer, parent_span, iterable):
                 reconstructed = reconstruct_chat_response_from_sse(chunks)
                 stream_span.set_attributes(extract_chat_response_attributes(reconstructed))
             except Exception:
+                logger = get_drum_logger(__name__)
                 logger.exception(f"Error reconstructing chat response for span attributes")
