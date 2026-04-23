@@ -385,7 +385,7 @@ def extract_chat_response_attributes(response):
         try:
             attributes["gen_ai.output.messages"] = json.dumps(gen_ai_output_messages)
         except Exception:
-            logger.exception("Error serializing chat output messages for span attributes") 
+            logger.exception("Error serializing chat output messages for span attributes")
 
     return attributes
 
