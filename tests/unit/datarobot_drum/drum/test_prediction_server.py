@@ -14,7 +14,7 @@ from openai.types.chat import (
 from openai.types.model import Model
 from werkzeug.exceptions import BadRequest
 
-from datarobot_drum import CustomPredictionError
+from datarobot_drum import CustomHTTPError
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
@@ -307,7 +307,7 @@ def test_prediction_server_custom_status_code(test_flask_app):
     with patch(
         "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer.do_predict_structured"
     ) as mock_predict:
-        mock_predict.side_effect = CustomPredictionError("Custom prediction error", status_code=418)
+        mock_predict.side_effect = CustomHTTPError("Custom prediction error", status_code=418)
 
         client = test_flask_app.test_client()
         response = client.post("/predict/")

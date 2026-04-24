@@ -54,11 +54,15 @@ class UnrecoverableConfigurationError(UnrecoverableError):
     """Raised when failure in parsing or validating configuration file."""
 
 
-class CustomPredictionError(DrumException):
+class BaseCustomUserError(Exception):
+    """Base class for errors that originate in user-provided custom model code."""
+
+
+class CustomHTTPError(BaseCustomUserError):
     """Raise this exception in your custom model to return a specific HTTP status code with custom message."""
 
     def __init__(
-        self, message: str = "User prediction error in custom model", status_code: int = 400
+        self, message: str = "User's HTTP error in custom model", status_code: int = 422
     ):
         super().__init__(message)
         self.status_code = status_code

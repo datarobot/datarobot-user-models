@@ -35,8 +35,8 @@ from datarobot_drum.drum.enum import (
     URL_PREFIX_ENV_VAR_NAME,
 )
 from datarobot_drum.drum.exceptions import (
+    BaseCustomUserError,
     DrumCommonException,
-    CustomPredictionError,
 )
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
@@ -48,6 +48,7 @@ from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
+    HTTP_422_UNPROCESSABLE_ENTITY,
     HTTP_500_INTERNAL_SERVER_ERROR,
     base_api_blueprint,
     get_flask_app,
@@ -60,6 +61,8 @@ from datarobot_drum.drum.common import (
     iter_stream_with_span,
 )
 from opentelemetry.trace.status import StatusCode
+
+from custom_model_runner.datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -320,8 +323,9 @@ class PredictionServer(PredictMixin):
         def handle_exception(e):
             logger.exception(e)
 
-            if isinstance(e, CustomPredictionError):
-                return {"message": str(e)}, e.status_code
+            if isinstance(e, BaseCustomUserError):
+                status_code = getattr(e, "status_code", HTTP_422_UNPROCESSABLE_ENTITY)
+                return {"message": str(e)}, status_code
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
                 return jsonify(error=e.description), e.code

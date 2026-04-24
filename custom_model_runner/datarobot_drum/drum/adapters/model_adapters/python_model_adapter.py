@@ -49,11 +49,11 @@ from datarobot_drum.drum.enum import (
     MODERATIONS_LIBRARY_PACKAGE,
 )
 from datarobot_drum.drum.exceptions import (
+    BaseCustomUserError,
     DrumCommonException,
     DrumException,
     DrumTransformException,
     DrumSerializationError,
-    CustomPredictionError,
 )
 from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
@@ -172,6 +172,8 @@ class PythonModelAdapter(AbstractModelAdapter):
             # Just log that no moderation info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
+        if isinstance(exc, BaseCustomUserError):
+            raise exc
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
 
@@ -603,8 +605,6 @@ class PythonModelAdapter(AbstractModelAdapter):
                 predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return RawPredictResponse(predictions_df.values, predictions_df.columns)
-        except CustomPredictionError:
-            raise
         except Exception as exc:
             self._log_and_raise_final_error(exc, "Model 'score' hook failed to make predictions.")
 
@@ -635,8 +635,6 @@ class PythonModelAdapter(AbstractModelAdapter):
                 else:
                     # noinspection PyCallingNonCallable
                     predictions_df = score_fn(data, model, **kwargs)
-            except CustomPredictionError:
-                raise
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'score' hook failed to make predictions."
@@ -650,8 +648,6 @@ class PythonModelAdapter(AbstractModelAdapter):
         else:
             try:
                 predictions, model_labels = self._predictor_to_use.predict(data, model, **kwargs)
-            except CustomPredictionError:
-                raise
             except Exception as exc:
                 self._log_and_raise_final_error(exc, "Failure when making predictions.")
 
@@ -667,8 +663,6 @@ class PythonModelAdapter(AbstractModelAdapter):
             try:
                 # noinspection PyCallingNonCallable
                 predictions_df = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
-            except CustomPredictionError:
-                raise
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'post_process' hook failed to post-process predictions."
