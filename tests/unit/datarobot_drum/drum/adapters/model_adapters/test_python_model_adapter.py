@@ -39,7 +39,6 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
-    CustomPredictionError,
     DrumPythonModelAdapterError,
     PythonModelAdapter,
 )
