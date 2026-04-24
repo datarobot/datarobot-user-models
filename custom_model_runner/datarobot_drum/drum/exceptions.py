@@ -57,6 +57,8 @@ class UnrecoverableConfigurationError(UnrecoverableError):
 class CustomPredictionError(DrumException):
     """Raise this exception in your custom model to return a specific HTTP status code with custom message."""
 
-    def __init__(self, message: str = "User prediction error in custom model", status_code: int = 400):
+    def __init__(
+        self, message: str = "User prediction error in custom model", status_code: int = 400
+    ):
         super().__init__(message)
         self.status_code = status_code
