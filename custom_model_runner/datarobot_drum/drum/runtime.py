@@ -16,10 +16,7 @@ from datarobot_drum.drum.common import verbose_stdout, get_drum_logger
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 from flask import Flask
 
-from datarobot_drum.drum.exceptions import (
-    DrumCommonException,
-    CustomPredictionError,
-)
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 logger = get_drum_logger(__name__)
@@ -111,9 +108,6 @@ def run_error_server(host, port, exc_value, flask_app: Optional[Flask] = None):
     @model_api.route("/predictionsUnstructured/", methods=["POST"])
     @model_api.route("/invocations", methods=["POST"])
     def predict():
-        if isinstance(exc_value, CustomPredictionError):
-            return {"message": str(exc_value)}, exc_value.status_code
-
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
     @model_api.route("/transform/", methods=["POST"])

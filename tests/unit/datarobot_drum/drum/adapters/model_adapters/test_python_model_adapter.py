@@ -404,7 +404,7 @@ class TestPythonModelAdapterPrivateHelpers:
         from datarobot_drum import CustomPredictionError
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
-        adapter._legacy_drum = True
+        adapter._custom_task_class = None
         
         def failing_score(*args, **kwargs):
             raise CustomPredictionError("My score error", status_code=402)
@@ -421,9 +421,11 @@ class TestPythonModelAdapterPrivateHelpers:
         from datarobot_drum import CustomPredictionError
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
-        adapter._legacy_drum = True
+        adapter._custom_task_class = None
         adapter._predictor_to_use = Mock()
-        adapter._predictor_to_use.predict.side_effect = CustomPredictionError("Predictor error", status_code=403)
+        adapter._predictor_to_use.predict.side_effect = CustomPredictionError(
+            "Predictor error", status_code=403
+        )
         
         with pytest.raises(CustomPredictionError) as exc_info:
             adapter.predict(binary_data=b"fake")
@@ -435,10 +437,10 @@ class TestPythonModelAdapterPrivateHelpers:
         from datarobot_drum import CustomPredictionError
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
-        adapter._legacy_drum = True
+        adapter._custom_task_class = None
         
         def passing_score(*args, **kwargs):
-            return Mock()
+            return pd.DataFrame({"Predictions": [1, 2, 3]})
             
         def failing_post_process(*args, **kwargs):
             raise CustomPredictionError("My post process error", status_code=404)
