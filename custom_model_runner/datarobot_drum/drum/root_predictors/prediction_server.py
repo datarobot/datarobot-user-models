@@ -62,8 +62,6 @@ from datarobot_drum.drum.common import (
 )
 from opentelemetry.trace.status import StatusCode
 
-from custom_model_runner.datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
-
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
