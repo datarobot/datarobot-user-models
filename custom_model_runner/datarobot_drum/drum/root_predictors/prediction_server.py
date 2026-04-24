@@ -35,7 +35,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
-    ModelError,
+    CustomPredictionError,
 )
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
@@ -307,7 +307,7 @@ class PredictionServer(PredictMixin):
         def handle_exception(e):
             logger.exception(e)
 
-            if isinstance(e, ModelError):
+            if isinstance(e, CustomPredictionError):
                 return {"message": str(e)}, e.status_code
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:

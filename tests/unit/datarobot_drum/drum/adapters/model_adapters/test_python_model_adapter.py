@@ -51,7 +51,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
-    ModelError,
+    CustomPredictionError,
 )
 
 

@@ -53,7 +53,7 @@ from datarobot_drum.drum.exceptions import (
     DrumException,
     DrumTransformException,
     DrumSerializationError,
-    ModelError,
+    CustomPredictionError,
 )
 from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils

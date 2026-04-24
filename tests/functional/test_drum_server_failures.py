@@ -249,10 +249,10 @@ class TestDrumServerFailures:
             f.write(
                 textwrap.dedent(
                     """
-                from datarobot_drum import ModelError
+                from datarobot_drum import CustomPredictionError
 
                 def score(data, model, **kwargs):
-                    raise ModelError("ModelError failure", status_code=422)
+                    raise CustomPredictionError("CustomPredictionError failure", status_code=422)
                 """
                 )
             )
@@ -272,4 +272,4 @@ class TestDrumServerFailures:
             )
 
             assert response.status_code == 422
-            assert "ModelError failure" in response.json()["message"]
+            assert "CustomPredictionError failure" in response.json()["message"]

@@ -18,7 +18,7 @@ from flask import Flask
 
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
-    ModelError,
+    CustomPredictionError,
 )
 
 
@@ -111,7 +111,7 @@ def run_error_server(host, port, exc_value, flask_app: Optional[Flask] = None):
     @model_api.route("/predictionsUnstructured/", methods=["POST"])
     @model_api.route("/invocations", methods=["POST"])
     def predict():
-        if isinstance(exc_value, ModelError):
+        if isinstance(exc_value, CustomPredictionError):
             return {"message": str(exc_value)}, exc_value.status_code
 
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
