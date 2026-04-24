@@ -39,6 +39,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    CustomPredictionError,
     DrumPythonModelAdapterError,
     PythonModelAdapter,
 )
@@ -380,8 +381,6 @@ class TestPythonModelAdapterPrivateHelpers:
                 adapter._detect_model_artifact_file()
 
     def test_predict_new_drum_custom_status_code(self):
-        from datarobot_drum import CustomPredictionError
-
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class_instance = Mock()
 
@@ -401,8 +400,6 @@ class TestPythonModelAdapterPrivateHelpers:
             adapter._predict_new_drum(Mock())
 
     def test_predict_old_drum_custom_prediction_error(self):
-        from datarobot_drum import CustomPredictionError
-
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class = None
 
@@ -418,8 +415,6 @@ class TestPythonModelAdapterPrivateHelpers:
         assert str(exc_info.value) == "My score error"
 
     def test_predictor_to_use_custom_prediction_error(self):
-        from datarobot_drum import CustomPredictionError
-
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class = None
         adapter._predictor_to_use = Mock()
@@ -434,8 +429,6 @@ class TestPythonModelAdapterPrivateHelpers:
         assert str(exc_info.value) == "Predictor error"
 
     def test_post_process_custom_prediction_error(self):
-        from datarobot_drum import CustomPredictionError
-
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class = None
 
