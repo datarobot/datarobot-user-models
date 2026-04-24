@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 import sys
@@ -56,6 +57,7 @@ from datarobot_drum.drum.common import (
     otel_context,
     extract_chat_request_attributes,
     extract_chat_response_attributes,
+    iter_stream_with_span,
 )
 from opentelemetry.trace.status import StatusCode
 
@@ -245,7 +247,18 @@ class PredictionServer(PredictMixin):
                 finally:
                     self._post_predict_and_transform()
 
-                if isinstance(response, dict) and response_status == 200:
+                if response_status == 200 and isinstance(response, Response):
+                    # Stream the response in a child span so request work and
+                    # stream lifecycle are traced separately.
+                    return (
+                        Response(
+                            iter_stream_with_span(tracer, span, response.response),
+                            mimetype="text/event-stream",
+                        ),
+                        response_status,
+                    )
+
+                if response_status == 200 and isinstance(response, dict):
                     span.set_attributes(extract_chat_response_attributes(response))
 
             return response, response_status
