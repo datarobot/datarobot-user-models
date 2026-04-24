@@ -405,15 +405,15 @@ class TestPythonModelAdapterPrivateHelpers:
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class = None
-        
+
         def failing_score(*args, **kwargs):
             raise CustomPredictionError("My score error", status_code=402)
-            
+
         adapter._custom_hooks[CustomHooks.SCORE] = failing_score
-        
+
         with pytest.raises(CustomPredictionError) as exc_info:
             adapter.predict(binary_data=b"fake")
-            
+
         assert getattr(exc_info.value, "status_code", None) == 402
         assert str(exc_info.value) == "My score error"
 
@@ -426,10 +426,10 @@ class TestPythonModelAdapterPrivateHelpers:
         adapter._predictor_to_use.predict.side_effect = CustomPredictionError(
             "Predictor error", status_code=403
         )
-        
+
         with pytest.raises(CustomPredictionError) as exc_info:
             adapter.predict(binary_data=b"fake")
-            
+
         assert getattr(exc_info.value, "status_code", None) == 403
         assert str(exc_info.value) == "Predictor error"
 
@@ -438,19 +438,19 @@ class TestPythonModelAdapterPrivateHelpers:
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class = None
-        
+
         def passing_score(*args, **kwargs):
             return pd.DataFrame({"Predictions": [1, 2, 3]})
-            
+
         def failing_post_process(*args, **kwargs):
             raise CustomPredictionError("My post process error", status_code=404)
-            
+
         adapter._custom_hooks[CustomHooks.SCORE] = passing_score
         adapter._custom_hooks[CustomHooks.POST_PROCESS] = failing_post_process
-        
+
         with pytest.raises(CustomPredictionError) as exc_info:
             adapter.predict(binary_data=b"fake")
-            
+
         assert getattr(exc_info.value, "status_code", None) == 404
         assert str(exc_info.value) == "My post process error"
 
