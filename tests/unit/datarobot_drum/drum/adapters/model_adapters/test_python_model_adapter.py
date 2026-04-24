@@ -380,16 +380,16 @@ class TestPythonModelAdapterPrivateHelpers:
                 adapter._detect_model_artifact_file()
 
     def test_predict_new_drum_custom_status_code(self):
-        from datarobot_drum import ModelError
+        from datarobot_drum import CustomPredictionError
 
         adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
         adapter._custom_task_class_instance = Mock()
 
-        custom_err = ModelError("Custom validation failure", status_code=422)
+        custom_err = CustomPredictionError("Custom validation failure", status_code=422)
         adapter._custom_task_class_instance.predict.side_effect = custom_err
 
-        # It should bypass the wrapper and raise ModelError directly
-        with pytest.raises(ModelError) as exc_info:
+        # It should bypass the wrapper and raise CustomPredictionError directly
+        with pytest.raises(CustomPredictionError) as exc_info:
             adapter._predict_new_drum(Mock())
 
         assert getattr(exc_info.value, "status_code", None) == 422
@@ -399,6 +399,58 @@ class TestPythonModelAdapterPrivateHelpers:
         adapter._custom_task_class_instance.predict.side_effect = Exception("Standard error")
         with pytest.raises(DrumPythonModelAdapterError, match="Standard error"):
             adapter._predict_new_drum(Mock())
+
+    def test_predict_old_drum_custom_prediction_error(self):
+        from datarobot_drum import CustomPredictionError
+
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._legacy_drum = True
+        
+        def failing_score(*args, **kwargs):
+            raise CustomPredictionError("My score error", status_code=402)
+            
+        adapter._custom_hooks[CustomHooks.SCORE] = failing_score
+        
+        with pytest.raises(CustomPredictionError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+            
+        assert getattr(exc_info.value, "status_code", None) == 402
+        assert str(exc_info.value) == "My score error"
+
+    def test_predictor_to_use_custom_prediction_error(self):
+        from datarobot_drum import CustomPredictionError
+
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._legacy_drum = True
+        adapter._predictor_to_use = Mock()
+        adapter._predictor_to_use.predict.side_effect = CustomPredictionError("Predictor error", status_code=403)
+        
+        with pytest.raises(CustomPredictionError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+            
+        assert getattr(exc_info.value, "status_code", None) == 403
+        assert str(exc_info.value) == "Predictor error"
+
+    def test_post_process_custom_prediction_error(self):
+        from datarobot_drum import CustomPredictionError
+
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._legacy_drum = True
+        
+        def passing_score(*args, **kwargs):
+            return Mock()
+            
+        def failing_post_process(*args, **kwargs):
+            raise CustomPredictionError("My post process error", status_code=404)
+            
+        adapter._custom_hooks[CustomHooks.SCORE] = passing_score
+        adapter._custom_hooks[CustomHooks.POST_PROCESS] = failing_post_process
+        
+        with pytest.raises(CustomPredictionError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+            
+        assert getattr(exc_info.value, "status_code", None) == 404
+        assert str(exc_info.value) == "My post process error"
 
 
 class TestPredictResultSplitter:
