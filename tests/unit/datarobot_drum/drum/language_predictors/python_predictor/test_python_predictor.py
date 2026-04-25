@@ -112,6 +112,27 @@ class TestPythonPredictorConfigure:
 
         assert "adapter broke" in str(exc_info.value)
 
+    def test_configure_retypes_adapter_error_as_serialization_error(
+        self, base_configure_params, mock_load_model_from_artifact
+    ):
+        """End-to-end: bare exceptions from the is_custom_task_class load path
+        are wrapped by the adapter into DrumPythonModelAdapterError (a
+        DrumException), which configure() then retypes as DrumSerializationError.
+        Together this guarantees no untyped exception leaks past configure()."""
+        from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+            DrumPythonModelAdapterError,
+        )
+
+        mock_load_model_from_artifact.side_effect = DrumPythonModelAdapterError(
+            "Failed to load custom task class. Exception: RuntimeError('pickle exploded')"
+        )
+
+        predictor = PythonPredictor()
+        with pytest.raises(DrumSerializationError) as exc_info:
+            predictor.configure(base_configure_params)
+
+        assert "pickle exploded" in str(exc_info.value)
+
     def test_configure_lets_unexpected_exceptions_propagate(
         self, base_configure_params, mock_load_model_from_artifact
     ):

@@ -370,6 +370,34 @@ class TestLoadModelFromArtifact:
 
         assert adapter.load_model_from_artifact()
 
+    def test_custom_task_class_unexpected_exception_is_wrapped(self):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        with patch.object(
+            FakeCustomTask, "load", side_effect=RuntimeError("pickle exploded")
+        ):
+            with pytest.raises(DrumPythonModelAdapterError) as exc_info:
+                adapter.load_model_from_artifact(
+                    user_secrets_mount_path=None,
+                    user_secrets_prefix=None,
+                )
+
+        assert "Failed to load custom task class." in str(exc_info.value)
+        assert "pickle exploded" in str(exc_info.value)
+
+    def test_custom_task_class_user_error_propagates_unwrapped(self):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        user_err = CustomHTTPError("checkpoint missing", status_code=422)
+        with patch.object(FakeCustomTask, "load", side_effect=user_err):
+            with pytest.raises(CustomHTTPError) as exc_info:
+                adapter.load_model_from_artifact(
+                    user_secrets_mount_path=None,
+                    user_secrets_prefix=None,
+                )
+
+        assert exc_info.value is user_err
+        assert exc_info.value.status_code == 422
+        assert isinstance(exc_info.value, BaseCustomUserError)
+
 
 class TestPythonModelAdapterPrivateHelpers:
     def test_multiple_artifacts_detection_negative(self):
