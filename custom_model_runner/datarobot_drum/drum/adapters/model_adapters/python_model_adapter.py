@@ -173,6 +173,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
         if isinstance(exc, BaseCustomUserError):
+            self._logger.info(f"{message} User-raised error: {exc!r}")
             raise exc
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
