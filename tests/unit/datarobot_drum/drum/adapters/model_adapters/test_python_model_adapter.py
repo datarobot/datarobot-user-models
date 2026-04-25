@@ -372,9 +372,7 @@ class TestLoadModelFromArtifact:
 
     def test_custom_task_class_unexpected_exception_is_wrapped(self):
         adapter = TestingPythonModelAdapter(Mock(), Mock())
-        with patch.object(
-            FakeCustomTask, "load", side_effect=RuntimeError("pickle exploded")
-        ):
+        with patch.object(FakeCustomTask, "load", side_effect=RuntimeError("pickle exploded")):
             with pytest.raises(DrumPythonModelAdapterError) as exc_info:
                 adapter.load_model_from_artifact(
                     user_secrets_mount_path=None,
