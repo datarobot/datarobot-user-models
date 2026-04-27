@@ -46,10 +46,8 @@ from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
 from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.server import (
-    HEADER_DRUM_USER_ERROR,
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
-    HTTP_422_UNPROCESSABLE_ENTITY,
     HTTP_500_INTERNAL_SERVER_ERROR,
     base_api_blueprint,
     get_flask_app,
@@ -322,13 +320,10 @@ class PredictionServer(PredictMixin):
         def handle_exception(e):
             logger.exception(e)
 
-            if isinstance(e, BaseCustomUserError):
-                status_code = getattr(e, "status_code", HTTP_422_UNPROCESSABLE_ENTITY)
-                # Tag the response so the DataRobot prediction API gateway knows
-                # where user errors
+            # custom user error handler
+            if isinstance(e, CustomHTTPError):
                 response = jsonify({"message": str(e)})
-                response.status_code = status_code
-                response.headers[HEADER_DRUM_USER_ERROR] = "1"
+                response.status_code = e.status_code
                 return response
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:

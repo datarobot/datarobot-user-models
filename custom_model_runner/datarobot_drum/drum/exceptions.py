@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
-UNPROCESSABLE_ENTITY_STATUS_CODE = 422
+HTTP_400_BAD_REQUEST = 400
 
 
 class DrumException(Exception):
@@ -66,7 +66,7 @@ class CustomHTTPError(BaseCustomUserError):
     def __init__(
         self,
         message: str = "User's HTTP error in custom model",
-        status_code: int = UNPROCESSABLE_ENTITY_STATUS_CODE,
+        status_code: int = HTTP_400_BAD_REQUEST,
     ):
         super().__init__(message)
         self.status_code = status_code
