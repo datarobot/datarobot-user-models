@@ -35,7 +35,7 @@ from datarobot_drum.drum.enum import (
     URL_PREFIX_ENV_VAR_NAME,
 )
 from datarobot_drum.drum.exceptions import (
-    CustomHTTPError,
+    BaseCustomUserError,
     DrumCommonException,
 )
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
