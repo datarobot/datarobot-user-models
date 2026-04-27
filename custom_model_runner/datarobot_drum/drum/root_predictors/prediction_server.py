@@ -325,7 +325,6 @@ class PredictionServer(PredictMixin):
                 status_code = getattr(e, "status_code", HTTP_400_BAD_REQUEST)
                 response = jsonify({"message": str(e)})
                 response.status_code = status_code
-                response.headers[HEADER_DRUM_USER_ERROR] = "1"
                 return response
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
