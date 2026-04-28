@@ -7,19 +7,20 @@
 # publication of such source code.
 
 import asyncio
+import logging
+from typing import Union
 
-from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
-
+import ecs_logging
 from cgroup_watchers import (
     CGroupFileReader,
+    CGroupV2FileReader,
+    CGroupVersionUnsupported,
     CGroupWatcher,
     DummyWatcher,
     SystemWatcher,
-    CGroupVersionUnsupported,
 )
 from fastapi import FastAPI, WebSocket
-import logging
-import ecs_logging
+from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 logger = logging.getLogger("kernel_agent")
 
@@ -30,33 +31,41 @@ logger.addHandler(handler)
 
 app = FastAPI()
 
+watcher: Union[CGroupWatcher, DummyWatcher]
+
 try:
-    watcher = CGroupWatcher(CGroupFileReader(), SystemWatcher())
+    watcher = CGroupWatcher(CGroupV2FileReader(), SystemWatcher())
+    logger.info("Using CGroup V2 Watcher")
 except CGroupVersionUnsupported:
-    logger.warning("CGroup Version Unsupported. Dummy utilization will be broadcasted")
-    watcher = DummyWatcher()
+    logger.debug("CGroup V2 not available, trying V1")
+    try:
+        watcher = CGroupWatcher(CGroupFileReader(), SystemWatcher())
+        logger.info("Using CGroup V1 Watcher")
+    except CGroupVersionUnsupported:
+        logger.debug("CGroup V1 not available")
+        logger.warning(
+            "CGroup not supported. Using DummyWatcher with SystemWatcher (psutil) "
+            "for system-wide resource metrics instead of container-specific cgroup metrics"
+        )
+        watcher = DummyWatcher()
 
 
-@app.websocket_route("/ws")
-async def websocket_endpoint(websocket: WebSocket):
+@app.websocket_route("/ws")  # type: ignore[untyped-decorator]
+async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
 
     try:
         while True:
             await websocket.send_json(
                 {
-                    "cpu_percent": watcher.cpu_usage_percentage(),
-                    "mem_percent": watcher.memory_usage_percentage(),
+                    'cpu_percent': watcher.cpu_usage_percentage(),
+                    'mem_percent': watcher.memory_usage_percentage(),
                 }
             )
 
             await asyncio.sleep(3)
     except ConnectionClosedError:
-        logger.warning(
-            "utilization consumer unconnected",
-            extra={"connection": websocket.client},
-            exc_info=True,
-        )
+        logger.warning("utilization consumer unconnected", extra={"connection": websocket.client}, exc_info=True)
     except ConnectionClosedOK:
         # https://github.com/encode/starlette/issues/759
         logger.info("utilization consumer unconnected", extra={"connection": websocket.client})
