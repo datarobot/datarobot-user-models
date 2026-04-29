@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, cast
 
 import psutil
 
-NANO_SECS = 10 ** 9
+NANO_SECS = 10**9
 
 if TYPE_CHECKING:
     from psutil._ntuples import svmem
@@ -80,7 +80,10 @@ class CGroupFileReader(CGroupFileReaderProtocol):
 
     def memory_usage_in_bytes(self) -> int:
         memory_stat_str = self._memory_usage_file.read_text()
-        total_rss_str = next(iter([stat for stat in memory_stat_str.split("\n") if stat.startswith("total_rss")]), "0")
+        total_rss_str = next(
+            iter([stat for stat in memory_stat_str.split("\n") if stat.startswith("total_rss")]),
+            "0",
+        )
         total_rss = int(total_rss_str.split(" ")[-1])
         return total_rss
 
@@ -190,7 +193,9 @@ class BaseWatcher:
 
 
 class CGroupWatcher(BaseWatcher):
-    def __init__(self, cgroup_file_reader: CGroupFileReaderProtocol, system_watcher: SystemWatcher) -> None:
+    def __init__(
+        self, cgroup_file_reader: CGroupFileReaderProtocol, system_watcher: SystemWatcher
+    ) -> None:
         self._cgroup_file_reader = cgroup_file_reader
         self._system_watcher = system_watcher
 
@@ -225,7 +230,9 @@ class CGroupWatcher(BaseWatcher):
         else:
             usage_diff = cpu_cum_usage_nanos - self._last_cpu_cum_usage_nanos
             time_diff = current_timestamp_nanos - self._last_cpu_usage_ts_nanos
-            current_usage = float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
+            current_usage = (
+                float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
+            )
 
         self._last_cpu_usage_ts_nanos = current_timestamp_nanos
         self._last_cpu_cum_usage_nanos = cpu_cum_usage_nanos
