@@ -160,6 +160,12 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
+# Install DR CLI
+RUN wget -q https://github.com/datarobot-oss/cli/releases/download/v0.2.60/dr_v0.2.60_Linux_x86_64.tar.gz \
+    && mkdir -p /home/notebooks/.local/bin/dr \
+    && tar -xvzf dr_v0.2.60_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm dr_v0.2.60_Linux_x86_64.tar.gz
+
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
