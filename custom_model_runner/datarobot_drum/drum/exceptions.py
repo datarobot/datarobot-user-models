@@ -5,6 +5,8 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
+HTTP_BAD_REQUEST = 400
+
 
 class DrumException(Exception):
     """Base drum exception"""
@@ -52,3 +54,19 @@ class UnrecoverableError(DrumException):
 
 class UnrecoverableConfigurationError(UnrecoverableError):
     """Raised when failure in parsing or validating configuration file."""
+
+
+class BaseCustomUserError(Exception):
+    """Base class for errors that originate in user-provided custom model code."""
+
+
+class CustomHTTPError(BaseCustomUserError):
+    """Raise this exception in your custom model to return a specific HTTP status code with custom message."""
+
+    def __init__(
+        self,
+        message: str = "User's HTTP error in custom model",
+        status_code: int = HTTP_BAD_REQUEST,
+    ):
+        super().__init__(message)
+        self.status_code = status_code

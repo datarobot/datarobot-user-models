@@ -5,6 +5,7 @@ from unittest.mock import Mock, patch
 
 import openai
 import pytest
+
 from openai import NotFoundError
 from openai import Stream
 from openai.types.chat import (
@@ -13,6 +14,7 @@ from openai.types.chat import (
 from openai.types.model import Model
 from werkzeug.exceptions import BadRequest
 
+from datarobot_drum import CustomHTTPError
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
@@ -298,3 +300,31 @@ def test_drum_version_in_flask_app(test_flask_app):
 
     response = prediction_client.get("/info/")
     assert response.headers["x-drum-version"] == drum_version
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_custom_status_code(test_flask_app):
+    with patch(
+        "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer.do_predict_structured"
+    ) as mock_predict:
+        mock_predict.side_effect = CustomHTTPError("Custom prediction error", status_code=418)
+
+        client = test_flask_app.test_client()
+        response = client.post("/predict/")
+
+        assert response.status_code == 418
+        assert response.json["message"] == "Custom prediction error"
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_standard_error(test_flask_app):
+    with patch(
+        "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer.do_predict_structured"
+    ) as mock_predict:
+        mock_predict.side_effect = Exception("Internal Server Error")
+
+        client = test_flask_app.test_client()
+        response = client.post("/predict/")
+
+        assert response.status_code == 500
+        assert "ERROR: Internal Server Error" in response.json["message"]

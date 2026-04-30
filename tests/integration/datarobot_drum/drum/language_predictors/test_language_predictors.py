@@ -22,7 +22,11 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
     PythonPredictor,
 )
 from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    DrumException,
+    DrumSerializationError,
+)
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
@@ -226,7 +230,7 @@ class TestPythonPredictor(object):
         with pytest.raises(DrumSerializationError), patch.object(
             PythonModelAdapter, "load_model_from_artifact"
         ) as mock_load:
-            mock_load.side_effect = Exception("artifact had an oops")
+            mock_load.side_effect = DrumException("artifact had an oops")
             py_predictor.configure(init_params)
 
 
