@@ -1,5 +1,5 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
-# Replace it with your own development chain-gaurd image if you build your own.
+# Replace it with your own development chain-guard image if you build your own.
 FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev as build
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -12,7 +12,7 @@ RUN ${VIRTUAL_ENV}/bin/python -m pip install -r requirements.txt
 
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
-# Replace it with your own production chain-gaurd image if you build your own.
+# Replace it with your own production chain-guard image if you build your own.
 FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
 ENV VIRTUAL_ENV=/opt/venv
 
