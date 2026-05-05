@@ -49,10 +49,6 @@ FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11
 
 USER root
 
-# Ensure runtime stage also carries the patched curl package metadata/binaries.
-# hadolint ignore=DL3018,DL3059
-RUN apk update && apk upgrade --no-cache curl
-
 # Copy R libraries and binaries from the build stage
 COPY --from=build /usr/bin/R /usr/bin/R
 COPY --from=build /usr/bin/Rscript /usr/bin/Rscript
