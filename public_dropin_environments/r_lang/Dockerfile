@@ -5,6 +5,10 @@ FROM ${BASE_ROOT_IMAGE} AS build
 
 USER root
 
+# Refresh package index and upgrade curl for CVE-2026-3805 (fixed in curl >= 8.19.0).
+# hadolint ignore=DL3018,DL3059
+RUN apk update && apk upgrade --no-cache curl
+
 # Install R and required R packages using apk and Rscript
 RUN apk add --no-cache \
     R \
