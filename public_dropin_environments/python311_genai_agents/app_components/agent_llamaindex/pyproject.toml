@@ -8,12 +8,12 @@ requires-python = ">=3.10,<3.14"
 dependencies = [
     # Generic deps.
     "click~=8.1.8",
-    "datarobot-drum==1.17.11.post1",
+    "datarobot-drum==1.17.15",
     "datarobot-moderations[all]==11.2.26",
     "datarobot-mlops==11.1.0",
     "datarobot[auth]==3.8.2",
     "dotenv~=0.9.9",
-    "litellm~=1.83.0",
+    "litellm~=1.83.14",
     "onnxruntime~=1.22.0",
     "openai>=2,<3",
     "python-dotenv>=1.2.2",
@@ -43,6 +43,11 @@ required-version = ">=0.10.0"
 exclude-dependencies = [
     "uv",
     "diskcache",    # Not supported anymore, and not directly required by ragas. CVE-2025-69872.
+]
+override-dependencies = [
+    # LiteLLM has pinned it's dependencies *exactly*, causing either conflict or downgrade of some libraries.
+    # This temporarily overrides LiteLLM's constraints, but has to be removed once litellm fixes problem and is upgraded.
+    "openai>=2.30",
 ]
 constraint-dependencies = [
     # CVE fixes - constraints for transitive dependencies.
