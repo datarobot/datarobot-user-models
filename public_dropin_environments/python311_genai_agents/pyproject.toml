@@ -215,7 +215,6 @@ override-dependencies = [
     "langchain-milvus; sys_platform == 'never'",        # not used and having CVEs
     "llama-index-cli; sys_platform == 'never'",         # CLI tool pulled in by llama-index; not needed at runtime
     "onnxruntime; sys_platform == 'never'",             # not used; therefore removed
-    "openpyxl; sys_platform == 'never'",                # Excel parser pulled in by crewai-tools; not used
     "pymilvus; sys_platform == 'never'",                # not used and having CVEs
     "python-docx; sys_platform == 'never'",             # Word doc parser pulled in by crewai-tools; not used
     "pytube; sys_platform == 'never'",                  # YouTube downloader pulled in by crewai-tools; not used
