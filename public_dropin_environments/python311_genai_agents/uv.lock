@@ -26,7 +26,7 @@ overrides = [
     { name = "langgraph-checkpoint", specifier = ">=3.0.0" },
     { name = "langgraph-prebuilt", specifier = ">=1.0.0,<2.0.0" },
     { name = "litellm", specifier = ">=1.83.7,<2.0.0" },
-    { name = "llama-index-cli" },
+    { name = "llama-index-cli", marker = "sys_platform == 'never'" },
     { name = "nltk", specifier = ">=3.9.4" },
     { name = "onnxruntime", marker = "sys_platform == 'never'" },
     { name = "openai", specifier = ">=2.30.0" },
@@ -3186,7 +3186,6 @@ name = "llama-index"
 version = "0.14.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "llama-index-cli", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "llama-index-core", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "llama-index-embeddings-openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "llama-index-indices-managed-llama-cloud", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -3198,20 +3197,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/99/0e/5563bbb6084f1645833332347158f4a47e441d6b9c3a7d776324d718e042/llama_index-0.14.14.tar.gz", hash = "sha256:cb3524adade2d5171caf67bac5ce1c5c080be312497956f31b597a79a9dee225", size = 8508, upload-time = "2026-02-10T23:08:41.208Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a0/1d/afa1dcb9b8e6966ab6f73c288512e76c4bdc80e93416781a4d640d5219d9/llama_index-0.14.14-py3-none-any.whl", hash = "sha256:c3be0880ea7323c70ad1dfe8c393dc99c2a30a8743c2e47c18f3c40ac4a358ee", size = 7461, upload-time = "2026-02-10T23:08:42.587Z" },
-]
-
-[[package]]
-name = "llama-index-cli"
-version = "0.5.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "llama-index-core", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "llama-index-embeddings-openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "llama-index-llms-openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/67/84/41e820efffbe327c38228d3b37fe42512a37e0c3ee4ff6bf97a394e9577a/llama_index_cli-0.5.3.tar.gz", hash = "sha256:ebaf39e785efbfa8d50d837f60cb0f95125c04bf73ed1f92092a2a5f506172f8", size = 24821, upload-time = "2025-09-29T18:03:10.798Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/54/81/b7b3778aa8662913760fbbee77578daf4407aeaa677ccbf0125c4cfa2e67/llama_index_cli-0.5.3-py3-none-any.whl", hash = "sha256:7deb1e953e582bd885443881ce8bd6ab2817b594fef00079dce9993c47d990f7", size = 28173, upload-time = "2025-09-29T18:03:10.024Z" },
 ]
 
 [[package]]

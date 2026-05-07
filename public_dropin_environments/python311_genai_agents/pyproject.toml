@@ -213,7 +213,7 @@ override-dependencies = [
     "fastembed; sys_platform == 'never'",               # not used; therefore removed
     "gevent; sys_platform == 'never'",                  # not used; therefore removed
     "langchain-milvus; sys_platform == 'never'",        # not used and having CVEs
-    "llama-index-cli",                                  # CLI tool pulled in by llama-index; not needed at runtime
+    "llama-index-cli; sys_platform == 'never'",         # CLI tool pulled in by llama-index; not needed at runtime
     "onnxruntime; sys_platform == 'never'",             # not used; therefore removed
     "openpyxl; sys_platform == 'never'",                # Excel parser pulled in by crewai-tools; not used
     "pymilvus; sys_platform == 'never'",                # not used and having CVEs
