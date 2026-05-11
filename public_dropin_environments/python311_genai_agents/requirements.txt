@@ -59,7 +59,7 @@ markdown-it-py==4.0.0
 markupsafe==3.0.3
 matplotlib-inline==0.2.1
 mdurl==0.1.2
-mistune==3.2.0
+mistune==3.2.1
 nbclient==0.10.4
 nbconvert==7.17.1
 nbformat==5.10.4
@@ -86,7 +86,7 @@ pygments==2.20.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-json-logger==4.0.0
-python-multipart==0.0.26
+python-multipart==0.0.28
 pyyaml==6.0.3
 pyzmq==27.1.0
 referencing==0.37.0
