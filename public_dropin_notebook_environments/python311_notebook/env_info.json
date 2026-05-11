@@ -1,10 +1,10 @@
 {
-  "id": "6583d56f5627082b3cff990e",
-  "name": "[DataRobot - Deprecated] Python 3.11 Notebook Drop-In",
+  "id": "",
+  "name": "asuslov ssh test",
   "description": "Deprecated in favor of Python 3.11 Base Notebook Drop-In Template",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6848b6632081a81ae47ee7d3",
+  "environmentVersionId": "",
   "environmentVersionDescription": "",
   "isPublic": false,
   "useCases": [
