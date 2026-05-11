@@ -37,6 +37,52 @@ except CGroupVersionUnsupported:
     watcher = DummyWatcher()
 
 
+@app.websocket_route("/ssh")
+async def ssh_endpoint(websocket: WebSocket) -> None:
+    """Bridge a WebSocket connection to the local sshd (port 8022)."""
+    await websocket.accept()
+    try:
+        reader, writer = await asyncio.open_connection('127.0.0.1', 8022)
+    except OSError as exc:
+        logger.error("Failed to connect to sshd: %s", exc)
+        await websocket.close(code=1011, reason=str(exc))
+        return
+
+    async def ws_to_tcp() -> None:
+        try:
+            while True:
+                data = await websocket.receive_bytes()
+                writer.write(data)
+                await writer.drain()
+        except Exception:
+            pass
+        finally:
+            try:
+                writer.close()
+                await writer.wait_closed()
+            except Exception:
+                pass
+
+    async def tcp_to_ws() -> None:
+        try:
+            while True:
+                data = await reader.read(4096)
+                if not data:
+                    break
+                await websocket.send_bytes(data)
+        except Exception:
+            pass
+
+    tasks = [asyncio.create_task(ws_to_tcp()), asyncio.create_task(tcp_to_ws())]
+    _done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+    for task in pending:
+        task.cancel()
+    try:
+        await websocket.close()
+    except Exception:
+        pass
+
+
 @app.websocket_route("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
