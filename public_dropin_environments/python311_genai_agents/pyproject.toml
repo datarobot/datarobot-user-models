@@ -215,7 +215,6 @@ override-dependencies = [
     "langchain-milvus; sys_platform == 'never'",        # not used and having CVEs
     "llama-index-cli; sys_platform == 'never'",         # CLI tool pulled in by llama-index; not needed at runtime
     "onnxruntime; sys_platform == 'never'",             # not used; therefore removed
-    "prompt_toolkit; sys_platform == 'never'",          # nemoguardrails CLI stack; not needed at runtime
     "pyfiglet; sys_platform == 'never'",                # deepeval CLI tool; not needed at runtime
     "pymilvus; sys_platform == 'never'",                # not used and having CVEs
     "python-docx; sys_platform == 'never'",             # Word doc parser pulled in by crewai-tools; not used
