@@ -2,6 +2,9 @@
 # Replace it with your own development chain-gaurd image if you build your own.
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
 FROM ${BASE_ROOT_IMAGE} AS build
+
+# Need to be root even to install package in dev image / build stage
+USER root
 RUN apk add --no-cache libgomp
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
