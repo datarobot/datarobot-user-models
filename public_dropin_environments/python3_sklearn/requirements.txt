@@ -90,7 +90,7 @@ trafaret==2.1.1
 typing-extensions==4.15.0
 typing-inspection==0.4.2
 tzdata==2026.1
-urllib3==2.6.3
+urllib3==2.7.0
 werkzeug==3.1.8
 wrapt==1.17.3
 zipp==3.23.0
