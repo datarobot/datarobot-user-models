@@ -215,12 +215,17 @@ override-dependencies = [
     "langchain-milvus; sys_platform == 'never'",        # not used and having CVEs
     "llama-index-cli; sys_platform == 'never'",         # CLI tool pulled in by llama-index; not needed at runtime
     "onnxruntime; sys_platform == 'never'",             # not used; therefore removed
+    "prompt_toolkit; sys_platform == 'never'",          # nemoguardrails CLI stack; not needed at runtime
+    "pyfiglet; sys_platform == 'never'",                # deepeval CLI tool; not needed at runtime
     "pymilvus; sys_platform == 'never'",                # not used and having CVEs
     "python-docx; sys_platform == 'never'",             # Word doc parser pulled in by crewai-tools; not used
     "pytube; sys_platform == 'never'",                  # YouTube downloader pulled in by crewai-tools; not used
     "stagehand; sys_platform == 'never'",               # Playwright web automation pulled in by crewai-tools; not used
-    "youtube-transcript-api; sys_platform == 'never'",  # YouTube transcripts pulled in by crewai-tools; not used
+    "typer; sys_platform == 'never'",                   # nemoguardrails CLI stack; not needed at runtime
     "uv; sys_platform == 'never'",                      # package manager bundled by crewai; runtime unnecessary
+    "watchdog; sys_platform == 'never'",                # nemoguardrails hot-reload watcher; not needed at runtime
+    "wheel; sys_platform == 'never'",                   # build tool pulled in by deepeval; not needed at runtime
+    "youtube-transcript-api; sys_platform == 'never'",  # YouTube transcripts pulled in by crewai-tools; not used
 ]
 package = true
 environments = [
