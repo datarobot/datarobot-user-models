@@ -53,7 +53,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Add any package that will be installed on system level here:
 RUN microdnf update \
-    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
+    && microdnf install -y python$PYTHON_VERSION python$PYTHON_VERSION-devel \
   gcc-8.5.0 gcc-c++-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 python$PYTHON_VERSION-pip \
   openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils passwd-0.80 git openssh-server tar gzip unzip zip wget \
   java-11-openjdk-headless vim-minimal nano \
