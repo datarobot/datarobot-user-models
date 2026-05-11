@@ -2,6 +2,7 @@
 # Replace it with your own development chain-gaurd image if you build your own.
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
 FROM ${BASE_ROOT_IMAGE} AS build
+RUN apk add --no-cache libgomp
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
@@ -31,6 +32,9 @@ COPY --from=build /bin/mkdir /bin/mkdir
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
 COPY --from=build /usr/lib/python3.12/site-packages/pip /usr/lib/python3.12/site-packages/pip
+
+# Required for LightGBM
+COPY --from=build /usr/lib/libgomp.so.1 /usr/lib/libgomp.so.1
 
 # Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
 COPY --from=build /usr/bin/rm /usr/bin/rm
