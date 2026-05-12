@@ -236,7 +236,7 @@ class CMRunner:
                     neg_options if neg_options is not None else neg_model_config
                 )
 
-        elif self.target_type == TargetType.MULTICLASS:
+        elif self.target_type in [TargetType.MULTICLASS, TargetType.MULTILABEL]:
             labels_options = getattr(self.options, "class_labels", None)
             try:
                 labels_model_config = self.options.model_config.get(
