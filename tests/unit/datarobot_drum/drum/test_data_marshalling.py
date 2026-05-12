@@ -268,3 +268,39 @@ def test_marshal_predictions_agentic_workflow_invalid_dtype():
         marshal_predictions(
             request_labels=labels, predictions=preds, target_type=TargetType.AGENTIC_WORKFLOW
         )
+
+
+def test_marshal_predictions_multilabel_happy():
+    preds = np.array([[1, 0, 0], [1, 0, 0]])
+    labels = [1, 2, 3]
+    expected = pd.DataFrame(data=preds, columns=labels)
+    pd.testing.assert_frame_equal(
+        marshal_predictions(
+            request_labels=labels, predictions=preds, target_type=TargetType.MULTILABEL
+        ),
+        expected,
+    )
+
+
+def test_marshal_predictions_multiclass_wrong_label_length():
+    preds = np.array([[1, 0, 0], [1, 0, 0]])
+    labels = [1, 2, 3, 4]
+    with pytest.raises(
+        DrumCommonException,
+        match=" predictions must return the probability distribution for the correct number of class labels",
+    ):
+        marshal_predictions(
+            request_labels=labels, predictions=preds, target_type=TargetType.MULTILABEL
+        )
+
+
+def test_marshal_predictions_multiclass_wrong_label_length_cols_greater():
+    preds = np.array([[1, 0, 0], [1, 0, 0]])
+    labels = [1, 2]
+    with pytest.raises(
+        DrumCommonException,
+        match=" predictions must return the probability distribution for the correct number of class labels",
+    ):
+        marshal_predictions(
+            request_labels=labels, predictions=preds, target_type=TargetType.MULTILABEL
+        )

@@ -18,7 +18,7 @@ def needs_class_labels(
 ):
     if target_type == TargetType.BINARY:
         return negative_class_label is None or positive_class_label is None
-    if target_type == TargetType.MULTICLASS:
+    if target_type in [TargetType.MULTICLASS, TargetType.MULTILABEL]:
         return class_labels is None
     return False
 
@@ -29,7 +29,7 @@ def possibly_intuit_order(
     target_filename=None,
     target_name=None,
 ):
-    if target_type == TargetType.ANOMALY:
+    if target_type == TargetType.ANOMALY or target_type == TargetType.MULTILABEL:
         return None
     elif target_filename:
         assert target_name is None
@@ -149,5 +149,8 @@ class DrumClassLabelAdapter(object):
 
             if self.target_type == TargetType.BINARY:
                 self.positive_class_label, self.negative_class_label = class_labels
-            elif self.target_type == TargetType.MULTICLASS:
+            elif (
+                self.target_type == TargetType.MULTICLASS
+                or self.target_type == TargetType.MULTILABEL
+            ):
                 self.class_labels = class_labels

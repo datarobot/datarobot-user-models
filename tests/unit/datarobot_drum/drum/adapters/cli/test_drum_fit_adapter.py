@@ -22,6 +22,7 @@ class TestDrumFitAdapterFailures(object):
             TargetType.GEO_POINT,
             TargetType.VECTOR_DATABASE,
             TargetType.AGENTIC_WORKFLOW,
+            TargetType.MULTILABEL,
         ],
     )
     def test_target_data_missing(self, dense_csv, target_type):

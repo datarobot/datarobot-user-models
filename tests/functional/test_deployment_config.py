@@ -50,6 +50,7 @@ class TestDeploymentConfig:
     deployment_config_agentic_workflow = os.path.join(
         TESTS_DEPLOYMENT_CONFIG_PATH, "agentic_workflow.json"
     )
+    deployment_config_multilabel = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "multilabel.json")
 
     @pytest.fixture(params=[False, True], ids=["with_extra_output", "without_extra_output"])
     def with_extra_model_output(self, request):
@@ -395,6 +396,47 @@ class TestDeploymentConfig:
             assert len(pred_item["predictionValues"]) == 1
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
+
+    def test_map_multilabel_prediction(self, extra_model_output_df):
+        config = parse_validate_deployment_config_file(self.deployment_config_multilabel)
+        assert config["target"]["name"] == "genre"
+        assert config["target"]["type"] == "Multilabel"
+
+        class_labels = ["action", "comedy", "sci-fi"]
+        d = {
+            class_labels[0]: [0.7, 0.3, 0.6],
+            class_labels[1]: [0.2, 0.4, 0.9],
+            class_labels[2]: [0.1, 0.1, 0.3],
+        }
+        df = pd.DataFrame(data=d)
+        predict_response = PredictResponse(df, extra_model_output_df)
+        response = build_pps_response_json_str(predict_response, config, TargetType.MULTILABEL)
+        response_json = json.loads(response)
+        assert isinstance(response_json, dict)
+        assert "data" in response_json
+        predictions_list = response_json["data"]
+        assert isinstance(predictions_list, list)
+        assert len(predictions_list) == df.shape[0]
+
+        pred_iter = iter(predictions_list)
+        expected_pred_iterator = iter([["action"], [], ["action", "comedy"]])
+        for index, row in df.iterrows():
+            pred_item = next(pred_iter)
+
+            assert isinstance(pred_item, dict)
+            assert pred_item["rowId"] == index
+
+            assert pred_item["prediction"] == next(expected_pred_iterator)
+            assert isinstance(pred_item["predictionValues"], list)
+            assert len(pred_item["predictionValues"]) == 3
+
+            assert pred_item["predictionValues"] == [
+                {"label": class_labels[0], "value": row[class_labels[0]]},
+                {"label": class_labels[1], "value": row[class_labels[1]]},
+                {"label": class_labels[2], "value": row[class_labels[2]]},
+            ]
             if extra_model_output_df is not None:
                 assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
