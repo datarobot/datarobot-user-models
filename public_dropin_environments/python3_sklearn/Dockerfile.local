@@ -4,7 +4,7 @@
 
 FROM python:3.12-alpine
 
-RUN apk add --no-cache build-base python3-dev linux-headers
+RUN apk add --no-cache build-base python3-dev linux-headers libgomp
 
 COPY requirements.txt requirements.txt
 
