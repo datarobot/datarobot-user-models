@@ -34,7 +34,10 @@ from datarobot_drum.drum.enum import (
     TargetType,
     URL_PREFIX_ENV_VAR_NAME,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import (
+    BaseCustomUserError,
+    DrumCommonException,
+)
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
@@ -316,6 +319,13 @@ class PredictionServer(PredictMixin):
         @model_api.errorhandler(Exception)
         def handle_exception(e):
             logger.exception(e)
+
+            # custom user error handler
+            if isinstance(e, BaseCustomUserError):
+                status_code = getattr(e, "status_code", HTTP_400_BAD_REQUEST)
+                response = jsonify({"message": str(e)})
+                response.status_code = status_code
+                return response
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
                 return jsonify(error=e.description), e.code
