@@ -74,7 +74,7 @@ RUN python3.11 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
-RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.24/drgithelper && chmod +x drgithelper
+RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.27/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
@@ -159,6 +159,12 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+
+# Install DR CLI
+RUN wget -q https://github.com/datarobot-oss/cli/releases/download/v0.2.60/dr_v0.2.60_Linux_x86_64.tar.gz \
+    && mkdir -p /home/notebooks/.local/bin/dr \
+    && tar -xvzf dr_v0.2.60_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm dr_v0.2.60_Linux_x86_64.tar.gz
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
