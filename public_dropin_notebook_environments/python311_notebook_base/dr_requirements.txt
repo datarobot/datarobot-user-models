@@ -6,4 +6,4 @@ jupyter_core==5.8.1
 ipykernel==6.30.0
 pandas==2.3.3
 numpy<2.0.0
-mistune==2.0.4
+mistune==3.2.1
