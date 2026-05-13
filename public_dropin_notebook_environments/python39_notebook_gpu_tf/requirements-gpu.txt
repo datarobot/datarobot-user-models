@@ -1,11 +1,11 @@
 accelerate==0.21.0
-langchain==0.3.1
+langchain==0.3.30
 onnx==1.16.0
 onnxruntime-gpu==1.15.1
 openai==0.27.8
 tiktoken==0.4.0
 transformers==4.38.0
-langchain==0.3.1
+langchain==0.3.30
 onnx==1.16.0
 onnxruntime-gpu==1.15.1
 openai==0.27.8
