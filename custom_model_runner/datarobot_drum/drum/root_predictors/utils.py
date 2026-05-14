@@ -32,6 +32,7 @@ R_ALL_PREDICT_STRUCTURED_HOOKS = "R_all_predict_structured_hooks"
 R_FIT = "R_fit"
 BINARY = "binary"
 MULTICLASS = "multiclass"
+MULTILABEL = "multilabel"
 
 
 def _create_custom_model_dir(
@@ -207,7 +208,7 @@ def _cmd_add_class_labels(
             os.environ[ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL] = neg
         else:
             cmd = cmd + " --positive-class-label '{}' --negative-class-label '{}'".format(pos, neg)
-    elif labels and target_type == MULTICLASS:
+    elif labels and target_type in [MULTICLASS, MULTILABEL]:
         if multiclass_label_file:
             multiclass_label_file.truncate(0)
             for label in labels:

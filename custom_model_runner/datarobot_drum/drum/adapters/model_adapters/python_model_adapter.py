@@ -603,7 +603,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
     def _predict_new_drum(self, data, **kwargs) -> RawPredictResponse:
         try:
-            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+            if self._target_type.is_classification():
                 predictions_df = self._custom_task_class_instance.predict_proba(data, **kwargs)
             else:
                 predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
@@ -615,7 +615,7 @@ class PythonModelAdapter(AbstractModelAdapter):
     def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
-        if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+        if self._target_type.is_classification():
             request_labels = get_request_labels(
                 kwargs.get(CLASS_LABELS_ARG_KEYWORD),
                 positive_class_label,

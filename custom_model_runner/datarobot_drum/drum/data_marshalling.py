@@ -37,7 +37,7 @@ def marshal_predictions(
     """
     predictions = _validate_dimensionality_and_type(predictions)
     if target_type.is_classification():
-        return _classification_marshal_preds(predictions, request_labels, model_labels)
+        return _classification_marshal_preds(target_type, predictions, request_labels, model_labels)
     elif target_type.is_single_column():
         return _single_col_marshal_preds(predictions)
     return predictions
@@ -92,11 +92,13 @@ def _standardize(label):
     return label.lower()
 
 
-def _classification_marshal_preds(predictions, request_labels, model_labels):
+def _classification_marshal_preds(target_type, predictions, request_labels, model_labels):
     request_labels = _marshal_labels(request_labels, model_labels)
     predictions = _infer_negative_class_probabilities(predictions, request_labels)
     _validate_amount_of_columns(request_labels, predictions)
-    _validate_probabilities_sum_to_one(predictions)
+    _validate_predictions_are_probabilities(predictions)
+    if target_type != TargetType.MULTILABEL:
+        _validate_probabilities_sum_to_one(predictions)
     return pd.DataFrame(predictions, columns=request_labels)
 
 
@@ -128,11 +130,14 @@ def _validate_predictions_are_one_dimensional(predictions):
         )
 
 
-def _validate_probabilities_sum_to_one(predictions):
+def _validate_predictions_are_probabilities(predictions):
     if (predictions < 0).any():
         raise DrumCommonException("Your prediction probabilities have negative values")
     if (predictions > 1).any():
         raise DrumCommonException("Your prediction probabilities have values greater than 1")
+
+
+def _validate_probabilities_sum_to_one(predictions):
     added_probs = predictions.sum(axis=1)
     good_preds = np.isclose(added_probs, 1)
     if not np.all(good_preds):

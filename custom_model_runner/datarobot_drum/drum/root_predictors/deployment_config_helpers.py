@@ -68,6 +68,8 @@ def build_pps_response_json_str(
         f = map_vector_database_prediction
     elif target_type == TargetType.AGENTIC_WORKFLOW:
         f = map_agentic_workflow_prediction
+    elif target_type == TargetType.MULTILABEL:
+        f = map_multilabel_predictions
     else:
         raise DrumCommonException("target type '{}' is not supported".format(target_type))
 
@@ -151,5 +153,21 @@ def map_agentic_workflow_prediction(row, index, target_info, class_names):
     return {
         "prediction": pred_value,
         "predictionValues": [{"label": target_info["name"], "value": pred_value}],
+        "rowId": index,
+    }
+
+
+def map_multilabel_predictions(row, index, target_info, class_names):
+    prediction_values = [
+        {"label": class_name, "value": row[class_name]} for class_name in class_names
+    ]
+    decision_threshold = target_info["prediction_threshold"]
+    decision = [
+        p_val["label"] for p_val in prediction_values if p_val["value"] > decision_threshold
+    ]
+    return {
+        "prediction": decision,
+        "predictionValues": prediction_values,
+        "predictionThreshold": decision_threshold,
         "rowId": index,
     }
