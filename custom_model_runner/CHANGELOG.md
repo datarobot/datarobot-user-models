@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.17.16] - 2026-05-15
+##### Changed
+- Addressing CVEs.
+- Add `libgomp` dependency to the image.
+- Remove transient dependencies
+- Public base image updates for python 3.11 EE image
+- New errors `CustomHTTPError` which user can propagate inside custom model code.
+- Improve tracing for `Agentics` applications.
+- Adopting agentic execution environment to `Kaniko` builds
+- Cleanup up venv after nemoguardrails
+
 #### [1.17.15] - 2026-04-15
 ##### Changed
 - Addressing CVEs
