@@ -282,7 +282,7 @@ def test_marshal_predictions_multilabel_happy():
     )
 
 
-def test_marshal_predictions_multiclass_wrong_label_length():
+def test_marshal_predictions_multilabel_wrong_label_length():
     preds = np.array([[1, 0, 0], [1, 0, 0]])
     labels = [1, 2, 3, 4]
     with pytest.raises(
@@ -294,7 +294,7 @@ def test_marshal_predictions_multiclass_wrong_label_length():
         )
 
 
-def test_marshal_predictions_multiclass_wrong_label_length_cols_greater():
+def test_marshal_predictions_multilabel_wrong_label_length_cols_greater():
     preds = np.array([[1, 0, 0], [1, 0, 0]])
     labels = [1, 2]
     with pytest.raises(
