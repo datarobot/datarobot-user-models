@@ -2,7 +2,7 @@ altair==4.2.0
 boto3==1.35.75
 cloudpickle==3.0.0
 dask==2024.9.0
-datarobot-bp-workshop==0.2.6
+datarobot-bp-workshop==0.3.0
 datarobot-drum==1.16.3
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.6.13

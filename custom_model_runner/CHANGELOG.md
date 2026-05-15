@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve tracing for `Agentics` applications.
 - Adopting agentic execution environment to `Kaniko` builds
 - Cleanup up venv after nemoguardrails
+- Pin: `datarobot-bp-workshop==0.3.0`
 
 #### [1.17.15] - 2026-04-15
 ##### Changed
