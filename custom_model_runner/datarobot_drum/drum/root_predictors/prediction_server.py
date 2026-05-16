@@ -46,7 +46,7 @@ from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
 from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.server import (
-    HEADER_DRUM_USER_ERROR,
+    HEADER_DRUM_USER_HTTP_ERROR,
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
@@ -326,7 +326,7 @@ class PredictionServer(PredictMixin):
                 status_code = getattr(e, "status_code", HTTP_400_BAD_REQUEST)
                 response = jsonify({"message": str(e)})
                 response.status_code = status_code
-                response.headers[HEADER_DRUM_USER_ERROR] = "true"
+                response.headers[HEADER_DRUM_USER_HTTP_ERROR] = "true"
                 return response
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
