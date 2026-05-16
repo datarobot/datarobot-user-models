@@ -22,7 +22,7 @@ from datarobot_drum.drum.root_predictors.prediction_server import (
     PredictionServer,
     TimeoutWSGIRequestHandler,
 )
-from datarobot_drum.drum.server import HEADER_REQUEST_ID
+from datarobot_drum.drum.server import HEADER_DRUM_USER_ERROR, HEADER_REQUEST_ID
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 
@@ -314,6 +314,7 @@ def test_prediction_server_custom_status_code(test_flask_app):
 
         assert response.status_code == 418
         assert response.json["message"] == "Custom prediction error"
+        assert response.headers.get(HEADER_DRUM_USER_ERROR) == "true"
 
 
 @pytest.mark.usefixtures("prediction_server")
@@ -328,3 +329,4 @@ def test_prediction_server_standard_error(test_flask_app):
 
         assert response.status_code == 500
         assert "ERROR: Internal Server Error" in response.json["message"]
+        assert HEADER_DRUM_USER_ERROR not in response.headers
