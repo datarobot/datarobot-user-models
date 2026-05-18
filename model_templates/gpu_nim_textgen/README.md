@@ -27,7 +27,7 @@ API Key is used to build a docker image and pull LLM models from NGC Registry.
 ```shell
 export NGC_CLI_API_KEY=<INSERT NGC API KEY HERE>
 docker login --username="\$oauthtoken" --password="${NGC_CLI_API_KEY}" nvcr.io
-cd ~/datarobot-user-models/public_dropin_nim_environments/nim_llama_8b
+cd ~/datarobot-user-models/example_dropin_environments/nim_llama_8b
 cp ~/datarobot-user-models/model_templates/gpu_nim_textgen/* .
 docker build -t nim_llm .
 ```

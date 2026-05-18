@@ -41,11 +41,8 @@ elif [ "$1" = "vllm" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="vllm"
 elif [ "$1" = "nim" ]; then
-    ENVS_DIR="public_dropin_nim_environments"
+    ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="nim_llama_8b"
-elif [ "$1" = "nim_sidecar" ]; then
-    ENVS_DIR="public_dropin_nim_environments"
-    DOCKER_IMAGE="nim_sidecar"
 fi;
 
 export DOCKER_IMAGE=$DOCKER_IMAGE
@@ -97,8 +94,6 @@ echo "detected machine=$machine url_host: $url_host"
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
 # Note: The `--gpus all` is required for GPU predictors tests
-# Note: For nim_sidecar, the GPUs go to the sidecar container, not the DRUM container
-
 export TEST_URL_HOST=$url_host
 export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
