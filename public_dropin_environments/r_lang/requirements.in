@@ -2,3 +2,4 @@ numpy
 pandas<3.0.0
 rpy2
 datarobot-drum[R]
+urllib3>=2.7.0
