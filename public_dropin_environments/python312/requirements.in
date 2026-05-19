@@ -1,2 +1,2 @@
 datarobot-drum
-
+urllib3>=2.7.0

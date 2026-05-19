@@ -18,7 +18,7 @@ charset-normalizer==3.4.7
 click==8.3.2
 cryptography==46.0.6
 cuda-bindings==13.2.0
-cuda-pathfinder==1.5.1
+cuda-pathfinder==1.5.4
 cuda-toolkit[cublas,cudart,cufft,cufile,cupti,curand,cusolver,cusparse,nvjitlink,nvrtc,nvtx]==13.0.2
 datarobot==3.13.0
 datarobot-drum==1.17.14
@@ -115,7 +115,7 @@ triton==3.6.0
 typing-extensions==4.15.0
 typing-inspection==0.4.2
 tzdata==2026.1
-urllib3==2.6.3
+urllib3==2.7.0
 werkzeug==3.1.8
 wrapt==1.17.3
 zipp==3.23.0

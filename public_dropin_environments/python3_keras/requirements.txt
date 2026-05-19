@@ -111,7 +111,7 @@ threadpoolctl==3.6.0
 trafaret==2.1.1
 typing-extensions==4.15.0
 typing-inspection==0.4.2
-urllib3==2.6.3
+urllib3==2.7.0
 werkzeug==3.1.8
 wheel==0.46.3
 wrapt==1.17.3
