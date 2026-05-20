@@ -63,8 +63,10 @@ if (
     os.environ["PATH"] = str(Path(_VENV_DIR) / "bin") + os.pathsep + os.environ.get("PATH", "")
     os.environ["VIRTUAL_ENV"] = _VENV_DIR
 
+from datarobot.core.config import getenv
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
+from datarobot_genai.dragent.inline import execute_dragent_inline
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.completion_create_params import (
     CompletionCreateParamsBase,
@@ -239,12 +241,8 @@ def execute_drum_inline(
     ) as predictor:
         root.info("Executing Agent")
 
-        if chat_completion.get("stream"):
-            completion_generator = predictor.chat(chat_completion)
-            return [cast(ChatCompletionChunk, completion) for completion in completion_generator]
-        else:
-            completion = predictor.chat(chat_completion)
-            return cast(ChatCompletion, completion)
+        completion = predictor.chat(chat_completion)
+        return cast(ChatCompletion, completion)
 
 
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
@@ -292,10 +290,16 @@ def run_agent_procedure(args: Any) -> None:
         root.info(f"Trace id: {trace_id}")
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
-        result = execute_drum_inline(
-            chat_completion=chat_completion,
-            custom_model_dir=args.custom_model_dir,
-        )
+        if getenv("ENABLE_DRAGENT_SERVER", "false").lower() in ["true", "1"]:
+            result = execute_dragent_inline(
+                chat_completion=chat_completion,
+                custom_model_dir=args.custom_model_dir,
+            )
+        else:
+            result = execute_drum_inline(
+                chat_completion=chat_completion,
+                custom_model_dir=args.custom_model_dir,
+            )
         store_result(
             result,
             trace_id,
