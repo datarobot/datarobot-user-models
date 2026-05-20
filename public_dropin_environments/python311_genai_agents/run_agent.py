@@ -63,7 +63,6 @@ if (
     os.environ["PATH"] = str(Path(_VENV_DIR) / "bin") + os.pathsep + os.environ.get("PATH", "")
     os.environ["VIRTUAL_ENV"] = _VENV_DIR
 
-from datarobot.core.config import getenv
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
 from datarobot_genai.dragent.inline import execute_dragent_inline
@@ -247,6 +246,7 @@ def execute_drum_inline(
 
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     chat_completion_dict = json.loads(chat_completion)
+    chat_completion_dict.pop("stream", None)
     model = chat_completion_dict.get("model")
     if model is None or len(str(model)) == 0:
         chat_completion_dict["model"] = "unknown"
@@ -277,6 +277,23 @@ def store_result(
             fp.write(json.dumps(result_dict))
 
 
+def is_dragent_server_enabled() -> bool:
+    value = os.environ.get("MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER")
+    if value is None:
+        return False
+    try:
+        parsed = json.loads(value)
+        # If it's a dict with a payload key
+        if isinstance(parsed, dict) and "payload" in parsed:
+            payload = parsed["payload"]
+            if isinstance(payload, bool):
+                return payload
+    except Exception:
+        pass
+    return False
+
+
+
 def run_agent_procedure(args: Any) -> None:
     # Parse input to fail early if it's not valid
     chat_completion = construct_prompt(args.chat_completion)
@@ -290,7 +307,8 @@ def run_agent_procedure(args: Any) -> None:
         root.info(f"Trace id: {trace_id}")
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
-        if getenv("ENABLE_DRAGENT_SERVER", "false").lower() in ["true", "1"]:
+        
+        if is_dragent_server_enabled():
             result = execute_dragent_inline(
                 chat_completion=chat_completion,
                 custom_model_dir=args.custom_model_dir,
