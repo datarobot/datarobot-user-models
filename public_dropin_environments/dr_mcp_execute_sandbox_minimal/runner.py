@@ -49,11 +49,24 @@ def main() -> int:
     inputs = _decode_env("DR_SANDBOX_INPUTS_B64", "{}")
 
     namespace: dict[str, Any] = {"inputs": inputs, "_return": None}
+    exit_code = 0
+    # Catch BaseException so sys.exit() / KeyboardInterrupt from user code
+    # don't bypass the marker emission below — without this, the caller
+    # would see a "successful" run with no parseable result.
     try:
         exec(compile(code, "<sandbox>", "exec"), namespace)  # noqa: S102
-    except Exception:
+    except SystemExit as exc:
+        code_val = exc.code
+        if code_val is None:
+            exit_code = 0
+        elif isinstance(code_val, int):
+            exit_code = code_val
+        else:
+            print(str(code_val), file=sys.stderr)
+            exit_code = 1
+    except BaseException:  # noqa: BLE001 — must catch KeyboardInterrupt too
         traceback.print_exc()
-        return 1
+        exit_code = 1
 
     return_value = namespace.get("_return")
     try:
@@ -61,7 +74,7 @@ def main() -> int:
     except (TypeError, ValueError):
         encoded = json.dumps(repr(return_value))
     print(f"{RESULT_MARKER}{encoded}")
-    return 0
+    return exit_code
 
 
 if __name__ == "__main__":
