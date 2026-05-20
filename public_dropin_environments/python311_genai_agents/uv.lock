@@ -996,11 +996,13 @@ wheels = [
 
 [[package]]
 name = "datarobot"
-version = "3.10.0"
+version = "3.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pandas", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "python-dateutil", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "pytz", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "requests-toolbelt", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1009,9 +1011,9 @@ dependencies = [
     { name = "typing-extensions", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "urllib3", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/e9/4341d6268122ce5fe0d6819ddb4aec441f7208d8c13e6b837758f598ac42/datarobot-3.10.0.tar.gz", hash = "sha256:d8dceb439c6fb078604986f2de8c206adca5fd72fb921c64327fc4d1f8077a6f", size = 745615, upload-time = "2025-12-03T21:28:02.85Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ea/2b/33b31f3681fcb669ad3857761ecfd310c2771d733406ef7f394c988a3148/datarobot-3.15.0.tar.gz", hash = "sha256:e6a63aae3f61c3348cc195b9d4d5c00335c07b9dfd24f49dcea96ef0eae19cf7", size = 806839, upload-time = "2026-05-07T19:41:41.11Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b6/50/96a134bc3b730c7343f346d76fd41db9955b9ad66eea3e45fa6b5916fd41/datarobot-3.10.0-py3-none-any.whl", hash = "sha256:c863fffb9eb6c253348ceb07887a777fa5b800e715ecfaac97558dea15eff355", size = 801627, upload-time = "2025-12-03T21:28:00.889Z" },
+    { url = "https://files.pythonhosted.org/packages/78/db/3e4aaaf35d48acfe1e99c0d4658a943e2ca0ac7f6e68b13239dac37586a2/datarobot-3.15.0-py3-none-any.whl", hash = "sha256:b3fbbaede277312a0bea36db1360c55166b93d6131a6f9d106c533fe6616fbf2", size = 873786, upload-time = "2026-05-07T19:41:39.177Z" },
 ]
 
 [package.optional-dependencies]
@@ -1558,6 +1560,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "anyio", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "datarobot", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-drum", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-genai", extra = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-mlops", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1595,6 +1598,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
+    { name = "datarobot", specifier = ">=3.15.0" },
     { name = "datarobot-drum", specifier = "==1.17.11.post1" },
     { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat"], specifier = "==0.15.61.dev1359", index = "https://test.pypi.org/simple/" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
