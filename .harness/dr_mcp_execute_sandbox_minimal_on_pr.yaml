@@ -1,0 +1,36 @@
+trigger:
+  name: dr_mcp_execute_sandbox_minimal on pr
+  identifier: dr_mcp_execute_sandbox_minimal_on_pr
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: env_image_publish
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: changedFiles
+              operator: Contains
+              value: public_dropin_environments/dr_mcp_execute_sandbox_minimal
+            - key: targetBranch
+              operator: Equals
+              value: master
+          headerConditions: []
+          repoName: datarobot-user-models
+          actions:
+            - Open
+            - Reopen
+            - Synchronize
+  pipelineBranchName: <+trigger.branch>
+  inputSetRefs:
+    - dr_mcp_execute_sandbox_minimal_image_build_pr_input
