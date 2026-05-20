@@ -2,3 +2,4 @@ datarobot-drum
 xgboost
 pandas
 scikit-learn
+urllib3>=2.7.0

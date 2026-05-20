@@ -41,11 +41,8 @@ elif [ "$1" = "vllm" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="vllm"
 elif [ "$1" = "nim" ]; then
-    ENVS_DIR="public_dropin_nim_environments"
+    ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="nim_llama_8b"
-elif [ "$1" = "nim_sidecar" ]; then
-    ENVS_DIR="public_dropin_nim_environments"
-    DOCKER_IMAGE="nim_sidecar"
 fi;
 
 export DOCKER_IMAGE=$DOCKER_IMAGE

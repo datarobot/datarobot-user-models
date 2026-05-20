@@ -28,6 +28,7 @@ HTTP_513_DRUM_PIPELINE_ERROR = 513
 
 HEADER_REQUEST_ID = "X_Request_ID"
 HEADER_DRUM_VERSION = "X-Drum-Version"
+HEADER_DRUM_USER_HTTP_ERROR = "X-Drum-User-Http-Error"
 
 
 logger = get_drum_logger(LOGGER_NAME_PREFIX)

@@ -385,9 +385,10 @@ class TargetType(Enum):
     GEO_POINT = "geopoint"
     VECTOR_DATABASE = "vectordatabase"
     AGENTIC_WORKFLOW = "agenticworkflow"
+    MULTILABEL = "multilabel"
 
     def is_classification(self):
-        return self in [self.BINARY, self.MULTICLASS]
+        return self in [self.BINARY, self.MULTICLASS, self.MULTILABEL]
 
     def is_single_column(self):
         return self in [

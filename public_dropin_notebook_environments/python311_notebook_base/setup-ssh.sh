@@ -7,9 +7,20 @@ echo "Persisting container environment variables for sshd..."
     echo "# to ensure that they are exposed in ssh sessions"
     echo "# Ref: https://github.com/jenkinsci/docker-ssh-agent/issues/33#issuecomment-597367846"
     echo "set -a"
+
+    additionalPathParams='/home/notebooks/.local/bin/dr'
+    # set -a ensures that all modified/added shell variables are exported
+    # ignore PWD/HOME/SHLVL/_ because these are specific to the current user and session
+    # ignore TERM because it is set by asyncssh
+    # ignore LD_PRELOAD for various security risks
+    # ignore PS1 because it is set in setup-shell.sh
     env | grep -E -v "^(PWD=|HOME=|TERM=|SHLVL=|LD_PRELOAD=|PS1=|_=|KUBERNETES_)" | while read -r line; do
       NAME=$(echo "$line" | cut -d'=' -f1)
       VALUE=$(echo "$line" | cut -d'=' -f2-)
+      # Append additionalPathParams to PATH variable
+      if [ "$NAME" = "PATH" ]; then
+        VALUE="$VALUE:$additionalPathParams"
+      fi
       # Use eval to handle complex cases like export commands with spaces
       echo "$NAME='$VALUE'"
     done

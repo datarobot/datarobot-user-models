@@ -25,7 +25,11 @@ from datarobot_drum.drum.enum import (
     CustomHooks,
     TargetType,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    DrumException,
+    DrumSerializationError,
+)
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -54,8 +58,10 @@ class PythonPredictor(BaseLanguagePredictor):
                 user_secrets_mount_path=params.get("user_secrets_mount_path"),
                 user_secrets_prefix=params.get("user_secrets_prefix"),
             )
-        except Exception as e:
-            raise DrumSerializationError(f"An error occurred when loading your artifact: {str(e)}")
+        except DrumException as e:
+            raise DrumSerializationError(
+                f"An error occurred when loading your artifact: {str(e)}"
+            ) from e
         if self._model is None:
             raise Exception("Failed to load model")
 

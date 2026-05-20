@@ -5,7 +5,7 @@ or `IRegressionPredictor` interface from the [datarobot-prediction](https://mvnr
 
 ## Requirements
 
-- Java 11 JDK
+- Java 11 JDK (11.0.30 or newer recommended)
 - A valid scoring code jar
 
 ## Instructions

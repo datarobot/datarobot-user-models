@@ -268,7 +268,6 @@ def pytest_addoption(parser):
         choices=[
             "public_dropin_environments",
             "public_dropin_gpu_environments",
-            "public_dropin_nim_environments",
         ],
         default=None,
     )
