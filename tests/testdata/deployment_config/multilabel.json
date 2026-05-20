@@ -1,0 +1,22 @@
+{
+    "target": {
+        "class_mapping": [
+            [
+                "action",
+                0
+            ], 
+            [
+                "comedy",
+                1
+            ], 
+            [
+                "sci-fi",
+                2
+            ]
+        ], 
+        "missing_maps_to": null, 
+        "name": "genre",
+        "prediction_threshold": 0.5, 
+        "type": "Multilabel"
+    }
+}

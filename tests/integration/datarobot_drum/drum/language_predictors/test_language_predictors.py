@@ -71,6 +71,10 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         {"target_type": TargetType.GEO_POINT},
         {"target_type": TargetType.VECTOR_DATABASE},
         {"target_type": TargetType.AGENTIC_WORKFLOW},
+        {
+            "classLabels": ["a", "b", "c"],
+            "target_type": TargetType.MULTILABEL,
+        },
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -157,6 +161,14 @@ class TestPythonPredictor(object):
                 },
                 np.array(["a", "b"]),
                 None,
+            ),
+            (
+                {
+                    "classLabels": ["a", "b", "c"],
+                    "target_type": TargetType.MULTILABEL,
+                },
+                np.array([[0.1, 0.2, 0.7], [0.1, 0.2, 0.7]]),
+                ["a", "b", "c"],
             ),
         ],
     )

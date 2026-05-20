@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.17.17] - 2026-05-17
 ##### Added
 - New `X-Drum-User-Http-Error` response header for `CustomHTTPError` exceptions
+- Added support for Multilabel target type
 
 #### [1.17.16] - 2026-05-15
 ##### Changed
