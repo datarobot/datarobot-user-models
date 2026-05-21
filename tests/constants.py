@@ -20,7 +20,6 @@ TRAINING_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "task_templates", "3_pipe
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
 PUBLIC_DROPIN_GPU_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_gpu_environments")
-PUBLIC_DROPIN_NIM_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_nim_environments")
 
 
 TRAINING = "training"
@@ -75,7 +74,6 @@ R_VALIDATE_SPARSE_ESTIMATOR = "R_validate_sparse_estimator"
 PYTHON_XFORM_ESTIMATOR = "python_xform_estimator"
 R_XFORM_ESTIMATOR = "r_xform_estimator"
 CUSTOM_TASK_INTERFACE_BINARY = "custom_task_interface_binary"
-CUSTOM_TASK_INTERFACE_MULTICLASS = "custom_task_interface_multiclass"
 CUSTOM_TASK_INTERFACE_MULTICLASS = "custom_task_interface_multiclass"
 CUSTOM_TASK_INTERFACE_REGRESSION = "custom_task_interface_regression"
 CUSTOM_TASK_INTERFACE_ANOMALY = "custom_task_interface_anomaly"
@@ -132,6 +130,7 @@ TEXT_GENERATION = "textgeneration"
 GEO_POINT = "geopoint"
 VECTOR_DATABASE = "vectordatabase"
 AGENTIC_WORKFLOW = "agenticworkflow"
+MULTILABEL = "multilabel"
 
 # Language keywords
 PYTHON = "python3"
@@ -172,6 +171,7 @@ PYTHON_UNSTRUCTURED_RUNTIME_PARAMS = "python_unstructured_runtime_params"
 PYTHON_UNSTRUCTURED_PARAMS = "python_unstructured_params"
 PYTHON_VECTOR_DATABASE = "python_vector_database"
 PYTHON_AGENTIC_WORKFLOW = "python_agentic_workflow"
+PYTHON_MULTILABEL = "python_multilabel"
 R_UNSTRUCTURED = "r_unstructured"
 R_UNSTRUCTURED_PARAMS = "r_unstructured_params"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"

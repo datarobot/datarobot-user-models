@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 import sys
@@ -33,7 +34,10 @@ from datarobot_drum.drum.enum import (
     TargetType,
     URL_PREFIX_ENV_VAR_NAME,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import (
+    BaseCustomUserError,
+    DrumCommonException,
+)
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
@@ -42,6 +46,7 @@ from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
 from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.server import (
+    HEADER_DRUM_USER_HTTP_ERROR,
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
@@ -53,6 +58,7 @@ from datarobot_drum.drum.common import (
     otel_context,
     extract_chat_request_attributes,
     extract_chat_response_attributes,
+    iter_stream_with_span,
 )
 from opentelemetry.trace.status import StatusCode
 
@@ -242,7 +248,18 @@ class PredictionServer(PredictMixin):
                 finally:
                     self._post_predict_and_transform()
 
-                if isinstance(response, dict) and response_status == 200:
+                if response_status == 200 and isinstance(response, Response):
+                    # Stream the response in a child span so request work and
+                    # stream lifecycle are traced separately.
+                    return (
+                        Response(
+                            iter_stream_with_span(tracer, span, response.response),
+                            mimetype="text/event-stream",
+                        ),
+                        response_status,
+                    )
+
+                if response_status == 200 and isinstance(response, dict):
                     span.set_attributes(extract_chat_response_attributes(response))
 
             return response, response_status
@@ -303,6 +320,14 @@ class PredictionServer(PredictMixin):
         @model_api.errorhandler(Exception)
         def handle_exception(e):
             logger.exception(e)
+
+            # custom user error handler
+            if isinstance(e, BaseCustomUserError):
+                status_code = getattr(e, "status_code", HTTP_400_BAD_REQUEST)
+                response = jsonify({"message": str(e)})
+                response.status_code = status_code
+                response.headers[HEADER_DRUM_USER_HTTP_ERROR] = "true"
+                return response
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
                 return jsonify(error=e.description), e.code

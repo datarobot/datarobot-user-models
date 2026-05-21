@@ -91,6 +91,8 @@ from tests.constants import (
     AGENTIC_WORKFLOW,
     PYTHON312,
     REPO_ROOT_PATH,
+    MULTILABEL,
+    PYTHON_MULTILABEL,
 )
 
 
@@ -149,6 +151,7 @@ class TestInference:
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None, False),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None, False),
             (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW, PYTHON_AGENTIC_WORKFLOW, None, False),
+            (PYTHON_MULTILABEL, MULTILABEL, PYTHON_MULTILABEL, None, False),
         ],
     )
     def test_custom_models_with_drum(
@@ -188,7 +191,7 @@ class TestInference:
         )
         if problem == SPARSE:
             cmd += " --sparse-column-file {}".format(input_dataset.replace(".mtx", ".columns"))
-        if resources.target_types(problem) in [BINARY, MULTICLASS]:
+        if resources.target_types(problem) in [BINARY, MULTICLASS, MULTILABEL]:
             cmd = _cmd_add_class_labels(
                 cmd,
                 resources.class_labels(framework, problem),
@@ -299,6 +302,7 @@ class TestInference:
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None),
             (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW, PYTHON_AGENTIC_WORKFLOW, None),
+            (PYTHON_MULTILABEL, MULTILABEL, PYTHON_MULTILABEL, None),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])

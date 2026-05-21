@@ -31,7 +31,7 @@
 /model_templates/proxy_model_azureml                              @datarobot/genai-systems
 /model_templates/proxy_model_datarobot                            @datarobot/genai-systems
 /model_templates/triton_onnx_unstructured                         @datarobot/genai-systems
-/public_dropin_environments/java_codegen                          @datarobot/genai-systems
+/public_dropin_environments/java_codegen                          @datarobot/predictions
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
@@ -41,7 +41,6 @@
 /public_dropin_environments/r_lang                                @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments_sandbox                               @datarobot/genai-systems
 /public_dropin_gpu_environments                                   @datarobot/genai-systems
-/public_dropin_nim_environments                                   @datarobot/genai-systems
 /public_dropin_notebook_environments                              @datarobot/genai-systems @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling

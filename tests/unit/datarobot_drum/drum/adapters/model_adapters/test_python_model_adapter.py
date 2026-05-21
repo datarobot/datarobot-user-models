@@ -38,7 +38,10 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     AbstractSecret,
     reset_outputs_to_allow_secrets,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    DrumPythonModelAdapterError,
+    PythonModelAdapter,
+)
 from datarobot_drum.drum.enum import (
     TargetType,
     MODERATIONS_HOOK,
@@ -46,7 +49,12 @@ from datarobot_drum.drum.enum import (
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import (
+    CustomHTTPError,
+    BaseCustomUserError,
+    DrumCommonException,
+    DrumException,
+)
 
 
 def get_all_logging_filters():
@@ -362,6 +370,32 @@ class TestLoadModelFromArtifact:
 
         assert adapter.load_model_from_artifact()
 
+    def test_custom_task_class_unexpected_exception_is_wrapped(self):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        with patch.object(FakeCustomTask, "load", side_effect=RuntimeError("pickle exploded")):
+            with pytest.raises(DrumPythonModelAdapterError) as exc_info:
+                adapter.load_model_from_artifact(
+                    user_secrets_mount_path=None,
+                    user_secrets_prefix=None,
+                )
+
+        assert "Failed to load custom task class." in str(exc_info.value)
+        assert "pickle exploded" in str(exc_info.value)
+
+    def test_custom_task_class_user_error_propagates_unwrapped(self):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        user_err = CustomHTTPError("checkpoint missing", status_code=422)
+        with patch.object(FakeCustomTask, "load", side_effect=user_err):
+            with pytest.raises(CustomHTTPError) as exc_info:
+                adapter.load_model_from_artifact(
+                    user_secrets_mount_path=None,
+                    user_secrets_prefix=None,
+                )
+
+        assert exc_info.value is user_err
+        assert exc_info.value.status_code == 422
+        assert isinstance(exc_info.value, BaseCustomUserError)
+
 
 class TestPythonModelAdapterPrivateHelpers:
     def test_multiple_artifacts_detection_negative(self):
@@ -372,6 +406,73 @@ class TestPythonModelAdapterPrivateHelpers:
             Path(f"{dir_name}/file2.pkl").touch()
             with pytest.raises(DrumCommonException, match="Multiple serialized model files found."):
                 adapter._detect_model_artifact_file()
+
+    def test_predict_new_drum_custom_status_code(self):
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._custom_task_class_instance = Mock()
+
+        custom_err = CustomHTTPError("Custom validation failure", status_code=422)
+        adapter._custom_task_class_instance.predict.side_effect = custom_err
+
+        # It should bypass the wrapper and raise CustomHTTPError directly
+        with pytest.raises(CustomHTTPError) as exc_info:
+            adapter._predict_new_drum(Mock())
+
+        assert getattr(exc_info.value, "status_code", None) == 422
+        assert str(exc_info.value) == "Custom validation failure"
+
+        # A standard exception should be wrapped
+        adapter._custom_task_class_instance.predict.side_effect = Exception("Standard error")
+        with pytest.raises(DrumPythonModelAdapterError, match="Standard error"):
+            adapter._predict_new_drum(Mock())
+
+    def test_predict_old_drum_custom_http_error(self):
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._custom_task_class = None
+
+        def failing_score(*args, **kwargs):
+            raise CustomHTTPError("My score error", status_code=402)
+
+        adapter._custom_hooks[CustomHooks.SCORE] = failing_score
+
+        with pytest.raises(CustomHTTPError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+
+        assert getattr(exc_info.value, "status_code", None) == 402
+        assert str(exc_info.value) == "My score error"
+
+    def test_predictor_to_use_custom_http_error(self):
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._custom_task_class = None
+        adapter._predictor_to_use = Mock()
+        adapter._predictor_to_use.predict.side_effect = CustomHTTPError(
+            "Predictor error", status_code=403
+        )
+
+        with pytest.raises(CustomHTTPError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+
+        assert getattr(exc_info.value, "status_code", None) == 403
+        assert str(exc_info.value) == "Predictor error"
+
+    def test_post_process_custom_http_error(self):
+        adapter = TestingPythonModelAdapter("dummy_dir", TargetType.REGRESSION)
+        adapter._custom_task_class = None
+
+        def passing_score(*args, **kwargs):
+            return pd.DataFrame({"Predictions": [1, 2, 3]})
+
+        def failing_post_process(*args, **kwargs):
+            raise CustomHTTPError("My post process error", status_code=404)
+
+        adapter._custom_hooks[CustomHooks.SCORE] = passing_score
+        adapter._custom_hooks[CustomHooks.POST_PROCESS] = failing_post_process
+
+        with pytest.raises(CustomHTTPError) as exc_info:
+            adapter.predict(binary_data=b"fake")
+
+        assert getattr(exc_info.value, "status_code", None) == 404
+        assert str(exc_info.value) == "My post process error"
 
 
 class TestPredictResultSplitter:

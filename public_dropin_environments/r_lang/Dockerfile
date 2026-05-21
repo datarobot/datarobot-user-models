@@ -1,5 +1,5 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
-# Replace it with your own development chain-gaurd image if you build your own.
+# Replace it with your own development chain-guard image if you build your own.
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
@@ -42,7 +42,7 @@ RUN Rscript -e "install.packages(c('pack'), repos='https://cloud.r-project.org',
 RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), repos='https://cloud.r-project.org', Ncpus=4)"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
-# Replace it with your own production chain-gaurd image if you build your own.
+# Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12
 
 USER root

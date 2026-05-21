@@ -22,7 +22,11 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
     PythonPredictor,
 )
 from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    DrumException,
+    DrumSerializationError,
+)
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
@@ -67,6 +71,10 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         {"target_type": TargetType.GEO_POINT},
         {"target_type": TargetType.VECTOR_DATABASE},
         {"target_type": TargetType.AGENTIC_WORKFLOW},
+        {
+            "classLabels": ["a", "b", "c"],
+            "target_type": TargetType.MULTILABEL,
+        },
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -154,6 +162,14 @@ class TestPythonPredictor(object):
                 np.array(["a", "b"]),
                 None,
             ),
+            (
+                {
+                    "classLabels": ["a", "b", "c"],
+                    "target_type": TargetType.MULTILABEL,
+                },
+                np.array([[0.1, 0.2, 0.7], [0.1, 0.2, 0.7]]),
+                ["a", "b", "c"],
+            ),
         ],
     )
     def test_python_predictor_predict(
@@ -226,7 +242,7 @@ class TestPythonPredictor(object):
         with pytest.raises(DrumSerializationError), patch.object(
             PythonModelAdapter, "load_model_from_artifact"
         ) as mock_load:
-            mock_load.side_effect = Exception("artifact had an oops")
+            mock_load.side_effect = DrumException("artifact had an oops")
             py_predictor.configure(init_params)
 
 

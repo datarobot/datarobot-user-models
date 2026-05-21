@@ -22,16 +22,6 @@ consist solely of your custom packages if necessary.
 For detailed information on how to run notebooks that work in these environments, 
 reference the links above for each environment.
 
-### Example base tarball
-
-There is a pre-made tarball called `py311_notebook_dropin.tar.gz` in this `public_dropin_notebook_environments` directory. This can be used to create a simple custom environment.
-
-This was generated using the following command:
-
-    ```
-    tar -czvf py311_notebook_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python311_notebook_base/ .
-    ```
-
 ### Using environments in notebooks
 
 Please see [DataRobot documentation](https://docs.datarobot.com/en/docs/workbench/wb-notebook/wb-code-nb/wb-env-nb.html#custom-environment-images) for more information.
