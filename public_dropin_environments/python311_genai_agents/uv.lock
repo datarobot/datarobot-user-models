@@ -1134,11 +1134,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.15.65.dev1364"
-source = { registry = "https://test.pypi.org/simple/" }
-sdist = { url = "https://test-files.pythonhosted.org/packages/4d/4f/1127dbb9c51da27f19c8103334b942aa25593dda838020af738e23636443/datarobot_genai-0.15.65.dev1364.tar.gz", hash = "sha256:897a03a2c61939df4466361bf69f132c0254a811fcd2e6936ee6f030cd59fbb1", size = 330686, upload-time = "2026-05-21T08:28:23.87Z" }
+version = "0.15.66"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d7/fa/17b681b996bef6d961f5af57be8e01ae9ea070373cf5bddaee5130d35b1d/datarobot_genai-0.15.66.tar.gz", hash = "sha256:538e8293fce256ebdea62a183dbab37e63a92eb1eb4cb1986db5301bb493c67a", size = 330654, upload-time = "2026-05-21T11:34:28.54Z" }
 wheels = [
-    { url = "https://test-files.pythonhosted.org/packages/42/19/2dde633fa8d822b4e90c53b1eac1ad89f4e51efe08a0d77ed821660bec59/datarobot_genai-0.15.65.dev1364-py3-none-any.whl", hash = "sha256:42bbf3218f01c6d5e8b1f2c8b33b0fc1d343d1915be351beb540cc4896108231", size = 456483, upload-time = "2026-05-21T08:28:21.385Z" },
+    { url = "https://files.pythonhosted.org/packages/54/fc/8a217feac68ac63a9119ea525ed2400b1f98718c6efa453d5710db152b74/datarobot_genai-0.15.66-py3-none-any.whl", hash = "sha256:a0716f879498f82d2dfaf9c59ba0ebefd96f859dddd52791b1e534a88b9bb5dd", size = 456492, upload-time = "2026-05-21T11:34:25.9Z" },
 ]
 
 [package.optional-dependencies]
@@ -1628,7 +1628,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
     { name = "datarobot-drum", specifier = "==1.17.11.post1" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.65.dev1364", index = "https://test.pypi.org/simple/" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.66" },
     { name = "datarobot-mlops", specifier = "==11.1.0" },
     { name = "datarobot-moderations", extras = ["all"], specifier = "==11.2.29" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
