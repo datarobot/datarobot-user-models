@@ -293,7 +293,6 @@ def is_dragent_server_enabled() -> bool:
     return False
 
 
-
 def run_agent_procedure(args: Any) -> None:
     # Parse input to fail early if it's not valid
     chat_completion = construct_prompt(args.chat_completion)
@@ -307,7 +306,7 @@ def run_agent_procedure(args: Any) -> None:
         root.info(f"Trace id: {trace_id}")
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
-        
+
         if is_dragent_server_enabled():
             result = execute_dragent_inline(
                 chat_completion=chat_completion,
