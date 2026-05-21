@@ -52,9 +52,9 @@ if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER" ]; then
           ROOT_PATH_ARG="--root_path ${URL_PREFIX}"
       fi
 
-      echo "Executing command: nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --port 8080 $ROOT_PATH_ARG"
+      echo "Executing command: nat start dragent_fastapi --config_file $SCRIPT_DIR/workflow.yaml --port 8080 $ROOT_PATH_ARG"
       echo
-      exec nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --host 0.0.0.0 --port 8080 $ROOT_PATH_ARG
+      exec nat start dragent_fastapi --config_file $SCRIPT_DIR/workflow.yaml --host 0.0.0.0 --port 8080 $ROOT_PATH_ARG
     else
         echo "ENABLE_DRAGENT_SERVER runtime parameter is present but set to False, skipping NAT server"
     fi
