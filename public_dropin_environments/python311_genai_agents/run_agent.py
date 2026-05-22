@@ -34,10 +34,15 @@ ENABLE_STDOUT_REDIRECT = str(os.environ.get("ENABLE_STDOUT_REDIRECT", 0)).lower(
     "True",
 ]
 
-# Bootstarp: new agentic env doesn't have agent dependencies pre-installed and updated
+# Bootstrap: new agentic env doesn't have agent dependencies pre-installed and updated
 # template has it's own toml/lock file that should be used to set up venv with runtime deps.
 # Code below bootstraps agent's venv, if it's not there and toml/lock files are present, and
-# prepends custom venv paths in sys.path, causing all following libs to be imported from there.
+# prepends custom venv paths in sys.path. After activation we also purge any *other*
+# site-packages directory (e.g. the kernel venv at /etc/system/kernel/.venv, or a user
+# venv inherited from a Codespace) from sys.path / PYTHONPATH and drop the previous
+# VIRTUAL_ENV's bin from PATH. Without this, libraries can resolve across two venvs and
+# produce hybrid-import bugs -- e.g. datarobot_genai loaded from /opt/venv pulling
+# pydantic from /etc/system/kernel/.venv (BUZZOK-30890).
 _VENV_DIR = os.environ.get("VENV_DIR", "/opt/venv")
 _VENV_SITE_PACKAGES = str(
     Path(_VENV_DIR)
@@ -45,6 +50,46 @@ _VENV_SITE_PACKAGES = str(
     / f"python{sys.version_info.major}.{sys.version_info.minor}"
     / "site-packages"
 )
+
+
+def _purge_foreign_venv_paths(previous_venv: str | None) -> None:
+    target_site_packages = os.path.normpath(_VENV_SITE_PACKAGES)
+
+    def _is_foreign_site_packages(entry: str) -> bool:
+        if not entry:
+            return False
+        normalized = os.path.normpath(entry)
+        return (
+            "site-packages" in normalized.split(os.sep)
+            and normalized != target_site_packages
+        )
+
+    sys.path[:] = [p for p in sys.path if not _is_foreign_site_packages(p)]
+
+    pythonpath = os.environ.get("PYTHONPATH")
+    if pythonpath:
+        cleaned = os.pathsep.join(
+            p for p in pythonpath.split(os.pathsep) if not _is_foreign_site_packages(p)
+        )
+        if cleaned:
+            os.environ["PYTHONPATH"] = cleaned
+        else:
+            os.environ.pop("PYTHONPATH", None)
+
+    if not previous_venv:
+        return
+    try:
+        same_venv = Path(previous_venv).resolve() == Path(_VENV_DIR).resolve()
+    except OSError:
+        same_venv = previous_venv == _VENV_DIR
+    if same_venv:
+        return
+    previous_bin = str(Path(previous_venv) / "bin")
+    os.environ["PATH"] = os.pathsep.join(
+        p for p in os.environ.get("PATH", "").split(os.pathsep) if p and p != previous_bin
+    )
+
+
 if (
     _VENV_SITE_PACKAGES not in sys.path
     and os.path.exists(CURRENT_DIR / "pyproject.toml")
@@ -59,9 +104,12 @@ if (
             stdout=sys.stdout if not ENABLE_STDOUT_REDIRECT else venvfd,
             stderr=sys.stderr if not ENABLE_STDOUT_REDIRECT else subprocess.STDOUT,
         )
+
+    _previous_venv = os.environ.get("VIRTUAL_ENV")
     sys.path.insert(0, _VENV_SITE_PACKAGES)
     os.environ["PATH"] = str(Path(_VENV_DIR) / "bin") + os.pathsep + os.environ.get("PATH", "")
     os.environ["VIRTUAL_ENV"] = _VENV_DIR
+    _purge_foreign_venv_paths(_previous_venv)
 
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
