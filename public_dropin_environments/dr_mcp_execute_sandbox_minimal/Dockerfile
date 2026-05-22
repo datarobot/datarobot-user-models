@@ -4,6 +4,17 @@
 #
 # Ships a standalone runner script (no datarobot-genai install needed
 # inside the container) plus the data libraries user code commonly needs.
+#
+# ============================================================================
+#   *** USER CODE INSIDE THIS IMAGE IS HARD-CAPPED AT 1 HOUR (3600s) ***
+#
+#   runner.py enforces a SIGALRM-based wall-clock on the user snippet. Code
+#   still running after the cap is interrupted and the container exits with
+#   code 124. Override via the DR_SANDBOX_TIMEOUT_SECS env var, set to 0 to
+#   disable. See README.md (## Execution timeout) for details. Note: this is
+#   defense-in-depth for accidental hangs only — the real wall-clock
+#   enforcement is caller-side (DataRobotWorkloadSandbox / Workload API).
+# ============================================================================
 
 # This is a private chain-guard development image stored in DataRobot's private
 # registry. Replace it with your own development chain-guard image if you build

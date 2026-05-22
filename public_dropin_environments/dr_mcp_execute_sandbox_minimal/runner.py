@@ -25,11 +25,36 @@ value.
 import base64
 import json
 import os
+import signal
 import sys
 import traceback
 from typing import Any
 
 RESULT_MARKER = "__DR_SANDBOX_RESULT__:"
+
+# ===========================================================================
+#                  *** EXECUTION CAPPED AT 1 HOUR ***
+#
+# This sandbox enforces a HARD 1-HOUR (3600s) wall-clock on user code via
+# SIGALRM. Any code still running after 60 minutes is interrupted, exits
+# with code 124, and reports `__DR_SANDBOX_RESULT__:null`. If you need to
+# run something longer, override with the DR_SANDBOX_TIMEOUT_SECS env var
+# at container launch — but the caller / workload-api may also impose its
+# own (lower) wall-clock limit that this runner cannot extend.
+#
+# This in-process timeout is defense-in-depth for accidental hangs only —
+# it is NOT a security boundary. Malicious code can reset the SIGALRM
+# handler; the real enforcement is the container lifecycle / workload-api.
+# ===========================================================================
+DEFAULT_TIMEOUT_SECS = 3600  # 1 hour
+
+
+class _SandboxTimeout(Exception):
+    """Raised when DR_SANDBOX_TIMEOUT_SECS elapses during exec()."""
+
+
+def _on_alarm(_signum: int, _frame: Any) -> None:
+    raise _SandboxTimeout("sandbox exceeded timeout")
 
 
 def _decode_env(name: str, default: str) -> Any:
@@ -48,13 +73,27 @@ def main() -> int:
     code = base64.b64decode(code_b64).decode("utf-8")
     inputs = _decode_env("DR_SANDBOX_INPUTS_B64", "{}")
 
+    try:
+        timeout_secs = int(os.environ.get("DR_SANDBOX_TIMEOUT_SECS", DEFAULT_TIMEOUT_SECS))
+    except ValueError:
+        timeout_secs = DEFAULT_TIMEOUT_SECS
+
     namespace: dict[str, Any] = {"inputs": inputs, "_return": None}
     exit_code = 0
+    # Defense-in-depth wall-clock for accidental hangs (infinite loops, runaway
+    # ops). Not a security boundary — malicious code can reset the handler;
+    # caller-side / workload-api timeout is the real enforcement.
+    if timeout_secs > 0:
+        signal.signal(signal.SIGALRM, _on_alarm)
+        signal.alarm(timeout_secs)
     # Catch BaseException so sys.exit() / KeyboardInterrupt from user code
     # don't bypass the marker emission below — without this, the caller
     # would see a "successful" run with no parseable result.
     try:
         exec(compile(code, "<sandbox>", "exec"), namespace)  # noqa: S102
+    except _SandboxTimeout:
+        print(f"sandbox exceeded timeout of {timeout_secs}s", file=sys.stderr)
+        exit_code = 124
     except SystemExit as exc:
         code_val = exc.code
         if code_val is None:
@@ -67,6 +106,9 @@ def main() -> int:
     except BaseException:  # noqa: BLE001 — must catch KeyboardInterrupt too
         traceback.print_exc()
         exit_code = 1
+    finally:
+        if timeout_secs > 0:
+            signal.alarm(0)
 
     return_value = namespace.get("_return")
     try:
