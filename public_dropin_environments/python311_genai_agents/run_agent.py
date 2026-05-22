@@ -111,6 +111,54 @@ if (
     os.environ["VIRTUAL_ENV"] = _VENV_DIR
     _purge_foreign_venv_paths(_previous_venv)
 
+    # When run_agent.py is exec'd inside a long-running Jupyter kernel process, pydantic
+    # may already be cached in sys.modules from the kernel venv. Drop it so that the
+    # `from pydantic import ...` below re-resolves against the new venv's site-packages
+    # (BUZZOK-30890). Limited to pydantic/pydantic_core to keep the blast radius small
+    # while we validate the hypothesis.
+    _purged_modules = [
+        name
+        for name in list(sys.modules)
+        if name == "pydantic"
+        or name.startswith("pydantic.")
+        or name == "pydantic_core"
+        or name.startswith("pydantic_core.")
+    ]
+    if _purged_modules:
+        print(
+            f"[run_agent bootstrap] purging {len(_purged_modules)} pre-imported pydantic modules "
+            f"from sys.modules so they re-resolve against {_VENV_SITE_PACKAGES}:",
+            file=sys.stderr,
+        )
+        for _mod_name in _purged_modules:
+            _mod_file = getattr(sys.modules[_mod_name], "__file__", "<no __file__>")
+            print(f"  - {_mod_name}: {_mod_file}", file=sys.stderr)
+            del sys.modules[_mod_name]
+    else:
+        print(
+            "[run_agent bootstrap] no pre-imported pydantic modules found in sys.modules",
+            file=sys.stderr,
+        )
+
+    # Also dump any other already-imported third-party modules that live in a foreign
+    # site-packages -- if pydantic isn't the only one leaking we want to spot it here
+    # rather than chase another mystery stacktrace.
+    _foreign_modules = []
+    for _name, _module in list(sys.modules.items()):
+        _file = getattr(_module, "__file__", None)
+        if not _file:
+            continue
+        if "site-packages" in _file and not _file.startswith(_VENV_SITE_PACKAGES):
+            _foreign_modules.append((_name, _file))
+    if _foreign_modules:
+        print(
+            f"[run_agent bootstrap] {len(_foreign_modules)} other modules still loaded from a "
+            f"foreign site-packages (not purged):",
+            file=sys.stderr,
+        )
+        for _name, _file in _foreign_modules:
+            print(f"  - {_name}: {_file}", file=sys.stderr)
+
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
 from datarobot_genai.dragent.inline import execute_dragent_inline
