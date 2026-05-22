@@ -17,7 +17,7 @@ RUN /usr/bin/python -m venv ${VIRTUAL_ENV} && \
     /usr/bin/python -m pip install --no-cache-dir \
         "polars>=1.0.0,<2.0.0" \
         "pyarrow>=21.0.0,<22.0.0" \
-        "datarobot>=3.10.0,<4.0.0" \
+        "datarobot>=3.10.0,<3.11.0" \
         "requests>=2.32.4,<3.0.0" \
         "httpx>=0.28.1,<1.0.0" && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +
