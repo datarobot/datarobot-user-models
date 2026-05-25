@@ -54,7 +54,7 @@ if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER" ]; then
 
 	  # Get the number of workers from the runtime parameter
 	  if [ -n "$MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS" ]; then
-	  	CUSTOM_MODEL_WORKERS=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('CUSTOM_MODEL_WORKERS'))")
+	  	CUSTOM_MODEL_WORKERS=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(int(RuntimeParameters.get('CUSTOM_MODEL_WORKERS')))")
 	  else
 		CUSTOM_MODEL_WORKERS=1
 	  fi
