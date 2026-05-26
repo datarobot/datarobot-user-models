@@ -32,8 +32,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
-  apk update && apk add --no-cache gcc libstdc++ glibc-dev libffi-dev graphviz \
-  openblas git openssh-server gzip zip unzip wget curl openjdk-11 vim nano \
+  apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
+  openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
+  openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
+  pulumi pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
+  gh uv task bash-completion \
   && rm -rf /var/cache/apk/
 
 ENV PYTHONUNBUFFERED=1 \
