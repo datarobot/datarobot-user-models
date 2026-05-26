@@ -28,8 +28,8 @@ uv venv "${UV_PROJECT_ENVIRONMENT}"
 # Sync dependencies using UV
 # --active: Install into the active venv instead of creating a new one
 # --frozen: Skip dependency resolution, use exact versions from lock file
-# --extra: Install the 'agentic_playground' optional dependency group
 # Note: Compilation disabled since kernel venv is already compiled
+# Does not fail on errors to avoid blocking the startup of the server
 uv sync --frozen --active --no-progress --color never || true
 
 # Optional: Dump environment variables for debugging
@@ -45,16 +45,23 @@ fi
 if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER" ]; then
     ENABLE_DRAGENT_SERVER=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('ENABLE_DRAGENT_SERVER'))")
     if [ "$ENABLE_DRAGENT_SERVER" = "True" ]; then
-        ROOT_PATH_ARG=""
-
-      # When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
+	  
+	  # When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
+	  ROOT_PATH_ARG=""
       if [ -n "${URL_PREFIX:-}" ]; then
           ROOT_PATH_ARG="--root_path ${URL_PREFIX}"
       fi
 
-      echo "Executing command: nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --port 8080 $ROOT_PATH_ARG"
+	  # Get the number of workers from the runtime parameter
+	  if [ -n "$MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS" ]; then
+	  	CUSTOM_MODEL_WORKERS=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(int(RuntimeParameters.get('CUSTOM_MODEL_WORKERS')))")
+	  else
+		CUSTOM_MODEL_WORKERS=1
+	  fi
+
+      echo "Executing command: nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG"
       echo
-      exec nat start dragent_fastapi --config_file $SCRIPT_DIR/agent/workflow.yaml --host 0.0.0.0 --port 8080 $ROOT_PATH_ARG
+      exec nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --host 0.0.0.0 --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG
     else
         echo "ENABLE_DRAGENT_SERVER runtime parameter is present but set to False, skipping NAT server"
     fi
