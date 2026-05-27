@@ -8,19 +8,15 @@ both DataRobot Notebooks and Custom Models.
 You can extend these templates to include or modify the additional 
 dependencies that you want to include for your own custom environments.
 
-In this repository, we provide several example environments that you can use and modify:
+In this repository, we currently provide one example environment that you can use and modify:
 * [Python 3.11 Base Notebook Environment](python311_notebook_base)
-* [Python 3.9 Notebook Environment for GPU](python39_notebook_gpu)
-* [Python 3.9 Notebook Environment for GPU with Tensorflow](python39_notebook_gpu_tf)
-* [Python 3.9 Notebook Environment for GPU with Rapids](python39_notebook_gpu_rapids)
-* [R Notebook Environment](r_notebook)
 
-These sample environments each define the libraries available in the environment 
-and are designed to allow for simple custom notebook environments to be made that 
+This sample environment defines the libraries available in the environment
+and is designed to allow for simple custom notebook environments to be made that
 consist solely of your custom packages if necessary.
 
 For detailed information on how to run notebooks that work in these environments, 
-reference the links above for each environment.
+reference the link above for the environment.
 
 ### Using environments in notebooks
 
