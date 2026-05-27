@@ -32,7 +32,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 RUN echo "[Python3.11] GIT_COMMIT: $GIT_COMMIT" && \
-  apk update && apk add --no-cache gcc libstdc++ glibc-dev libffi-dev graphviz \
+  apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server gzip zip unzip wget curl openjdk-11 vim nano \
   && rm -rf /var/cache/apk/
 
