@@ -37,5 +37,5 @@ statsmodels==0.14.4
 tqdm==4.66.4
 umap-learn==0.5.3
 wordcloud==1.9.3
-xgboost==1.6.2
+xgboost==3.2.0
 yellowbrick==1.5
