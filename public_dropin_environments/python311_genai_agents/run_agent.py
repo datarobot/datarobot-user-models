@@ -65,6 +65,7 @@ if (
 
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
+from datarobot_genai.dragent.inline import execute_dragent_inline
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.completion_create_params import (
     CompletionCreateParamsBase,
@@ -239,16 +240,13 @@ def execute_drum_inline(
     ) as predictor:
         root.info("Executing Agent")
 
-        if chat_completion.get("stream"):
-            completion_generator = predictor.chat(chat_completion)
-            return [cast(ChatCompletionChunk, completion) for completion in completion_generator]
-        else:
-            completion = predictor.chat(chat_completion)
-            return cast(ChatCompletion, completion)
+        completion = predictor.chat(chat_completion)
+        return cast(ChatCompletion, completion)
 
 
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     chat_completion_dict = json.loads(chat_completion)
+    chat_completion_dict.pop("stream", None)
     model = chat_completion_dict.get("model")
     if model is None or len(str(model)) == 0:
         chat_completion_dict["model"] = "unknown"
@@ -279,6 +277,22 @@ def store_result(
             fp.write(json.dumps(result_dict))
 
 
+def is_dragent_server_enabled() -> bool:
+    value = os.environ.get("MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER")
+    if value is None:
+        return False
+    try:
+        parsed = json.loads(value)
+        # If it's a dict with a payload key
+        if isinstance(parsed, dict) and "payload" in parsed:
+            payload = parsed["payload"]
+            if isinstance(payload, bool):
+                return payload
+    except Exception:
+        pass
+    return False
+
+
 def run_agent_procedure(args: Any) -> None:
     # Parse input to fail early if it's not valid
     chat_completion = construct_prompt(args.chat_completion)
@@ -292,10 +306,17 @@ def run_agent_procedure(args: Any) -> None:
         root.info(f"Trace id: {trace_id}")
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
-        result = execute_drum_inline(
-            chat_completion=chat_completion,
-            custom_model_dir=args.custom_model_dir,
-        )
+
+        if is_dragent_server_enabled():
+            result = execute_dragent_inline(
+                chat_completion=chat_completion,
+                custom_model_dir=args.custom_model_dir,
+            )
+        else:
+            result = execute_drum_inline(
+                chat_completion=chat_completion,
+                custom_model_dir=args.custom_model_dir,
+            )
         store_result(
             result,
             trace_id,

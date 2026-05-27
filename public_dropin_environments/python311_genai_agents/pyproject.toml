@@ -5,8 +5,8 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat]==0.14.4",
-    "datarobot-moderations[all]==11.2.24",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.66",
+    "datarobot-moderations[all]==11.2.29",
     "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
     "langchain-litellm>=0.2.3",
@@ -175,8 +175,8 @@ follow_imports = "skip"
 required-version = ">=0.7.0"
 override-dependencies = [
     # Compatibility
-    "fastapi>=0.118.2,<0.133.0",  # 0.132 is the last version compatiable with NAT 1.4.1
-    "starlette>=0.49.1,<1.0.0",  # 0.52.1 is the last version compatiable with NAT 1.4.1
+    "fastapi>=0.118.2,<0.133.0",  # NAT 1.6.0 uses add_event_handler removed in starlette 1.0 (https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1882)
+    "starlette>=0.49.1,<1.0.0",  # constrained by fastapi<0.133.0 (https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1882)
     "pyarrow==21.0.0",
     # crewai and drum pin otel to 1.34.x but datarobot-moderations needs 0.60b1
     # instrumentation which requires otel 1.39.x. Override the entire otel family
@@ -191,7 +191,7 @@ override-dependencies = [
     # Upstream issue: https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1802
     "crewai[litellm]>=1.11.0,<2.0.0",
 
-    # Unlock latest langgprah
+    # Unlock latest langgraph
     "langgraph>=1.1.0,<2.0.0",
     "langgraph-prebuilt>=1.0.0,<2.0.0",
 
@@ -203,28 +203,39 @@ override-dependencies = [
     "langgraph-checkpoint>=3.0.0",
     "litellm>=1.83.7,<2.0.0",
     "nltk>=3.9.4",
-    "openai>=2.30.0",           # litellm >= 1.83.7 pins openai at 2.24, causing dependency rollback and re-introducing CVEs.
+    "openai>=2.30.0",  # litellm >= 1.83.7 pins openai at 2.24, causing dependency rollback and re-introducing CVEs.
     "pdfminer.six>=20251230",
     "ragas>=0.4.3",
+    "mako>=1.3.12",
 
     # Excluded
-    "annoy; sys_platform == 'never'",                   # not used, issues with building it
-    "diskcache; sys_platform == 'never'",               # not used and having CVEs
-    "fastembed; sys_platform == 'never'",               # not used; therefore removed
-    "gevent; sys_platform == 'never'",                  # not used; therefore removed
-    "langchain-milvus; sys_platform == 'never'",        # not used and having CVEs
-    "llama-index-cli; sys_platform == 'never'",         # CLI tool pulled in by llama-index; not needed at runtime
-    "onnxruntime; sys_platform == 'never'",             # not used; therefore removed
-    "pyfiglet; sys_platform == 'never'",                # deepeval CLI tool; not needed at runtime
-    "pymilvus; sys_platform == 'never'",                # not used and having CVEs
-    "python-docx; sys_platform == 'never'",             # Word doc parser pulled in by crewai-tools; not used
-    "pytube; sys_platform == 'never'",                  # YouTube downloader pulled in by crewai-tools; not used
-    "stagehand; sys_platform == 'never'",               # Playwright web automation pulled in by crewai-tools; not used
-    "typer; sys_platform == 'never'",                   # nemoguardrails CLI stack; not needed at runtime
-    "uv; sys_platform == 'never'",                      # package manager bundled by crewai; runtime unnecessary
-    "watchdog; sys_platform == 'never'",                # nemoguardrails hot-reload watcher; not needed at runtime
-    "wheel; sys_platform == 'never'",                   # build tool pulled in by deepeval; not needed at runtime
+    "gevent; sys_platform == 'never'",  # not used; therefore removed
+    "onnxruntime; sys_platform == 'never'",  # not used; therefore removed
+    "fastembed; sys_platform == 'never'",  # not used; therefore removed
+    "langchain-milvus; sys_platform == 'never'",  # not used and having CVEs
+    "pymilvus; sys_platform == 'never'",  # not used and having CVEs
+    "diskcache; sys_platform == 'never'",  # not used and having CVEs
+    "annoy; sys_platform == 'never'",  # not used, issues with building it
+    "uv; sys_platform == 'never'",  # not a runtime dependency
+    "build; sys_platform == 'never'",  # Python build system pulled in by crewai; runtime unnecessary
+    "kubernetes; sys_platform == 'never'",  # K8s client pulled in by crewai-tools; not used
+    "stagehand; sys_platform == 'never'",  # Playwright web automation pulled in by crewai-tools; not used
+    "pytube; sys_platform == 'never'",  # YouTube downloader pulled in by crewai-tools; not used
     "youtube-transcript-api; sys_platform == 'never'",  # YouTube transcripts pulled in by crewai-tools; not used
+    "lancedb; sys_platform == 'never'",  # optional vector DB pulled in by crewai; not used
+    "openpyxl; sys_platform == 'never'",  # Excel parser pulled in by crewai-tools; not used
+    "python-docx; sys_platform == 'never'",  # Word doc parser pulled in by crewai-tools; not used
+    "llama-index-cli; sys_platform == 'never'",  # CLI tool pulled in by llama-index; not needed at runtime
+    "scikit-network; sys_platform == 'never'",  # graph analysis pulled in by ragas; not used
+    # nemoguardrails — server / CLI stack pulled in via datarobot-moderations[all]; not used at runtime
+    "watchdog; sys_platform == 'never'",  # file watcher for guardrails hot-reload; not used
+    # prompt-toolkit and wcwidth are intentionally NOT excluded: IPython (via ipykernel / agentic_playground)
+    # has a hard import-time dependency on prompt-toolkit; excluding it causes ModuleNotFoundError at runtime.
+    "typer; sys_platform == 'never'",  # CLI framework for guardrails CLI; not used
+    "shellingham; sys_platform == 'never'",  # shell detection; sole dependent was typer
+    # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
+    "pyfiglet; sys_platform == 'never'",  # ASCII banner renderer for deepeval CLI; not used
+    "wheel; sys_platform == 'never'",  # build-time packaging tool; not a runtime dependency
 ]
 package = true
 environments = [

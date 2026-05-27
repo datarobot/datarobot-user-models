@@ -34,7 +34,7 @@ google-resumable-media==2.8.2
 googleapis-common-protos==1.74.0
 greenlet==3.3.2
 gunicorn==25.3.0
-idna==3.11
+idna==3.15
 importlib-metadata==8.7.1
 isodate==0.7.2
 itsdangerous==2.2.0
