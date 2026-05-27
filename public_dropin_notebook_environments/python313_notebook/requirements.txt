@@ -1,4 +1,4 @@
-altair==4.2.2
+altair==5.5.0
 boto3==1.42.58
 cloudpickle==3.0.0
 dask==2024.12.0
@@ -9,7 +9,7 @@ datarobot-model-metrics==0.6.14
 datarobot-predict==1.9.4
 datarobot[core]==3.16.0
 dummyPy==0.3
-eli5==0.13.0
+eli5==0.16.0
 gensim==4.4.0
 graphviz==0.20.1
 imblearn
@@ -19,13 +19,13 @@ lime==0.2.0.1
 matplotlib==3.8.4
 mistune==3.2.1
 numpy==2.4.6
-opencv-python-headless==4.8.1.78
+opencv-python-headless==4.11.0.86
 openpyxl==3.0.10
 Pillow==12.2.0
 pandas==2.3.3
 plotly==5.18.0
 pydantic==2.9.2
-scikit-learn==1.5.0
+scikit-learn==1.6.1
 scipy==1.15.3
 seaborn==0.13.2
 shap==0.47.2
