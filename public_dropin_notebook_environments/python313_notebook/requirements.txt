@@ -10,7 +10,7 @@ datarobot-predict==1.9.4
 datarobot[core]==3.16.0rc0
 dummyPy==0.3
 eli5==0.13.0
-gensim==4.3.2
+gensim==4.4.0
 graphviz==0.20.1
 imblearn
 joblib==1.2.0
