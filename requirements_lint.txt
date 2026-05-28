@@ -2,5 +2,6 @@ black==23.10.1
 pylint==4.0.5
 click==8.3.2
 mypy==2.1.0
+pydantic
 # strictly not needed for linting, but used when updating environment
 bson
