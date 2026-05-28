@@ -1,6 +1,8 @@
 
 PYTEST_IGNORES := -W ignore::pytest.PytestCollectionWarning
 
+MYPY_DIRS ?= public_dropin_notebook_environments
+
 ########################################
 ##@ General
 default: help
@@ -20,6 +22,7 @@ clean: cov-clean ## Remove build artifacts
 	\rm -rf dist
 	\rm -rf lib
 	\rm -f results-py3.xml
+	\rm -rf ./.mypy_cache
 	find . -type d -name '*.egg-info' | xargs rm -rf
 	find . -type d -name __pycache__ | xargs rm -rf
 	find . -name '*.pyc' -delete
@@ -29,13 +32,26 @@ update-env: ## Update execution-environment version
 
 ########################################
 ##@ Lint
+.PHONY: lint
 lint: ## Run linting
+	$(MAKE) black
+	$(MAKE) mypy
+
+.PHONY: black
+black: ## Run black check
 	black --check --diff .
 
+.PHONY: mypy
+mypy: ## Run mypy check
+	mypy --version
+	mypy $(MYPY_DIRS)
+
+.PHONY: delint
 delint: ## Attempt to fix lint issues
 	black .
 
 # NOTE: pylint currently yields lots of errors, so it is in a separate target
+.PHONY: pylint
 pylint: ## Run pylint
 	pylint custom_model_runner/
 
