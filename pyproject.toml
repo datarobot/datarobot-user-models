@@ -14,7 +14,7 @@ known_first_party = ["datarobot_drum"]
 
 [tool.mypy]
 python_version = "3.11"
-
+plugins = "pydantic.mypy"
 exclude = '''(?x)(
     ipython_config\.py
     | jupyter_kernel_gateway_config\.py
