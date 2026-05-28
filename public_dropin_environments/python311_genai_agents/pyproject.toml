@@ -5,8 +5,8 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.66",
-    "datarobot-moderations[all]==11.2.29",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.83",
+    "datarobot-moderations[all]==11.2.31",
     "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
     "datarobot-mlops==11.1.0",
     "langchain-litellm>=0.2.3",
@@ -200,6 +200,7 @@ override-dependencies = [
     "ag-ui-protocol==0.1.15",
 
     # CVE fixes
+    "transformers>=5.0.0rc3",  # CVE-2026-1839
     "langgraph-checkpoint>=3.0.0",
     "litellm>=1.83.7,<2.0.0",
     "nltk>=3.9.4",
