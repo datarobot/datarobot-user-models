@@ -29,6 +29,7 @@ with open(root / "README.md") as f:
 
 extras_require = {framework: extra_deps[framework] for framework in SupportedFrameworks.ALL}
 extras_require["R"] = ["rpy2==3.5.8;python_version>='3.6'"]
+extras_require["java"] = ["py4j~=0.10.9.0"]
 
 setup(
     name=meta["project_name"],
