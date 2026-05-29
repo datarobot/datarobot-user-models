@@ -40,6 +40,18 @@ function build_dropin_env_dockerfile() {
 
   pwd
   pushd "$DROPIN_ENV_DIRNAME" || exit 1
+
+  # Some drop-in envs (e.g. the MCP execute-sandbox runner) are self-contained:
+  # they install their own dependencies in the Dockerfile and ship no
+  # requirements.txt for the DRUM-wheel injection below to rewrite. Skip those
+  # rather than letting a bare `sed -i ... requirements.txt` abort the entire
+  # build under `set -e`.
+  if [[ ! -f requirements.txt ]]; then
+    echo "No requirements.txt in ${DROPIN_ENV_DIRNAME}; skipping DRUM wheel injection."
+    popd || exit 1
+    return 0
+  fi
+
   cp "$DRUM_WHEEL_REAL_PATH" .
   if [[ -n "$MOD_WHEEL_FILENAME" ]]; then
     cp "$MOD_WHEEL_PATH" .
