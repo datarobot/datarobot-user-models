@@ -95,7 +95,8 @@ pipeline:
                           set -exuo pipefail
                           pip install -U pip
                           pip install -r requirements_lint.txt
-                          mypy public_dropin_notebook_environments
+                          mypy --version
+                          mypy --explicit-package-bases public_dropin_notebook_environments
   identifier: syntax_checks
   name: syntax checks
   description: Run black and pylint checks on every PR. Lint checks are manually skipped and need to be implemented
