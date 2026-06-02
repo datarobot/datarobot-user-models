@@ -1,4 +1,4 @@
-datarobot-drum
+datarobot-drum[java]
 pandas
 numpy
 urllib3>=2.7.0

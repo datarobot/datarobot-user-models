@@ -11,3 +11,31 @@ junit_log_passing_tests = false
 [tool.isort]
 profile = "black"
 known_first_party = ["datarobot_drum"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = "pydantic.mypy"
+exclude = '''(?x)(
+    ipython_config\.py
+    | jupyter_kernel_gateway_config\.py
+)'''
+
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+enable_error_code = "ignore-without-code"
+implicit_reexport = true
+ignore_missing_imports = true
+no_implicit_optional = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true

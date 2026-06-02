@@ -137,6 +137,7 @@ ENV R_HOME=/usr/lib/R
 RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -path '*/datarobot_drum/*.jar' -delete && \
     /usr/bin/python ensure_sh_shebang.py ${R_HOME}/bin && \
     mkdir -p /usr/share/doc/R/html && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
