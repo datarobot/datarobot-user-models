@@ -56,12 +56,10 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 
     try:
         while True:
-            await websocket.send_json(
-                {
-                    "cpu_percent": watcher.cpu_usage_percentage(),
-                    "mem_percent": watcher.memory_usage_percentage(),
-                }
-            )
+            await websocket.send_json({
+                "cpu_percent": watcher.cpu_usage_percentage(),
+                "mem_percent": watcher.memory_usage_percentage(),
+            })
 
             await asyncio.sleep(3)
     except ConnectionClosedError:

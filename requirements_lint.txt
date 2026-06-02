@@ -3,5 +3,6 @@ pylint==4.0.5
 click==8.3.2
 mypy==2.1.0
 pydantic
+ruff==0.15.15
 # strictly not needed for linting, but used when updating environment
 bson
