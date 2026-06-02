@@ -53,6 +53,7 @@ ENV VIRTUAL_ENV=/opt/venv
 RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -path '*/datarobot_drum/*.jar' -delete && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
