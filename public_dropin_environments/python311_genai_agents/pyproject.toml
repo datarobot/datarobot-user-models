@@ -5,15 +5,18 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.66",
-    "datarobot-moderations[all]==11.2.29",
-    "datarobot-drum==1.17.11.post1",  # Lift upper limit after asyncio migration finished
-    "datarobot-mlops==11.1.0",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.87",
+    "datarobot-moderations[all]==11.2.30",
+    "datarobot-drum==1.17.17",
+    "datarobot-mlops==11.1.28",
     "langchain-litellm>=0.2.3",
     "opentelemetry-api>=1.33.0,<2.0.0",
     "opentelemetry-sdk>=1.33.0,<2.0.0",
     "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
     "packaging>=25.0,<26.0",
+    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
+    # recipe-datarobot-agent-application.
+    "ag-ui-protocol==0.1.15",
 ]
 
 [project.optional-dependencies]
@@ -32,7 +35,6 @@ dev = [
 ]
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [
-    "fastapi[All]==0.118.2",
     "psutil==5.9.8",
     "ipykernel<6.29.0",
     "jupyter-client>=8.6.3",
@@ -173,40 +175,25 @@ follow_imports = "skip"
 
 [tool.uv]
 required-version = ">=0.7.0"
-override-dependencies = [
-    # Compatibility
-    "fastapi>=0.118.2,<0.133.0",  # NAT 1.6.0 uses add_event_handler removed in starlette 1.0 (https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1882)
-    "starlette>=0.49.1,<1.0.0",  # constrained by fastapi<0.133.0 (https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1882)
-    "pyarrow==21.0.0",
-    # crewai and drum pin otel to 1.34.x but datarobot-moderations needs 0.60b1
-    # instrumentation which requires otel 1.39.x. Override the entire otel family
-    # to stay version-synchronized at 1.39.x / 0.60b1.
-    "opentelemetry-api>=1.39.0,<2.0.0",
-    "opentelemetry-sdk>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-http>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-common>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-grpc>=1.39.0,<2.0.0",
-    # nvidia-nat-crewai==1.4.1 pins crewai<1.0.0 but datarobot-genai requires crewai>=1.1.0.
-    # Override until nvidia-nat-crewai ships a fix upstream (BUZZOK-29844).
-    # Upstream issue: https://github.com/NVIDIA/NeMo-Agent-Toolkit/issues/1802
-    "crewai[litellm]>=1.11.0,<2.0.0",
-
-    # Unlock latest langgraph
-    "langgraph>=1.1.0,<2.0.0",
-    "langgraph-prebuilt>=1.0.0,<2.0.0",
-
-    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
-    # recipe-datarobot-agent-application.
-    "ag-ui-protocol==0.1.15",
-
+constraint-dependencies = [
     # CVE fixes
-    "langgraph-checkpoint>=3.0.0",
     "litellm>=1.83.7,<2.0.0",
     "nltk>=3.9.4",
     "openai>=2.30.0",  # litellm >= 1.83.7 pins openai at 2.24, causing dependency rollback and re-introducing CVEs.
     "pdfminer.six>=20251230",
     "ragas>=0.4.3",
-    "mako>=1.3.12",
+]
+override-dependencies = [
+    # crewai pin otel to 1.34.x but datarobot-moderations requires 0.60b1
+    # instrumentation which requires otel >1.39.x. Override the entire otel family
+    # to stay version-synchronized at 1.39.x. Do not let it upgrade to the 
+    # latter version: because we are using override-dependencies this may result in 
+    # out of sync versions of an exporter and SDK for example. See https://datarobot.atlassian.net/browse/BUZZOK-31010?focusedCommentId=1218769
+    "opentelemetry-api>=1.39.0,<1.40.0",
+    "opentelemetry-sdk>=1.39.0,<1.40.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.39.0,<1.40.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.39.0,<1.40.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.39.0,<1.40.0",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
