@@ -83,6 +83,11 @@ class JavaPredictor(BaseLanguagePredictor):
             raise DrumCommonException(
                 "Java support requires the 'java' extra: pip install 'datarobot-drum[java]'"
             )
+        if not self._jar_files:
+            raise DrumCommonException(
+                "Java DRUM entrypoint JAR not found. This environment is not configured for Java "
+                "scoring. Please use the java_codegen drop-in environment."
+            )
         super(JavaPredictor, self).configure(params)
 
         # retrieve the relevant extensions of the java predictor
