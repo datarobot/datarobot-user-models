@@ -44,7 +44,7 @@ black: ## Run black check
 .PHONY: mypy
 mypy: ## Run mypy check
 	mypy --version
-	mypy $(MYPY_DIRS)
+	mypy --explicit-package-bases $(MYPY_DIRS)
 
 .PHONY: delint
 delint: ## Attempt to fix lint issues
