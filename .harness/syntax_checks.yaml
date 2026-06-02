@@ -96,6 +96,33 @@ pipeline:
                           pip install -U pip
                           pip install -r requirements_lint.txt
                           mypy public_dropin_notebook_environments
+        - stage:
+            name: ruff
+            identifier: ruff
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: ruff check step
+                      identifier: ruff_check_step
+                      spec:
+                        shell: Bash
+                        command: |-
+                          set -exuo pipefail
+                          pip install -U pip
+                          pip install -r requirements_lint.txt
+                          ruff check public_dropin_notebook_environments
+                          ruff format --check public_dropin_notebook_environments
   identifier: syntax_checks
   name: syntax checks
   description: Run black and pylint checks on every PR. Lint checks are manually skipped and need to be implemented
