@@ -4,10 +4,17 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import glob
 import logging
 import os
-import py4j
+
+try:
+    import py4j
+    from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
+    from py4j.java_collections import MapConverter
+except ImportError:
+    py4j = None
 import signal
 import socket
 import subprocess
@@ -34,8 +41,6 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
-from py4j.java_collections import MapConverter
 from werkzeug.datastructures import ImmutableMultiDict
 
 RUNNING_LANG_MSG = "Running environment language: Java."
@@ -74,6 +79,15 @@ class JavaPredictor(BaseLanguagePredictor):
         )
 
     def configure(self, params):
+        if py4j is None:
+            raise DrumCommonException(
+                "Java support requires the 'java' extra: pip install 'datarobot-drum[java]'"
+            )
+        if not self._jar_files:
+            raise DrumCommonException(
+                "Java DRUM entrypoint JAR not found. This environment is not configured for Java "
+                "scoring. Please use the java_codegen drop-in environment."
+            )
         super(JavaPredictor, self).configure(params)
 
         # retrieve the relevant extensions of the java predictor
