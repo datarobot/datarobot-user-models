@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import pickle
 from scipy.sparse.csr import csr_matrix
 
@@ -13,7 +14,6 @@ from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
 
 numeric_selector = make_column_selector(dtype_include=np.number)
 categorical_selector = make_column_selector(dtype_include=object)

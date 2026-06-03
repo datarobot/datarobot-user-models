@@ -4,10 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
-
 
 logger = logging.getLogger(__name__)
 

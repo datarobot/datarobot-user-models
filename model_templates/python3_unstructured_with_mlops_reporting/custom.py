@@ -9,6 +9,7 @@ a binary model, which was defined in DataRobot as `Unstructured (Binary)`, just 
 the usage of the `mlops` instance.
 The
 """
+
 import logging
 
 import pickle
@@ -17,7 +18,6 @@ from pathlib import Path
 
 import pandas as pd
 import tempfile
-
 
 logger = logging.getLogger(__name__)
 

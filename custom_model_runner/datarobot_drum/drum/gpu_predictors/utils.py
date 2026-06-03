@@ -117,9 +117,9 @@ class S3Client:
             "s3",
             aws_access_key_id=credential["awsAccessKeyId"],
             aws_secret_access_key=credential["awsSecretAccessKey"],
-            aws_session_token=credential["awsSessionToken"]
-            if "awsSessionToken" in credential
-            else None,
+            aws_session_token=(
+                credential["awsSessionToken"] if "awsSessionToken" in credential else None
+            ),
         )
 
     def list_objects(self):

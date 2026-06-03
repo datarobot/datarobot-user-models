@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import io
 import json
 import os
@@ -294,17 +295,17 @@ class TestLegacyNimLlm(NimLlmCases):
                 },
             }
         )
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
+        os.environ["MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"] = (
+            '{"type": "numeric", "payload": 10}'
+        )
 
         # the Runtime Parameters used for prediction requests
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_prompt_column_name"
-        ] = f'{{"type":"string","payload":"{self.prompt_column_name}"}}'
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_served_model_name"
-        ] = f'{{"type":"string","payload":"{self.model_name}"}}'
+        os.environ["MLOPS_RUNTIME_PARAM_prompt_column_name"] = (
+            f'{{"type":"string","payload":"{self.prompt_column_name}"}}'
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_served_model_name"] = (
+            f'{{"type":"string","payload":"{self.model_name}"}}'
+        )
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
@@ -388,9 +389,9 @@ class TestVllm:
         skip_if_framework_not_in_env(GPU_VLLM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT"])
 
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
+        os.environ["MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"] = (
+            '{"type": "numeric", "payload": 10}'
+        )
 
         # Override default params from example model to use a smaller model
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
@@ -401,12 +402,12 @@ class TestVllm:
         )
 
         # the Runtime Parameters used for prediction requests
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_prompt_column_name"
-        ] = '{"type":"string","payload":"user_prompt"}'
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_system_prompt"
-        ] = '{"type":"string","payload":"You are a helpful assistant"}'
+        os.environ["MLOPS_RUNTIME_PARAM_prompt_column_name"] = (
+            '{"type":"string","payload":"user_prompt"}'
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_system_prompt"] = (
+            '{"type":"string","payload":"You are a helpful assistant"}'
+        )
         os.environ["MLOPS_RUNTIME_PARAM_temperature"] = '{"type":"numeric","payload":0.01}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")

@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import csv
 import inspect
 import io
@@ -47,7 +48,6 @@ from datarobot_drum.drum.language_predictors.base_language_predictor import (
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
-
 
 logger = logging.getLogger(__name__)
 

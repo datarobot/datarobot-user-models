@@ -4,10 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 from enum import Enum
-
 
 DEBUG = os.environ.get("DEBUG")
 

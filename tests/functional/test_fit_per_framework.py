@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 import os
 import shutil
@@ -687,16 +688,18 @@ class TestFit:
             "{}/{}_{}/fit.sh".format(
                 env_folder,
                 PYTHON,
-                framework
-                if framework
-                not in [
-                    SKLEARN_ANOMALY,
-                    SKLEARN_BINARY,
-                    SKLEARN_MULTICLASS,
-                    SKLEARN_SPARSE,
-                    SKLEARN_BINARY_HYPERPARAMETERS,
-                ]
-                else SKLEARN,
+                (
+                    framework
+                    if framework
+                    not in [
+                        SKLEARN_ANOMALY,
+                        SKLEARN_BINARY,
+                        SKLEARN_MULTICLASS,
+                        SKLEARN_SPARSE,
+                        SKLEARN_BINARY_HYPERPARAMETERS,
+                    ]
+                    else SKLEARN
+                ),
             ),
         )
 

@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import collections
 import os
 import pickle
@@ -246,16 +247,12 @@ class TestDrumServerFailures:
         # rewrite custom.py to throw a custom status code error
         custom_py_path = os.path.join(custom_model_dir, "custom.py")
         with open(custom_py_path, "w") as f:
-            f.write(
-                textwrap.dedent(
-                    """
+            f.write(textwrap.dedent("""
                 from datarobot_drum import CustomHTTPError
 
                 def score(data, model, **kwargs):
                     raise CustomHTTPError("CustomHTTPError failure", status_code=422)
-                """
-                )
-            )
+                """))
 
         drum_server_run = DrumServerRun(
             docker=docker,

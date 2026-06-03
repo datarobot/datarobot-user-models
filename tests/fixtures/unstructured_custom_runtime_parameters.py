@@ -4,11 +4,11 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 from pathlib import Path
 
 from datarobot_drum import RuntimeParameters
-
 
 EXPECTED_RUNTIME_PARAMS_FILE_NAME = "expected_runtime_parameters.json"
 

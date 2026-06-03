@@ -8,7 +8,6 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 import pickle
 
-
 # read the training dataset
 
 split_ratio = 0.8

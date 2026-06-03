@@ -4,9 +4,9 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 from pathlib import Path
 from setuptools import setup, find_packages
-
 
 # The directory containing this file
 root = Path(__file__).absolute().parent

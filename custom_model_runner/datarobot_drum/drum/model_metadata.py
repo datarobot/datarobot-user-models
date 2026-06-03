@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 import logging
 import os
@@ -41,7 +42,6 @@ from datarobot_drum.drum.typeschema_validation import (
     revalidate_typeschema,
     get_type_schema_yaml_validator,
 )
-
 
 logger = get_drum_logger(__name__)
 

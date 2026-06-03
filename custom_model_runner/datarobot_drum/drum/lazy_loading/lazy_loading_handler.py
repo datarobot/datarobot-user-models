@@ -21,7 +21,6 @@ from datarobot_drum.drum.lazy_loading.schema import LazyLoadingData
 from datarobot_drum.drum.lazy_loading.schema import LazyLoadingRepository
 from datarobot_drum.drum.lazy_loading.schema import S3Credentials
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import collections
 import json
 import os
@@ -387,7 +388,7 @@ class CMRunTests:
         env_vars = os.environ
         env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
 
-        (pipe_r, pipe_w) = os.pipe()
+        pipe_r, pipe_w = os.pipe()
         self._server_process_fd_read = pipe_r
         self._server_process_fd_write = pipe_w
 

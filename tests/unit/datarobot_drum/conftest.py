@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import tempfile
 from contextlib import contextmanager
 from textwrap import dedent
@@ -43,8 +44,7 @@ def multiclass_labels():
 
 @pytest.fixture
 def inference_metadata_yaml(environment_id):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-regression
         type: inference
         targetType: regression
@@ -53,14 +53,12 @@ def inference_metadata_yaml(environment_id):
           targetName: Grade 2014
         validation:
           input: hello
-        """
-    ).format(environmentID=environment_id)
+        """).format(environmentID=environment_id)
 
 
 @pytest.fixture
 def inference_binary_metadata_yaml_no_target_name(environment_id):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-binary
         type: inference
         targetType: binary
@@ -70,27 +68,23 @@ def inference_binary_metadata_yaml_no_target_name(environment_id):
           negativeClassLabel: no
         validation:
           input: hello
-        """
-    ).format(environmentID=environment_id)
+        """).format(environmentID=environment_id)
 
 
 @pytest.fixture
 def inference_binary_metadata_no_label():
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-binary
         type: inference
         targetType: binary
         inferenceModel:
           positiveClassLabel: yes
-        """
-    )
+        """)
 
 
 @pytest.fixture
 def inference_multiclass_metadata_yaml_no_labels(environment_id):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-multiclass
         type: inference
         targetType: multiclass
@@ -99,14 +93,12 @@ def inference_multiclass_metadata_yaml_no_labels(environment_id):
           targetName: class
         validation:
           input: hello
-        """
-    ).format(environment_id)
+        """).format(environment_id)
 
 
 @pytest.fixture
 def inference_multiclass_metadata_yaml(environment_id, multiclass_labels):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-multiclass
         type: inference
         targetType: multiclass
@@ -119,8 +111,7 @@ def inference_multiclass_metadata_yaml(environment_id, multiclass_labels):
             - {}
         validation:
           input: hello
-        """
-    ).format(environment_id, *multiclass_labels)
+        """).format(environment_id, *multiclass_labels)
 
 
 @pytest.fixture
@@ -128,8 +119,7 @@ def inference_multiclass_metadata_yaml_label_file(environment_id, multiclass_lab
     with NamedTemporaryFile(mode="w+") as f:
         f.write("\n".join(multiclass_labels))
         f.flush()
-        yield dedent(
-            """
+        yield dedent("""
             name: drumpush-multiclass
             type: inference
             targetType: multiclass
@@ -139,8 +129,7 @@ def inference_multiclass_metadata_yaml_label_file(environment_id, multiclass_lab
               classLabelsFile: {}
             validation:
               input: hello
-            """
-        ).format(environment_id, f.name)
+            """).format(environment_id, f.name)
 
 
 @pytest.fixture
@@ -148,8 +137,7 @@ def inference_multiclass_metadata_yaml_labels_and_label_file(environment_id, mul
     with NamedTemporaryFile(mode="w+") as f:
         f.write("\n".join(multiclass_labels))
         f.flush()
-        yield dedent(
-            """
+        yield dedent("""
             name: drumpush-multiclass
             type: inference
             targetType: multiclass
@@ -163,28 +151,24 @@ def inference_multiclass_metadata_yaml_labels_and_label_file(environment_id, mul
                 - {}
             validation:
               input: hello
-            """
-        ).format(environment_id, f.name, *multiclass_labels)
+            """).format(environment_id, f.name, *multiclass_labels)
 
 
 @pytest.fixture
 def training_metadata_yaml(environment_id):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-regression
         type: training
         targetType: regression
         environmentID: {environmentID}
         validation:
            input: hello 
-        """
-    ).format(environmentID=environment_id)
+        """).format(environmentID=environment_id)
 
 
 @pytest.fixture
 def training_metadata_yaml_with_proj(environment_id, project_id):
-    return dedent(
-        """
+    return dedent("""
         name: drumpush-regression
         type: training
         targetType: regression
@@ -193,27 +177,23 @@ def training_metadata_yaml_with_proj(environment_id, project_id):
             trainOnProject: {projectID}
         validation:
             input: hello 
-        """
-    ).format(environmentID=environment_id, projectID=project_id)
+        """).format(environmentID=environment_id, projectID=project_id)
 
 
 @pytest.fixture
 def custom_predictor_metadata_yaml():
-    return dedent(
-        """
+    return dedent("""
         name: model-with-custom-java-predictor
         type: inference
         targetType: regression
         customPredictor:
            arbitraryField: This info is read directly by a custom predictor
-        """
-    )
+        """)
 
 
 @pytest.fixture
 def custom_unstructured_tool_with_schema_in_yaml():
-    return dedent(
-        """
+    return dedent("""
         name: "[Tool] Get Data Registry Dataset"
         description: |
           Fetches a dataset from the DataRobot Data Registry.
@@ -244,14 +224,12 @@ def custom_unstructured_tool_with_schema_in_yaml():
               default: null
           required:
             - dataset_id
-        """
-    )
+        """)
 
 
 @pytest.fixture
 def custom_unstructured_tool_with_invalid_schema1():
-    return dedent(
-        """
+    return dedent("""
         name: "[Tool] Get Data Registry Dataset"
         description: |
           Fetches a dataset from the DataRobot Data Registry.
@@ -269,14 +247,12 @@ def custom_unstructured_tool_with_invalid_schema1():
               type: string
           required:
             - dataset_id
-        """
-    )
+        """)
 
 
 @pytest.fixture
 def custom_unstructured_tool_with_invalid_schema2():
-    return dedent(
-        """
+    return dedent("""
         name: "[Tool] Get Data Registry Dataset"
         description: |
           Fetches a dataset from the DataRobot Data Registry.
@@ -293,8 +269,7 @@ def custom_unstructured_tool_with_invalid_schema2():
             - another-item
           required:
             - dataset_id
-        """
-    )
+        """)
 
 
 ###############################################################################

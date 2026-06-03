@@ -890,7 +890,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_other_object_passed_to_msg(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="def"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="def")])
         logger.addFilter(secrets_filter)
         something = object()
         logger.info(something)
@@ -899,7 +899,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_args_single_arg_string(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         logger.info("hello %s", "xyz")
 
@@ -916,7 +916,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_args_single_arg_other_object(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         something = object()
         logger.info("hello %s", something)
@@ -925,7 +925,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_args_multiple_args_string(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         logger.info("hello %s %d", "xyz", 1)
 
@@ -942,7 +942,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_args_multiple_args_other_object(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         something = object()
         logger.info("hello %s %d", something, 3)
@@ -951,7 +951,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_dict_args_string(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         logger.info("hello %(a)s %(b)d", {"a": "xyz", "b": 1})
 
@@ -968,7 +968,7 @@ class TestSecretsScrubberFilter:
         assert get_content(text_stream) == expected
 
     def test_dict_args_other_object(self, logger, text_stream):
-        secrets_filter = SecretsScrubberFilter([(ApiTokenSecret(api_token="xyz"))])
+        secrets_filter = SecretsScrubberFilter([ApiTokenSecret(api_token="xyz")])
         logger.addFilter(secrets_filter)
         something = object()
         logger.info("hello %(a)s %(b)d", {"a": something, "b": 3})
