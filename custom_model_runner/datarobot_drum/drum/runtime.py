@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 from typing import Optional
 
@@ -17,7 +18,6 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 from flask import Flask
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-
 
 logger = get_drum_logger(__name__)
 logger.setLevel(logging.ERROR)

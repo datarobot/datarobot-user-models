@@ -21,7 +21,6 @@ import torch
 from preprocessing import dense_preprocessing_pipeline
 from model_utils import build_classifier, train_classifier, save_torch_model
 
-
 logger = logging.getLogger(__name__)
 
 

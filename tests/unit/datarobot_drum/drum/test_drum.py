@@ -332,8 +332,9 @@ def mock_predictor_configure():
 
 @pytest.fixture
 def mock_materialize():
-    with patch.object(PredictionServer, "materialize"), patch.object(
-        GenericPredictorComponent, "materialize"
+    with (
+        patch.object(PredictionServer, "materialize"),
+        patch.object(GenericPredictorComponent, "materialize"),
     ):
         yield
 
@@ -610,9 +611,10 @@ class TestRuntimeParametersDockerCommand:
     ):
         args_list = request.getfixturevalue(args)
 
-        with patch.object(CMRunner, "_maybe_build_image"), NamedTemporaryFile(
-            suffix="_runtime.yaml"
-        ) as runtime_param_file:
+        with (
+            patch.object(CMRunner, "_maybe_build_image"),
+            NamedTemporaryFile(suffix="_runtime.yaml") as runtime_param_file,
+        ):
             # We add the runtime parameter file as parameter
             params_file_host_location = os.path.realpath(runtime_param_file.name)
             params_file_docker_location = "/opt/runtime_parameters.yaml"
@@ -639,9 +641,10 @@ class TestRuntimeParametersDockerCommand:
     ):
         args_list = request.getfixturevalue(args)
 
-        with patch.object(CMRunner, "_maybe_build_image"), NamedTemporaryFile(
-            suffix="_runtime.yaml"
-        ) as runtime_param_file:
+        with (
+            patch.object(CMRunner, "_maybe_build_image"),
+            NamedTemporaryFile(suffix="_runtime.yaml") as runtime_param_file,
+        ):
             # We add the runtime parameter file as parameter
             params_file_host_location = os.path.realpath(runtime_param_file.name)
             params_file_docker_location = "/opt/runtime_parameters.yaml"

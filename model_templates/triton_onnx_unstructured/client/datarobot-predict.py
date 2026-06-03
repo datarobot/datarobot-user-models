@@ -1,12 +1,13 @@
 """
 Usage:
     python datarobot-predict.py <input-file> [mimetype] [charset]
- 
+
 This example uses the requests library which you can install with:
     pip install requests
 We highly recommend that you update SSL certificates with:
     pip install -U "urllib3[secure]" certifi
 """
+
 import logging
 import sys
 from json import JSONDecoder
@@ -17,7 +18,6 @@ from torchvision import transforms
 import tritonclient.http as httpclient
 import requests
 import json
-
 
 logger = logging.getLogger(__name__)
 

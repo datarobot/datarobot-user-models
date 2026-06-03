@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 from sklearn.pipeline import Pipeline
 
 from model_utils import deserialize_estimator_pipeline, get_imputation_img

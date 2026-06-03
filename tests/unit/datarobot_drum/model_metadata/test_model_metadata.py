@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import itertools
 import logging
 import os
@@ -912,8 +913,7 @@ class TestRevalidateTypeSchemaNumberOfColumns:
 class TestRevalidateTypeSchemaMixedCases:
     @pytest.fixture
     def passing_yaml_string(self):
-        yield dedent(
-            """
+        yield dedent("""
             input_requirements:
             - field: data_types
               condition: IN
@@ -929,8 +929,7 @@ class TestRevalidateTypeSchemaMixedCases:
             - field: sparse
               condition: EQUALS
               value: NEVER
-            """
-        )
+            """)
 
     def test_happy_path(self, passing_yaml_string):
         parsed_yaml = load(passing_yaml_string, get_type_schema_yaml_validator())

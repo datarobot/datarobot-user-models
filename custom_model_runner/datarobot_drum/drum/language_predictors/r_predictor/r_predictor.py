@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 
@@ -260,9 +261,11 @@ class RPredictor(BaseLanguagePredictor):
         with capture_R_traceback_if_errors(r_handler, logger):
             transformations = r_handler.outer_transform(
                 binary_data=ro.vectors.ByteVector(input_binary_data),
-                target_binary_data=ro.NULL
-                if target_binary_data is None
-                else ro.vectors.ByteVector(target_binary_data),
+                target_binary_data=(
+                    ro.NULL
+                    if target_binary_data is None
+                    else ro.vectors.ByteVector(target_binary_data)
+                ),
                 mimetype=ro.NULL if mimetype is None else mimetype,
                 transformer=self._model,
                 sparse_colnames=self._get_sparse_colnames(kwargs),

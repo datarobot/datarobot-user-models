@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 # This
 
 import pandas as pd
@@ -12,7 +13,6 @@ from sklearn.tree import DecisionTreeClassifier
 from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, ApiTokenSecret
 import requests
-
 
 logger = get_drum_logger(__name__)
 

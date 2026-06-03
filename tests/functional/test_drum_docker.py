@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import os
 import pytest
 import re
@@ -30,12 +31,10 @@ from tests.constants import (
 @pytest.fixture
 def dockerfile_content():
     # py-slim image is used in another test container, so it is already expected to be in the registry
-    content = dedent(
-        """
+    content = dedent("""
     FROM python:3.12-slim
     VOLUME /data
-    """
-    )
+    """)
     return content
 
 

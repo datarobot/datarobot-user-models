@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import os
 import glob
 import shutil
@@ -171,9 +172,9 @@ def _exec_shell_cmd(
 
     if capture_output:
         if stream_output:
-            (stdout, stderr) = _stream_p_open(p)
+            stdout, stderr = _stream_p_open(p)
         else:
-            (stdout, stderr) = p.communicate()
+            stdout, stderr = p.communicate()
     else:
         stdout, stderr = None, None
 

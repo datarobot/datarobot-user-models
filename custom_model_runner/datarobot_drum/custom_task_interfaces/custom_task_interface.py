@@ -19,7 +19,6 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
 )
 from datarobot_drum.drum.exceptions import DrumSerializationError
 
-
 logger = get_drum_logger(__name__)
 
 

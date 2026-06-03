@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 import os
 from tempfile import NamedTemporaryFile
@@ -541,15 +542,13 @@ class TestInference:
 
     @pytest.fixture
     def inference_metadata_yaml(self):
-        return dedent(
-            """
+        return dedent("""
             name: custom_model
             type: inference
             targetType: {target_type}
             inferenceModel:
               targetName: this field is not used for inference
-            """
-        )
+            """)
 
     @pytest.mark.parametrize(
         "framework, problem, language, use_labels_file",
@@ -754,12 +753,10 @@ class TestInference:
         framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        config_yaml = dedent(
-            """
+        config_yaml = dedent("""
             name: custom_model
             type: inference
-            """
-        )
+            """)
 
         custom_model_dir = _create_custom_model_dir(
             resources,

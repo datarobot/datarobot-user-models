@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import numpy as np
 
 from sklearn.pipeline import Pipeline
@@ -14,7 +15,6 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from anomaly_helpers import AnomalyCalibEstimator
-
 
 ##############################
 ### Preprocessing tools
