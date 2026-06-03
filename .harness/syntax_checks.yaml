@@ -124,7 +124,6 @@ pipeline:
                           pip install -r requirements_lint.txt
                           ruff check public_dropin_notebook_environments
                           ruff format --check public_dropin_notebook_environments
->>>>>>> master
   identifier: syntax_checks
   name: syntax checks
   description: Run black and pylint checks on every PR. Lint checks are manually skipped and need to be implemented
