@@ -2,6 +2,7 @@
 PYTEST_IGNORES := -W ignore::pytest.PytestCollectionWarning
 
 MYPY_DIRS ?= public_dropin_notebook_environments
+RUFF_DIRS ?= public_dropin_notebook_environments
 
 ########################################
 ##@ General
@@ -36,6 +37,8 @@ update-env: ## Update execution-environment version
 lint: ## Run linting
 	$(MAKE) black
 	$(MAKE) mypy
+	$(MAKE) ruff-check
+	$(MAKE) ruff-format-check
 
 .PHONY: black
 black: ## Run black check
@@ -54,6 +57,22 @@ delint: ## Attempt to fix lint issues
 .PHONY: pylint
 pylint: ## Run pylint
 	pylint custom_model_runner/
+
+.PHONY: ruff-check
+ruff-check: ## Run ruff checks
+	ruff check $(RUFF_DIRS)
+
+.PHONY: ruff-check-fix
+ruff-check-fix: ## Run ruff check with fix
+	ruff check --fix $(RUFF_DIRS)
+
+.PHONY: ruff-format
+ruff-format: ## Run ruff format
+	ruff format $(RUFF_DIRS)
+
+.PHONY: ruff-format-check
+ruff-format-check: ## Run ruff format checks
+	ruff format --check $(RUFF_DIRS)
 
 ########################################
 ##@ Test
