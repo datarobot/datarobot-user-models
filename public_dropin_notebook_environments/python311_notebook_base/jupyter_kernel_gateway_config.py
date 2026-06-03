@@ -10,9 +10,7 @@ c.KernelGatewayApp.prespawn_count = 1
 c.KernelGatewayApp.max_kernels = 100
 c.KernelGatewayApp.default_kernel_name = "python3"
 c.JupyterWebsocketPersonality.list_kernels = True
-c.KernelRestarter.restart_limit = (
-    3  # if restart happens 3 consecutive times (before kernel is ready)
-)
+c.KernelRestarter.restart_limit = 3  # if restart happens 3 consecutive times (before kernel is ready)
 
 c.KernelGatewayApp.logging_config = {
     "formatters": {
