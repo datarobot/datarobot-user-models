@@ -193,9 +193,7 @@ class BaseWatcher:
 
 
 class CGroupWatcher(BaseWatcher):
-    def __init__(
-        self, cgroup_file_reader: CGroupFileReaderProtocol, system_watcher: SystemWatcher
-    ) -> None:
+    def __init__(self, cgroup_file_reader: CGroupFileReaderProtocol, system_watcher: SystemWatcher) -> None:
         self._cgroup_file_reader = cgroup_file_reader
         self._system_watcher = system_watcher
 
@@ -230,9 +228,7 @@ class CGroupWatcher(BaseWatcher):
         else:
             usage_diff = cpu_cum_usage_nanos - self._last_cpu_cum_usage_nanos
             time_diff = current_timestamp_nanos - self._last_cpu_usage_ts_nanos
-            current_usage = (
-                float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
-            )
+            current_usage = float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
 
         self._last_cpu_usage_ts_nanos = current_timestamp_nanos
         self._last_cpu_cum_usage_nanos = cpu_cum_usage_nanos

@@ -141,12 +141,10 @@ def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
     return df.sort_values(by=sort_by_list, ascending=ascending_list, ignore_index=False)
 
 
-def _aggregate_dataframe(
-    df: DataFrame, aggregation_params: DataframeAggregationParams
-) -> DataFrame:
-    aggregated = df.groupby(aggregation_params.group_by).aggregate(
-        {f"{aggregation_params.aggregate_by}": aggregation_params.aggregation_func}
-    )
+def _aggregate_dataframe(df: DataFrame, aggregation_params: DataframeAggregationParams) -> DataFrame:
+    aggregated = df.groupby(aggregation_params.group_by).aggregate({
+        f"{aggregation_params.aggregate_by}": aggregation_params.aggregation_func
+    })
     return aggregated.reset_index()
 
 
@@ -197,15 +195,11 @@ def formatter(  # noqa: C901,PLR0912
     if hasattr(val, "attrs") and "returnAll" in val.attrs and val.attrs["returnAll"]:
         # Validate what to return to UI
         if hasattr(val, "attrs") and "selected_columns" in val.attrs:
-            selected_columns = list(
-                filter(lambda item: item is not index_key, val.attrs["selected_columns"])
-            )
+            selected_columns = list(filter(lambda item: item is not index_key, val.attrs["selected_columns"]))
             try:
                 data = _prepare_df_for_chart_cell(val=data, columns=selected_columns)
             except Exception as e:
-                error.append(
-                    _register_exception(e, DataframesProcessSteps.CHART_CELL_DATAFRAME.value)
-                )
+                error.append(_register_exception(e, DataframesProcessSteps.CHART_CELL_DATAFRAME.value))
             if len(selected_columns) < 2:
                 # Reset `returnAll` attribute to prevent returning a whole DF on next formatter call
                 val.attrs.update({"returnAll": False})
@@ -321,9 +315,7 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
         dataframe_json_formatter = DataFrameFormatter()
-        ipython.display_formatter.formatters[
-            "application/vnd.dataframe+json"
-        ] = dataframe_json_formatter
+        ipython.display_formatter.formatters["application/vnd.dataframe+json"] = dataframe_json_formatter
         dataframe_json_formatter.for_type(DataFrame, formatter)
 
         print("Pandas DataFrame MimeType Extension loaded")
