@@ -13,14 +13,8 @@ supported-markers = [
 ]
 
 [manifest]
-constraints = [
-    { name = "litellm", specifier = ">=1.83.7,<2.0.0" },
-    { name = "nltk", specifier = ">=3.9.4" },
-    { name = "openai", specifier = ">=2.30.0" },
-    { name = "pdfminer-six", specifier = ">=20251230" },
-    { name = "ragas", specifier = ">=0.4.3" },
-]
 overrides = [
+    { name = "ag-ui-protocol", specifier = "==0.1.15" },
     { name = "annoy", marker = "sys_platform == 'never'" },
     { name = "build", marker = "sys_platform == 'never'" },
     { name = "diskcache", marker = "sys_platform == 'never'" },
@@ -29,19 +23,23 @@ overrides = [
     { name = "kubernetes", marker = "sys_platform == 'never'" },
     { name = "lancedb", marker = "sys_platform == 'never'" },
     { name = "langchain-milvus", marker = "sys_platform == 'never'" },
+    { name = "litellm", specifier = ">=1.83.7,<2.0.0" },
     { name = "llama-index-cli", marker = "sys_platform == 'never'" },
+    { name = "nltk", specifier = ">=3.9.4" },
     { name = "onnxruntime", marker = "sys_platform == 'never'" },
+    { name = "openai", specifier = ">=2.30.0" },
     { name = "openpyxl", marker = "sys_platform == 'never'" },
-    { name = "opentelemetry-api", specifier = ">=1.39.0,<1.40.0" },
-    { name = "opentelemetry-exporter-otlp", specifier = ">=1.39.0,<1.40.0" },
-    { name = "opentelemetry-exporter-otlp-proto-common", specifier = ">=1.39.0,<1.40.0" },
-    { name = "opentelemetry-exporter-otlp-proto-grpc", specifier = ">=1.39.0,<1.40.0" },
-    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.39.0,<1.40.0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.39.0,<1.40.0" },
+    { name = "opentelemetry-api", specifier = ">=1.39.0,<2.0.0" },
+    { name = "opentelemetry-exporter-otlp-proto-common", specifier = ">=1.39.0,<2.0.0" },
+    { name = "opentelemetry-exporter-otlp-proto-grpc", specifier = ">=1.39.0,<2.0.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.39.0,<2.0.0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.39.0,<2.0.0" },
+    { name = "pdfminer-six", specifier = ">=20251230" },
     { name = "pyfiglet", marker = "sys_platform == 'never'" },
     { name = "pymilvus", marker = "sys_platform == 'never'" },
     { name = "python-docx", marker = "sys_platform == 'never'" },
     { name = "pytube", marker = "sys_platform == 'never'" },
+    { name = "ragas", specifier = ">=0.4.3" },
     { name = "scikit-network", marker = "sys_platform == 'never'" },
     { name = "shellingham", marker = "sys_platform == 'never'" },
     { name = "stagehand", marker = "sys_platform == 'never'" },
@@ -1055,7 +1053,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-drum"
-version = "1.17.17"
+version = "1.17.11.post1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1080,7 +1078,6 @@ dependencies = [
     { name = "progress", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "py4j", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pydantic", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "pytz", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "scipy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1090,7 +1087,7 @@ dependencies = [
     { name = "trafaret", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/87/ec033768ef788203ec0bc56d76177b6914f2254d99bd0590ef007d6bd867/datarobot_drum-1.17.17-py3-none-any.whl", hash = "sha256:bc5f591833d6ca39b3ab56ceb64ea480cfbf1637e5d52c4a70c21767a88c3d37", size = 10818279, upload-time = "2026-05-18T13:43:56.84Z" },
+    { url = "https://files.pythonhosted.org/packages/f9/9f/48fd6eb0c192ef266ad1af15d1d252cb82b0d2c401743ed5feafb6ca05de/datarobot_drum-1.17.11.post1-py3-none-any.whl", hash = "sha256:f7e96cf0255393483ae9aedcbbcce210ebaf0932fc2e15b5d500480ba7c3a478", size = 10804773, upload-time = "2026-02-27T18:44:14.429Z" },
 ]
 
 [[package]]
@@ -1117,11 +1114,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.15.87"
+version = "0.15.113"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/06/ff/1824ce75ac08f319f0a9c77f94f515f806307c2a5a0b39b10bc144ac0335/datarobot_genai-0.15.87.tar.gz", hash = "sha256:ecf278a7867cd6c1aac27de1424d155450c77dd3a5824744f5acdad07d9af991", size = 329249, upload-time = "2026-05-29T18:27:16.493Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/fc/905a081e42e5be9c22c59899705f2a6c482070269b2ebc0595756e03848d/datarobot_genai-0.15.113.tar.gz", hash = "sha256:c4bbf358776727b62c18d3d9cc24f42d1720c06613c8c78e573db39b69e61583", size = 363331, upload-time = "2026-06-05T19:01:02.29Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/d0/73eb6f2ee77896fe65fa7c4e0df71797608f9fd8837271f5274ac758359a/datarobot_genai-0.15.87-py3-none-any.whl", hash = "sha256:3b2e3ebfc5cb77877799d246c9723d6b77417575a41f748c1225fb9565b634ed", size = 457029, upload-time = "2026-05-29T18:27:14.663Z" },
+    { url = "https://files.pythonhosted.org/packages/ee/10/f37b8c27d9fc865ceaa6f3a78ddea70c87c5dc8aad0f02357678fdd7904d/datarobot_genai-0.15.113-py3-none-any.whl", hash = "sha256:9903f671fcf627b584f33c086bacd51f75625e2173a706a521cd4e3526b3bab0", size = 505714, upload-time = "2026-06-05T19:00:59.794Z" },
 ]
 
 [package.optional-dependencies]
@@ -1315,7 +1312,7 @@ nat = [
 
 [[package]]
 name = "datarobot-mlops"
-version = "11.1.28"
+version = "11.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "orjson", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1325,17 +1322,19 @@ dependencies = [
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/06/23c2885657b75bb81288c2e442f6aa54b811e2af847cba59b211358c1f82/datarobot_mlops-11.1.28-py3-none-any.whl", hash = "sha256:9745610e5bc2b3e0f2328d555fac068951ee528836ecfecc192daf3df599925f", size = 111386, upload-time = "2026-04-17T15:59:50.593Z" },
+    { url = "https://files.pythonhosted.org/packages/be/11/3b7bbc731ebe5f2ce95a1b1ae1a23a6633bf4929fa6dcad8da5378cc28f9/datarobot_mlops-11.1.0-py3-none-any.whl", hash = "sha256:a191010d783b9a926366dd9edd2ca9762b2dd0b6e1dae40e93b908b074f97966", size = 111391, upload-time = "2025-06-26T14:41:57.918Z" },
 ]
 
 [[package]]
 name = "datarobot-moderations"
-version = "11.2.30"
+version = "11.2.33"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "backoff", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "click", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-api", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-exporter-otlp-proto-http", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-instrumentation", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1343,11 +1342,13 @@ dependencies = [
     { name = "pandas", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pillow", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pydantic", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "ragas", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "rouge-score", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "tiktoken", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/57/ba/d594bdcb2a21817ca854f593302b31c7dd7c064db76873de73c686e5768b/datarobot_moderations-11.2.30-py3-none-any.whl", hash = "sha256:a31d5d80a946d664d6d267898d41b9041134a0eef4a02037bc31adfe01ed6f28", size = 123894, upload-time = "2026-05-19T16:20:45.444Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/26/763042a9b2ae2f6bcf10aee14a019d3a52d36becb9bb6091f8f40492d660/datarobot_moderations-11.2.33-py3-none-any.whl", hash = "sha256:1b835a8e53306b41407ff30dbd90631cbe0084cdbe5bb0bdb2b79999dc1adcf8", size = 149461, upload-time = "2026-06-03T13:33:56.177Z" },
 ]
 
 [package.optional-dependencies]
@@ -1368,8 +1369,6 @@ all = [
     { name = "llama-index-llms-vertex", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "nemo-microservices", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "nemoguardrails", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "ragas", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 
 [[package]]
@@ -1572,7 +1571,6 @@ name = "dockercontext"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "ag-ui-protocol", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "anyio", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-drum", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-genai", extra = ["auth", "crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1609,12 +1607,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "ag-ui-protocol", specifier = "==0.1.15" },
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
-    { name = "datarobot-drum", specifier = "==1.17.17" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.87" },
-    { name = "datarobot-mlops", specifier = "==11.1.28" },
-    { name = "datarobot-moderations", extras = ["all"], specifier = "==11.2.30" },
+    { name = "datarobot-drum", specifier = "==1.17.11.post1" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.113" },
+    { name = "datarobot-mlops", specifier = "==11.1.0" },
+    { name = "datarobot-moderations", extras = ["all"], specifier = "==11.2.33" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
     { name = "ipykernel", marker = "extra == 'agentic-playground'", specifier = "<6.29.0" },
@@ -3978,6 +3975,7 @@ dependencies = [
     { name = "langchain-core", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "lark", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "nest-asyncio", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-api", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pandas", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "prompt-toolkit", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -5760,6 +5758,15 @@ wheels = [
 ]
 
 [[package]]
+name = "ruamel-yaml"
+version = "0.17.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/62/cf/148028462ab88a71046ba0a30780357ae9e07125863ea9ca7808f1ea3798/ruamel.yaml-0.17.4.tar.gz", hash = "sha256:44bc6b54fddd45e4bc0619059196679f9e8b79c027f4131bb072e6a22f4d5e28", size = 119758, upload-time = "2021-04-07T19:50:24.627Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/29/4e/c3105bbbbc662f6a671a505f00ec771e93b5254f09fbb06002af9087071a/ruamel.yaml-0.17.4-py3-none-any.whl", hash = "sha256:ac79fb25f5476e8e9ed1c53b8a2286d2c3f5dde49eb37dbcee5c7eb6a8415a22", size = 101915, upload-time = "2021-04-07T19:50:28.634Z" },
+]
+
+[[package]]
 name = "ruff"
 version = "0.15.13"
 source = { registry = "https://pypi.org/simple" }
@@ -6008,15 +6015,13 @@ wheels = [
 
 [[package]]
 name = "strictyaml"
-version = "1.7.3"
+version = "1.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "ruamel-yaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b3/08/efd28d49162ce89c2ad61a88bd80e11fb77bc9f6c145402589112d38f8af/strictyaml-1.7.3.tar.gz", hash = "sha256:22f854a5fcab42b5ddba8030a0e4be51ca89af0267961c8d6cfa86395586c407", size = 115206, upload-time = "2023-03-10T12:50:27.062Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/7c/a81ef5ef10978dd073a854e0fa93b5d8021d0594b639cc8f6453c3c78a1d/strictyaml-1.7.3-py3-none-any.whl", hash = "sha256:fb5c8a4edb43bebb765959e420f9b3978d7f1af88c80606c03fb420888f5d1c7", size = 123917, upload-time = "2023-03-10T12:50:17.242Z" },
-]
+sdist = { url = "https://files.pythonhosted.org/packages/59/ac/cde8c4ddafa3bf46d9884d7c9e327aa50edb7a978e9a1b3f673b2a0f2750/strictyaml-1.4.2.tar.gz", hash = "sha256:ddb4e4e807dd510c9bc7fc50fc8d1369ed696ed5cc92d494b5e752ba8276a5a2", size = 50539, upload-time = "2021-05-31T16:59:28.833Z" }
 
 [[package]]
 name = "striprtf"
