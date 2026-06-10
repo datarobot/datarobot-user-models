@@ -5,8 +5,8 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.87",
-    "datarobot-moderations[all]==11.2.30",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.15.125",
+    "datarobot-moderations[all]==11.2.33",
     "datarobot-drum==1.17.17",
     "datarobot-mlops==11.1.28",
     "langchain-litellm>=0.2.3",
@@ -14,9 +14,6 @@ dependencies = [
     "opentelemetry-sdk>=1.33.0,<2.0.0",
     "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
     "packaging>=25.0,<26.0",
-    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
-    # recipe-datarobot-agent-application.
-    "ag-ui-protocol==0.1.15",
 ]
 
 [project.optional-dependencies]
@@ -175,26 +172,26 @@ follow_imports = "skip"
 
 [tool.uv]
 required-version = ">=0.7.0"
-constraint-dependencies = [
+override-dependencies = [
+    # crewai and drum pin otel to 1.34.x but datarobot-moderations needs 0.60b1
+    # instrumentation which requires otel 1.39.x. Override the entire otel family
+    # to stay version-synchronized at 1.39.x / 0.60b1.
+    "opentelemetry-api>=1.39.0,<2.0.0",
+    "opentelemetry-sdk>=1.39.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.39.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.39.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.39.0,<2.0.0",
+
+    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
+    # recipe-datarobot-agent-application.
+    "ag-ui-protocol==0.1.15",
+
     # CVE fixes
     "litellm>=1.83.7,<2.0.0",
     "nltk>=3.9.4",
     "openai>=2.30.0",  # litellm >= 1.83.7 pins openai at 2.24, causing dependency rollback and re-introducing CVEs.
     "pdfminer.six>=20251230",
     "ragas>=0.4.3",
-]
-override-dependencies = [
-    # crewai pin otel to 1.34.x but datarobot-moderations requires 0.60b1
-    # instrumentation which requires otel >1.39.x. Override the entire otel family
-    # to stay version-synchronized at 1.39.x. Do not let it upgrade to the
-    # latter version: because we are using override-dependencies this may result in
-    # out of sync versions of an exporter and SDK for example. See https://datarobot.atlassian.net/browse/BUZZOK-31010?focusedCommentId=1218769
-    "opentelemetry-api>=1.39.0,<1.40.0",
-    "opentelemetry-sdk>=1.39.0,<1.40.0",
-    "opentelemetry-exporter-otlp>=1.39.0,<1.40.0",
-    "opentelemetry-exporter-otlp-proto-http>=1.39.0,<1.40.0",
-    "opentelemetry-exporter-otlp-proto-common>=1.39.0,<1.40.0",
-    "opentelemetry-exporter-otlp-proto-grpc>=1.39.0,<1.40.0",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
