@@ -1013,7 +1013,7 @@ wheels = [
 
 [[package]]
 name = "datarobot"
-version = "3.15.0"
+version = "3.16.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1028,9 +1028,9 @@ dependencies = [
     { name = "typing-extensions", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "urllib3", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ea/2b/33b31f3681fcb669ad3857761ecfd310c2771d733406ef7f394c988a3148/datarobot-3.15.0.tar.gz", hash = "sha256:e6a63aae3f61c3348cc195b9d4d5c00335c07b9dfd24f49dcea96ef0eae19cf7", size = 806839, upload-time = "2026-05-07T19:41:41.11Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/95/2f/41c103556138f6014fb70ea83edea6ae08942fc84aea9ac0146fc76c724d/datarobot-3.16.0.tar.gz", hash = "sha256:77711633b303966acf54d80eb9ba6f1350850ff0493f14c1a4a391ca85fd7aa0", size = 817184, upload-time = "2026-05-27T13:10:11.896Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/db/3e4aaaf35d48acfe1e99c0d4658a943e2ca0ac7f6e68b13239dac37586a2/datarobot-3.15.0-py3-none-any.whl", hash = "sha256:b3fbbaede277312a0bea36db1360c55166b93d6131a6f9d106c533fe6616fbf2", size = 873786, upload-time = "2026-05-07T19:41:39.177Z" },
+    { url = "https://files.pythonhosted.org/packages/48/6a/c180f242725be2808890d92f419dea621d6fdca44ddfb319ed4213fd4b6b/datarobot-3.16.0-py3-none-any.whl", hash = "sha256:52c1fa2dedae96d2717de2d583c3b9bd867f333b3ad82903daeadb219767e3e7", size = 883064, upload-time = "2026-05-27T13:10:09.886Z" },
 ]
 
 [package.optional-dependencies]
@@ -1053,7 +1053,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-drum"
-version = "1.17.11.post1"
+version = "1.17.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1078,6 +1078,7 @@ dependencies = [
     { name = "progress", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "py4j", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pydantic", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "pytz", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "requests", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "scipy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1087,7 +1088,7 @@ dependencies = [
     { name = "trafaret", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f9/9f/48fd6eb0c192ef266ad1af15d1d252cb82b0d2c401743ed5feafb6ca05de/datarobot_drum-1.17.11.post1-py3-none-any.whl", hash = "sha256:f7e96cf0255393483ae9aedcbbcce210ebaf0932fc2e15b5d500480ba7c3a478", size = 10804773, upload-time = "2026-02-27T18:44:14.429Z" },
+    { url = "https://files.pythonhosted.org/packages/47/87/ec033768ef788203ec0bc56d76177b6914f2254d99bd0590ef007d6bd867/datarobot_drum-1.17.17-py3-none-any.whl", hash = "sha256:bc5f591833d6ca39b3ab56ceb64ea480cfbf1637e5d52c4a70c21767a88c3d37", size = 10818279, upload-time = "2026-05-18T13:43:56.84Z" },
 ]
 
 [[package]]
@@ -1114,11 +1115,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.15.113"
+version = "0.15.125"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d4/fc/905a081e42e5be9c22c59899705f2a6c482070269b2ebc0595756e03848d/datarobot_genai-0.15.113.tar.gz", hash = "sha256:c4bbf358776727b62c18d3d9cc24f42d1720c06613c8c78e573db39b69e61583", size = 363331, upload-time = "2026-06-05T19:01:02.29Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4d/4f/b6cb4fb0c82aa6b5ebe162c967426fa2613dba0befb112df767b535ee0fb/datarobot_genai-0.15.125.tar.gz", hash = "sha256:e1cfba73ddb596c55e584a891b2b3a850dbb34b3e778d32105a419505941127a", size = 382596, upload-time = "2026-06-10T14:40:11.821Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ee/10/f37b8c27d9fc865ceaa6f3a78ddea70c87c5dc8aad0f02357678fdd7904d/datarobot_genai-0.15.113-py3-none-any.whl", hash = "sha256:9903f671fcf627b584f33c086bacd51f75625e2173a706a521cd4e3526b3bab0", size = 505714, upload-time = "2026-06-05T19:00:59.794Z" },
+    { url = "https://files.pythonhosted.org/packages/e6/36/3420ebb01cd90e9305c40184c87eb7c5303ac8bfe11d9e740ad6087d9a25/datarobot_genai-0.15.125-py3-none-any.whl", hash = "sha256:f2515b100bfddf4536e8848a604b869723d7d396016dfb3dd805ee8ce1a21665", size = 543447, upload-time = "2026-06-10T14:40:09.776Z" },
 ]
 
 [package.optional-dependencies]
@@ -1187,6 +1188,7 @@ drmcp = [
     { name = "aiohttp-retry", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "async-lru", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "beautifulsoup4", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "cachetools", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot", extra = ["auth"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-asgi-middleware", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-early-access", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1312,7 +1314,7 @@ nat = [
 
 [[package]]
 name = "datarobot-mlops"
-version = "11.1.0"
+version = "11.1.28"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "orjson", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1322,7 +1324,7 @@ dependencies = [
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/11/3b7bbc731ebe5f2ce95a1b1ae1a23a6633bf4929fa6dcad8da5378cc28f9/datarobot_mlops-11.1.0-py3-none-any.whl", hash = "sha256:a191010d783b9a926366dd9edd2ca9762b2dd0b6e1dae40e93b908b074f97966", size = 111391, upload-time = "2025-06-26T14:41:57.918Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/06/23c2885657b75bb81288c2e442f6aa54b811e2af847cba59b211358c1f82/datarobot_mlops-11.1.28-py3-none-any.whl", hash = "sha256:9745610e5bc2b3e0f2328d555fac068951ee528836ecfecc192daf3df599925f", size = 111386, upload-time = "2026-04-17T15:59:50.593Z" },
 ]
 
 [[package]]
@@ -1608,9 +1610,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
-    { name = "datarobot-drum", specifier = "==1.17.11.post1" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.113" },
-    { name = "datarobot-mlops", specifier = "==11.1.0" },
+    { name = "datarobot-drum", specifier = "==1.17.17" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.15.125" },
+    { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "datarobot-moderations", extras = ["all"], specifier = "==11.2.33" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
@@ -1754,19 +1756,19 @@ wheels = [
 
 [[package]]
 name = "fastmcp"
-version = "3.3.1"
+version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "fastmcp-slim", extra = ["client", "server"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3b/a9/5c5a01b6abd5346bf60b97cfd29e4a86661940c27dd562bfcda07fd03519/fastmcp-3.3.1.tar.gz", hash = "sha256:979362ea557de42a5f40342563c7e4b236bcc8e7cd192715f50030695d1a71cd", size = 28681699, upload-time = "2026-05-15T15:50:39.673Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/18/46beaec18c9f86a599ae3f9cdf6677dd6b50240cfd844d18233710b47f13/fastmcp-3.4.2.tar.gz", hash = "sha256:b468722946fc467c3796a6572f7a14d93d48c014cf8fea12910245220cbbe4e1", size = 28756849, upload-time = "2026-06-06T01:30:35.694Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/11/6b1bdada6ccfe647d615ae63f9106f8136aec17971e9361546af01c7d38e/fastmcp-3.3.1-py3-none-any.whl", hash = "sha256:862440c5c4d281363a5995eee59d77f0f7cac1f18869038729cecf03b02fc522", size = 7903, upload-time = "2026-05-15T15:50:36.424Z" },
+    { url = "https://files.pythonhosted.org/packages/58/4d/8b1ba42251160e11ca34686344572121432c23a082d56ef6bbdec5888fc1/fastmcp-3.4.2-py3-none-any.whl", hash = "sha256:c87a62b029f0c5400ada85f683629345d2466c39169f0cb853e487b2f7308c08", size = 8018, upload-time = "2026-06-06T01:30:38.118Z" },
 ]
 
 [[package]]
 name = "fastmcp-slim"
-version = "3.3.1"
+version = "3.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "platformdirs", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1776,9 +1778,9 @@ dependencies = [
     { name = "rich", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "typing-extensions", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d1/a0/627103e517e1d0d6f1eec633d5662d13e776f01b45ad188e4f5f7478b438/fastmcp_slim-3.3.1.tar.gz", hash = "sha256:0957835fc59452e143ab2f4b7836d2d2df9b2d9958408edc79ba8b56232b2a88", size = 567007, upload-time = "2026-05-15T15:50:10.426Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/2e/d627b28b7403ecc526991ef732921b08bde010006e6148635f053fd29f4c/fastmcp_slim-3.4.2.tar.gz", hash = "sha256:290646e0955a516235a317151034559aa48336cb843d3f006131aedad8759bb4", size = 576291, upload-time = "2026-06-06T01:30:12.553Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/7a/ee/97047f4cc2d7b1d46670d08d8ad01a96e7a748cc01c0b4b351ad8eddbc7a/fastmcp_slim-3.3.1-py3-none-any.whl", hash = "sha256:6cf1c2d77e3adb0d409d6825ed6b0b2a999062973e00b8eea03bd48bf9b4c043", size = 738644, upload-time = "2026-05-15T15:50:08.336Z" },
+    { url = "https://files.pythonhosted.org/packages/f7/58/22afebf18df7260b09148199cbeb90cdcc4b3a4e1b5d7460e3591c3a7add/fastmcp_slim-3.4.2-py3-none-any.whl", hash = "sha256:bdc72492212681ca502755fa8acc0457f559295da1fc3dfc0599adc1c04b82f3", size = 749195, upload-time = "2026-06-06T01:30:11.22Z" },
 ]
 
 [package.optional-dependencies]
@@ -1789,6 +1791,7 @@ client = [
     { name = "mcp", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-api", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "py-key-value-aio", extra = ["filetree", "keyring", "memory"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "starlette", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 server = [
     { name = "authlib", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1796,6 +1799,7 @@ server = [
     { name = "exceptiongroup", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "griffelib", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "httpx", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "joserfc", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "jsonref", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "jsonschema-path", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "mcp", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1806,6 +1810,7 @@ server = [
     { name = "pyperclip", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "python-multipart", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyyaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "starlette", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "uncalled-for", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "uvicorn", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "watchfiles", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -5758,15 +5763,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ruamel-yaml"
-version = "0.17.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/62/cf/148028462ab88a71046ba0a30780357ae9e07125863ea9ca7808f1ea3798/ruamel.yaml-0.17.4.tar.gz", hash = "sha256:44bc6b54fddd45e4bc0619059196679f9e8b79c027f4131bb072e6a22f4d5e28", size = 119758, upload-time = "2021-04-07T19:50:24.627Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/29/4e/c3105bbbbc662f6a671a505f00ec771e93b5254f09fbb06002af9087071a/ruamel.yaml-0.17.4-py3-none-any.whl", hash = "sha256:ac79fb25f5476e8e9ed1c53b8a2286d2c3f5dde49eb37dbcee5c7eb6a8415a22", size = 101915, upload-time = "2021-04-07T19:50:28.634Z" },
-]
-
-[[package]]
 name = "ruff"
 version = "0.15.13"
 source = { registry = "https://pypi.org/simple" }
@@ -6015,13 +6011,15 @@ wheels = [
 
 [[package]]
 name = "strictyaml"
-version = "1.4.2"
+version = "1.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
-    { name = "ruamel-yaml", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/59/ac/cde8c4ddafa3bf46d9884d7c9e327aa50edb7a978e9a1b3f673b2a0f2750/strictyaml-1.4.2.tar.gz", hash = "sha256:ddb4e4e807dd510c9bc7fc50fc8d1369ed696ed5cc92d494b5e752ba8276a5a2", size = 50539, upload-time = "2021-05-31T16:59:28.833Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b3/08/efd28d49162ce89c2ad61a88bd80e11fb77bc9f6c145402589112d38f8af/strictyaml-1.7.3.tar.gz", hash = "sha256:22f854a5fcab42b5ddba8030a0e4be51ca89af0267961c8d6cfa86395586c407", size = 115206, upload-time = "2023-03-10T12:50:27.062Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/7c/a81ef5ef10978dd073a854e0fa93b5d8021d0594b639cc8f6453c3c78a1d/strictyaml-1.7.3-py3-none-any.whl", hash = "sha256:fb5c8a4edb43bebb765959e420f9b3978d7f1af88c80606c03fb420888f5d1c7", size = 123917, upload-time = "2023-03-10T12:50:17.242Z" },
+]
 
 [[package]]
 name = "striprtf"
