@@ -44,8 +44,8 @@ lint: ## Run linting
 black: ## Run black check
 	black --check --diff .
 
-.PHONY: black-fix
-black: ## Run black fix
+.PHONY: black
+black: ## Run black
 	black .
 
 .PHONY: mypy
@@ -55,7 +55,7 @@ mypy: ## Run mypy check
 
 .PHONY: delint
 delint: ## Attempt to fix lint issues
-	$(MAKE) black-fix
+	$(MAKE) black
 	$(MAKE) ruff-check-fix
 	$(MAKE) ruff-format
 
