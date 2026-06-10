@@ -24,6 +24,7 @@ openpyxl==3.0.10
 Pillow==12.2.0
 pandas==2.3.3
 plotly==5.18.0
+pulumi-datarobot==0.10.38
 pydantic==2.9.2
 scikit-learn==1.6.1
 scipy==1.15.3
