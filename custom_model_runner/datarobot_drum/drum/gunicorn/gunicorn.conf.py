@@ -50,6 +50,7 @@ if RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
     if temp_worker_class in {"sync", "gevent"}:
         worker_class = temp_worker_class
 
+graceful_timeout = 299
 if RuntimeParameters.has("DRUM_GUNICORN_GRACEFUL_TIMEOUT"):
     temp_graceful_timeout = int(RuntimeParameters.get("DRUM_GUNICORN_GRACEFUL_TIMEOUT"))
     if 1 <= temp_graceful_timeout <= 3600:
