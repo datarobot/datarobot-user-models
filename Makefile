@@ -44,14 +44,20 @@ lint: ## Run linting
 black: ## Run black check
 	black --check --diff .
 
+.PHONY: black
+black: ## Run black
+	black .
+
 .PHONY: mypy
 mypy: ## Run mypy check
 	mypy --version
-	mypy $(MYPY_DIRS)
+	mypy --explicit-package-bases $(MYPY_DIRS)
 
 .PHONY: delint
 delint: ## Attempt to fix lint issues
-	black .
+	$(MAKE) black
+	$(MAKE) ruff-check-fix
+	$(MAKE) ruff-format
 
 # NOTE: pylint currently yields lots of errors, so it is in a separate target
 .PHONY: pylint
