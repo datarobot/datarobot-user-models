@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Per-UID `ulimit -u` (max user processes) is shared across pods on a node;
-# override via NOTEBOOKS_NPROC_LIMIT.
+# Sets the max user processes (ulimit -u) via NOTEBOOKS_NPROC_LIMIT.
 # Coerce to a positive integer; fall back to default if the env value is
 # missing, non-numeric, or zero/negative (don't trust the value blindly: it is
 # interpolated into a script that gets sourced from /etc/profile.d).
