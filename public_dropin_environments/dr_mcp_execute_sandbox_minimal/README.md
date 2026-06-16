@@ -48,6 +48,11 @@ change. The published URI is:
 datarobotdev/datarobot-user-models:public_dropin_environments_dr_mcp_execute_sandbox_minimal_latest
 ```
 
+> The publish trigger is path-filtered to this folder, so the `_latest` tag is
+> (re)built only when files here change on master. The initial build (#2137)
+> predated the requirements.txt-less build fix (#2149), so this note exists to
+> re-trigger the publish.
+
 ## Source of truth
 
 The Dockerfile and runner are mirrored from
