@@ -6,7 +6,7 @@
 # interpolated into a script that gets sourced from /etc/profile.d).
 DEFAULT_NPROC_LIMIT=8192
 if [ -z "${NOTEBOOKS_NPROC_LIMIT:-}" ]; then
-    echo "NOTEBOOKS_NPROC_LIMIT not set, defaulting to ${DEFAULT_NPROC_LIMIT}."
+    echo "NOTEBOOKS_NPROC_LIMIT not set, defaulting to ${DEFAULT_NPROC_LIMIT}." >&2
     nproc_limit=$DEFAULT_NPROC_LIMIT
 elif ! [[ "$NOTEBOOKS_NPROC_LIMIT" =~ ^[1-9][0-9]*$ ]]; then
     echo "NOTEBOOKS_NPROC_LIMIT='${NOTEBOOKS_NPROC_LIMIT}' is not a positive integer, defaulting to ${DEFAULT_NPROC_LIMIT}." >&2
