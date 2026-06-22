@@ -14,6 +14,9 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
+ARG CLI_VERSION=v0.2.74
+ARG GITHELPER_VERSION=v0.0.29
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
@@ -25,6 +28,8 @@ ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
 ARG GIT_COMMIT
+
+ARG GITHELPER_VERSION
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
@@ -52,7 +57,7 @@ RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
-RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.27/drgithelper && chmod +x drgithelper
+RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/${GITHELPER_VERSION}/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
@@ -127,6 +132,8 @@ ARG WORKDIR
 
 ARG GIT_COMMIT
 
+ARG CLI_VERSION
+
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
@@ -135,10 +142,10 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
 # Install DR CLI
-RUN wget -q https://github.com/datarobot-oss/cli/releases/download/v0.2.60/dr_v0.2.60_Linux_x86_64.tar.gz \
+RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
-    && tar -xvzf dr_v0.2.60_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
-    && rm dr_v0.2.60_Linux_x86_64.tar.gz
+    && tar -xvzf dr_"$CLI_VERSION"_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm dr_"$CLI_VERSION"_Linux_x86_64.tar.gz
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
