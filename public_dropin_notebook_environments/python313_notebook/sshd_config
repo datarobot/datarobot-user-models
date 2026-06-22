@@ -83,7 +83,7 @@ AuthorizedKeysFile      .ssh/authorized_keys /etc/authorized_keys/%u
 
 #AllowAgentForwarding yes
 # Feel free to re-enable these if your use case requires them.
-AllowTcpForwarding no
+AllowTcpForwarding yes
 GatewayPorts no
 X11Forwarding no
 #X11DisplayOffset 10
@@ -92,7 +92,7 @@ X11Forwarding no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
-#PermitUserEnvironment no
+PermitUserEnvironment yes
 #Compression delayed
 #ClientAliveInterval 0
 #ClientAliveCountMax 3

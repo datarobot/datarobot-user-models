@@ -32,18 +32,19 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
-  apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
+  apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
   pulumi pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
-  gh uv task bash-completion \
+  gh uv task bash-completion xdg-utils \
   && rm -rf /var/cache/apk/
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
-    NOTEBOOKS_KERNEL="python"
+    NOTEBOOKS_KERNEL="python" \
+    VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
