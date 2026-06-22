@@ -1,6 +1,6 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-guard image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
+ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
 USER root
@@ -13,7 +13,7 @@ RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13
 
 USER root
 
@@ -26,6 +26,8 @@ COPY --from=build /usr/bin/busybox /usr/bin/busybox
 
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
+# Not present in non-dev image now, so /bin/sh call fails without this
+COPY --from=build /usr/lib/libcrypt.so.1 /usr/lib/libcrypt.so.1
 
 # Required to change the ownership of copied files into the managed-image
 COPY --from=build /bin/chown /bin/chown
@@ -41,7 +43,7 @@ COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
-COPY --from=build /usr/lib/python3.12/site-packages/pip /usr/lib/python3.12/site-packages/pip
+COPY --from=build /usr/lib/python3.13/site-packages/pip /usr/lib/python3.13/site-packages/pip
 
 # Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
 COPY --from=build /usr/bin/rm /usr/bin/rm
@@ -55,10 +57,10 @@ COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
 
-RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
-    . ${VIRTUAL_ENV}/bin/activate && \
-    /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
-    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} \
+    && source ${VIRTUAL_ENV}/bin/activate \
+    && /usr/bin/python -m pip install --no-cache-dir -r requirements.txt \
+    && find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
@@ -74,7 +76,7 @@ ENV WITH_ERROR_SERVER=0 \
 
 # Both system python and venv python should look at both venv and system site
 # packages.
-ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-packages
+ENV PYTHONPATH=/opt/venv/lib/python3.13/site-packages:/usr/lib/python3.13/site-packages
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
