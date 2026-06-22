@@ -43,8 +43,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
-    NOTEBOOKS_KERNEL="python" \
-    VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
+    NOTEBOOKS_KERNEL="python"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
