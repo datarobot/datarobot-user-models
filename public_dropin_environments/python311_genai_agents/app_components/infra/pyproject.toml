@@ -1,12 +1,12 @@
 [project]
 name = "infra"
-version = "11.1.10"
+version = "11.1.11"
 description = """
 This is a template for DataRobot Agents.
 """
 requires-python = ">=3.11"
 dependencies = [
-    "datarobot-pulumi-utils>=0.0.2.post11",
+    "datarobot-pulumi-utils>=0.1.6",
     "pulumi>=3.241.0",
     # Update Dockerfile whenever changing version of pulumi-datarobot. Plugin and library versions must match.
     "pulumi-datarobot==0.10.30",
@@ -26,5 +26,6 @@ required-version = ">=0.10.0"
 constraint-dependencies = [
     # CVE fixes - constraints for transitive dependencies.
     "idna>=3.15",
+    "tornado>=6.5.7",
     "urllib3>=2.7.0",
 ]
