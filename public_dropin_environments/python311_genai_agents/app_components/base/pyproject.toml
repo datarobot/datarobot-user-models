@@ -1,6 +1,6 @@
 [project]
 name = "datarobot-agents-templates"
-version = "11.1.10"
+version = "11.1.11"
 description = """
 This is a template for DataRobot Agents.
 """
