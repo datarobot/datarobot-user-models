@@ -22,6 +22,10 @@
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
+# The chainguard base defaults to a non-root user, which can't write to /opt;
+# switch to root so the venv can be created at ${VIRTUAL_ENV}.
+USER root
+
 ENV VIRTUAL_ENV=/opt/venv
 RUN /usr/bin/python -m venv ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
