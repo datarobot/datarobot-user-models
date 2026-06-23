@@ -19,12 +19,6 @@ inputSet:
       - name: env_name
         type: String
         value: dr_mcp_execute_sandbox_minimal
-      - name: context_path
-        type: String
-        value: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
-      - name: dockerfile_path
-        type: String
-        value: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
       - name: image_tag
         type: String
         value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
