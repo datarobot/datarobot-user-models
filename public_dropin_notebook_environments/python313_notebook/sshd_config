@@ -108,7 +108,7 @@ SetEnv VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
 #Banner none
 
 # override default of no subsystems
-Subsystem       sftp    /usr/lib/ssh/sftp-server
+Subsystem       sftp    internal-sftp
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
