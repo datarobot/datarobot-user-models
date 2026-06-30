@@ -13,12 +13,15 @@ inputSet:
             spec:
               branch: <+trigger.branch>
     variables:
-      - name: env_folder
+      - name: context_path
         type: String
-        value: public_dropin_environments
-      - name: env_name
+        value: public_dropin_environments/dr_mcp_execute_sandbox_minimal
+      - name: dockerfile_path
         type: String
-        value: dr_mcp_execute_sandbox_minimal
+        value: public_dropin_environments/dr_mcp_execute_sandbox_minimal/Dockerfile
+      - name: image_namespace_repo
+        type: String
+        value: datarobotdev/datarobot-user-models
       - name: image_tag
         type: String
-        value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
+        value: public_dropin_environments_dr_mcp_execute_sandbox_minimal_latest
