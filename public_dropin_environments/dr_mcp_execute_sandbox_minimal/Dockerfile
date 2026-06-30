@@ -27,9 +27,12 @@ FROM ${BASE_ROOT_IMAGE} AS build
 USER root
 
 ENV VIRTUAL_ENV=/opt/venv
+# Use the venv's own interpreter for pip so packages land in ${VIRTUAL_ENV}
+# (which the final stage copies). Running ``/usr/bin/python -m pip`` here would
+# install into the base interpreter's site-packages instead, and those are not
+# carried over to the runtime stage — leaving polars/pyarrow/etc. missing.
 RUN /usr/bin/python -m venv ${VIRTUAL_ENV} && \
-    . ${VIRTUAL_ENV}/bin/activate && \
-    /usr/bin/python -m pip install --no-cache-dir \
+    ${VIRTUAL_ENV}/bin/python -m pip install --no-cache-dir \
         "polars>=1.0.0,<2.0.0" \
         "pyarrow>=21.0.0,<22.0.0" \
         "datarobot>=3.10.0,<3.11.0" \
@@ -58,4 +61,9 @@ ENV PYTHONUNBUFFERED=1
 USER 65534:65534
 WORKDIR /opt/dr_sandbox
 
-CMD ["/usr/bin/python", "/opt/dr_sandbox/runner.py"]
+# The chainguard base sets ENTRYPOINT ["/usr/bin/python"]; reset it to the venv
+# interpreter (which has polars/pyarrow/datarobot) and pass only the script as
+# CMD. Leaving the inherited entrypoint in place would run
+# ``python /usr/bin/python /opt/dr_sandbox/runner.py`` and fail immediately.
+ENTRYPOINT ["/opt/venv/bin/python"]
+CMD ["/opt/dr_sandbox/runner.py"]
