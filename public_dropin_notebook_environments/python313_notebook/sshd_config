@@ -95,8 +95,8 @@ X11Forwarding no
 PermitUserEnvironment yes
 SetEnv VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
 #Compression delayed
-#ClientAliveInterval 0
-#ClientAliveCountMax 3
+ClientAliveInterval 60
+ClientAliveCountMax 10
 #UseDNS no
 #PidFile /run/sshd.pid
 #MaxStartups 10:30:100
