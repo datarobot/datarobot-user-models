@@ -146,7 +146,10 @@ COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
     && tar -xvzf dr_"$CLI_VERSION"_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
-    && rm dr_"$CLI_VERSION"_Linux_x86_64.tar.gz
+    && rm dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
+    && chmod +x /home/notebooks/.local/bin/dr/dr \
+    && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
+    && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
