@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_pytorch",
   "imageRepository": "env-python-pytorch",
   "tags": [
-    "v11.10.0-6a185da95df96107eef0fd33",
+    "v11.11.0-6a185da95df96107eef0fd33",
     "6a185da95df96107eef0fd33",
-    "v11.10.0-latest"
+    "v11.11.0-latest"
   ]
 }
