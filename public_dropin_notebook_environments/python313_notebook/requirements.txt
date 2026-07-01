@@ -7,7 +7,7 @@ datarobot-drum==1.17.17
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.6.14
 datarobot-predict==1.9.4
-datarobot[core]==3.16.0
+datarobot[core]==3.17.0rc1
 dummyPy==0.3
 eli5==0.16.0
 gensim==4.4.0
@@ -16,7 +16,7 @@ imblearn
 joblib==1.2.0
 latexify-py==0.4.4
 lime==0.2.0.1
-matplotlib==3.8.4
+matplotlib==3.11.0
 mistune==3.2.1
 numpy==2.4.6
 opencv-python-headless==4.11.0.86
