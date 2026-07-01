@@ -25,6 +25,7 @@ value.
 import base64
 import json
 import os
+import resource
 import signal
 import sys
 import traceback
@@ -57,6 +58,52 @@ def _on_alarm(_signum: int, _frame: Any) -> None:
     raise _SandboxTimeout("sandbox exceeded timeout")
 
 
+# ===========================================================================
+#                  *** PROCESS COUNT CAPPED ***
+#
+# Before running user code the runner caps how many processes/threads it may
+# spawn, via RLIMIT_NPROC, to blunt fork-bombs and runaway process creation
+# in untrusted code — a single sandbox exhausting node PIDs is a
+# noisy-neighbour / DoS vector. Override with DR_SANDBOX_MAX_PROCS at launch;
+# set it to 0 to disable. The default is high enough for normal multi-threaded
+# workloads (polars / pyarrow thread pools) yet far below what a fork-bomb
+# needs to hurt the node.
+#
+# RLIMIT_NPROC counts all tasks (processes AND threads) for the container's
+# UID, so the cap must comfortably exceed a reasonable thread-pool size. Like
+# the wall-clock above, this is defense-in-depth for accidental/abusive
+# process creation — the hard enforcement is a pod/node cgroup ``pids`` limit
+# (tracked separately); this runner-side cap needs no cluster support and
+# works in local/dev containers too.
+# ===========================================================================
+DEFAULT_MAX_PROCS = 256
+
+
+def _apply_process_limit() -> None:
+    """Cap RLIMIT_NPROC for user code (fork-bomb / runaway-process defense).
+
+    Tightening only: never raises an existing, lower hard limit. No-op when
+    disabled (``DR_SANDBOX_MAX_PROCS=0``) or when RLIMIT_NPROC is unavailable.
+    """
+    try:
+        max_procs = int(os.environ.get("DR_SANDBOX_MAX_PROCS", DEFAULT_MAX_PROCS))
+    except ValueError:
+        max_procs = DEFAULT_MAX_PROCS
+    if max_procs <= 0:
+        return
+    try:
+        _soft, hard = resource.getrlimit(resource.RLIMIT_NPROC)
+    except (ValueError, OSError, AttributeError):
+        # RLIMIT_NPROC not supported on this platform; nothing to enforce.
+        return
+    new_limit = max_procs if hard == resource.RLIM_INFINITY else min(max_procs, hard)
+    try:
+        resource.setrlimit(resource.RLIMIT_NPROC, (new_limit, new_limit))
+        print(f"sandbox process limit (RLIMIT_NPROC) set to {new_limit}", file=sys.stderr)
+    except (ValueError, OSError) as exc:
+        print(f"could not set process limit: {exc!r}", file=sys.stderr)
+
+
 def _decode_env(name: str, default: str) -> Any:
     raw = os.environ.get(name)
     if not raw:
@@ -80,6 +127,8 @@ def main() -> int:
 
     namespace: dict[str, Any] = {"inputs": inputs, "_return": None}
     exit_code = 0
+    # Cap process/thread creation before running user code (fork-bomb defense).
+    _apply_process_limit()
     # Defense-in-depth wall-clock for accidental hangs (infinite loops, runaway
     # ops). Not a security boundary — malicious code can reset the handler;
     # caller-side / workload-api timeout is the real enforcement.
