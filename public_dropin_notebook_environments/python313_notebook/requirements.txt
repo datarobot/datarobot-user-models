@@ -7,7 +7,7 @@ datarobot-drum==1.17.17
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.6.14
 datarobot-predict==1.9.4
-datarobot[core]==3.17.0rc1
+datarobot[core]==3.17.0
 dummyPy==0.3
 eli5==0.16.0
 gensim==4.4.0
@@ -24,7 +24,7 @@ openpyxl==3.0.10
 Pillow==12.2.0
 pandas==2.3.3
 plotly==5.18.0
-pulumi-datarobot==0.10.38
+pulumi-datarobot==0.10.42
 pydantic==2.9.2
 scikit-learn==1.6.1
 scipy==1.15.3
