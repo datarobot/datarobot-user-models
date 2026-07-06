@@ -26,10 +26,16 @@ _FORWARDED_SIGNALS = (
 
 def _install_signal_forwarder(proc):
     def _forward(sig, _frame):
-        logger.info("Forwarding signal %s to gunicorn master (pid=%s)", sig, proc.pid)
+        # Relay first: logging is not async-signal-safe (a signal landing
+        # mid-write can raise a reentrancy error), so nothing may run before
+        # send_signal that could fail and swallow the relay.
         try:
             proc.send_signal(sig)
         except ProcessLookupError:
+            pass
+        try:
+            logger.info("Forwarded signal %s to gunicorn master (pid=%s)", sig, proc.pid)
+        except Exception:
             pass
 
     for s in _FORWARDED_SIGNALS:

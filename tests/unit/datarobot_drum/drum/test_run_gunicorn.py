@@ -59,6 +59,25 @@ class TestInstallSignalForwarder:
 
         captured[signal.SIGTERM](signal.SIGTERM, None)  # must not raise
 
+    def test_handler_relays_signal_even_if_logging_fails(self):
+        # Logging is not async-signal-safe (e.g. reentrant-write RuntimeError
+        # when a signal lands mid-log); the relay must happen regardless.
+        proc = MagicMock(pid=4242)
+        captured = {}
+
+        with patch(
+            "datarobot_drum.drum.gunicorn.run_gunicorn.signal.signal",
+            side_effect=lambda s, h: captured.setdefault(s, h),
+        ):
+            _install_signal_forwarder(proc)
+
+        with patch(
+            "datarobot_drum.drum.gunicorn.run_gunicorn.logger.info",
+            side_effect=RuntimeError("reentrant call"),
+        ):
+            captured[signal.SIGTERM](signal.SIGTERM, None)  # must not raise
+        proc.send_signal.assert_called_once_with(signal.SIGTERM)
+
     def test_skips_signals_that_are_unavailable_on_this_platform(self):
         proc = MagicMock(pid=4242)
 
