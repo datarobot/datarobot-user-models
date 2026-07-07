@@ -1130,11 +1130,11 @@ fs = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.22.0"
+version = "0.23.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b4/10/71f4cdd5048d1a4ac075d6b181d274477e3397213a5b7440a92e7e76c098/datarobot_genai-0.22.0.tar.gz", hash = "sha256:58272d01d7d7445fca16320314f4acc81441726b2a4624aa1dccc01815ef159f", size = 466190, upload-time = "2026-07-02T17:05:20.997Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3b/d9/53ab636949524c46bad62c1001b409a41e72317a3e991cd3ad6be1520dd3/datarobot_genai-0.23.0.tar.gz", hash = "sha256:fb5a1f9c60e6a0c0780af1e43620751c0727229537b3ca8f032ea075f6de4007", size = 469136, upload-time = "2026-07-07T12:48:23.053Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d7/7b/6553ef8d58785ff1eb5d991e04cf04b482d5517fda2d38a48ce6f4dca312/datarobot_genai-0.22.0-py3-none-any.whl", hash = "sha256:76b7150c96bba747ef56d0ac09bfba673d728ad9dc1a26a47007c825158ab54d", size = 674768, upload-time = "2026-07-02T17:05:18.912Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/1d/513c4cfb85f5268cbb0a1e867c82de9ac7a9fdd3866e17245ae4f58c03a3/datarobot_genai-0.23.0-py3-none-any.whl", hash = "sha256:43ec7a17a4606c8f831b94fafffcf6cbf60849a0c45f7deed52b370b1be25627", size = 679307, upload-time = "2026-07-07T12:48:20.741Z" },
 ]
 
 [package.optional-dependencies]
@@ -1158,6 +1158,7 @@ crewai = [
     { name = "datarobot-moderations", extra = ["all"], marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "datarobot-predict", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "litellm", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "mcpadapt", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "nvidia-nat-crewai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "openai", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "opentelemetry-instrumentation-aiohttp-client", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1626,7 +1627,7 @@ dev = [
 requires-dist = [
     { name = "anyio", specifier = ">=4.11.0,<4.12.0" },
     { name = "datarobot-drum", specifier = "==1.17.17" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.22.0" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "nat", "auth"], specifier = "==0.23.0" },
     { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
