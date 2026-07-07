@@ -85,6 +85,7 @@ async def ssh_endpoint(websocket: WebSocket) -> None:
         reader, writer = await asyncio.open_connection('127.0.0.1', 8022)
     except OSError as exc:
         logger.error("Failed to connect to sshd: %s", exc)
+        # Error code 1011 == Internal Error
         await websocket.close(code=1011, reason=str(exc))
         return
 
