@@ -39,50 +39,26 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = "1" ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# Option 1: NAT Server
-# Requires: ENABLE_DRAGENT_SERVER runtime parameter set to True
+# Option 1: dragent Server
+# Requires: workflow.yaml
 # -----------------------------------------------------------------------------
-if [ -n "$MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER" ]; then
-    ENABLE_DRAGENT_SERVER=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(RuntimeParameters.get('ENABLE_DRAGENT_SERVER'))")
-    if [ "$ENABLE_DRAGENT_SERVER" = "True" ]; then
-	  
-	  # When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
-	  ROOT_PATH_ARG=""
-      if [ -n "${URL_PREFIX:-}" ]; then
-          ROOT_PATH_ARG="--root_path ${URL_PREFIX}"
-      fi
+if [ -f "$SCRIPT_DIR/workflow.yaml" ]; then	  
+	# When running in a DR deployment, all paths should be mounted below ${URL_PREFIX}/
+	ROOT_PATH_ARG=""
+	if [ -n "${URL_PREFIX:-}" ]; then
+		ROOT_PATH_ARG="--root_path ${URL_PREFIX}"
+	fi
 
-	  # Get the number of workers from the runtime parameter
-	  if [ -n "$MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS" ]; then
-	  	CUSTOM_MODEL_WORKERS=$(python -c "from datarobot_drum.runtime_parameters import RuntimeParameters; print(int(RuntimeParameters.get('CUSTOM_MODEL_WORKERS')))")
-	  else
-		CUSTOM_MODEL_WORKERS=1
-	  fi
+	# Get the number of workers from the runtime parameter (defaults to 1)
+	CUSTOM_MODEL_WORKERS=$(python -c "from datarobot.core import getenv; print(int(getenv('CUSTOM_MODEL_WORKERS', '1')))")
 
-      echo "Executing command: nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG"
-      echo
-      exec nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --host 0.0.0.0 --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG
-    else
-        echo "ENABLE_DRAGENT_SERVER runtime parameter is present but set to False, skipping NAT server"
-    fi
+	echo "Executing command: nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG"
+	echo
+	exec nat dragent serve --config_file $SCRIPT_DIR/workflow.yaml --host 0.0.0.0 --port 8080 --use_gunicorn true --workers $CUSTOM_MODEL_WORKERS $ROOT_PATH_ARG
 fi
 
 # -----------------------------------------------------------------------------
-# Option 2: Custom Model with DRUM Server
-# Requires: custom.py file in the same directory
-# -----------------------------------------------------------------------------
-if [ -f "$SCRIPT_DIR/custom.py" ]; then
-    echo "Starting Custom Model environment with DRUM prediction server"
-
-    # Start DRUM server
-    echo
-    echo "Executing command: drum server $*"
-    echo
-    exec drum server "$@"
-fi
-
-# -----------------------------------------------------------------------------
-# Option 3: MCP Server
+# Option 2: MCP Server
 # Requires: app/ directory in the same location
 # -----------------------------------------------------------------------------
 if [ -d "$SCRIPT_DIR/app" ]; then

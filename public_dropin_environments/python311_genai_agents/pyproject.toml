@@ -5,15 +5,10 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.18.9",
-    "datarobot-moderations[all]==11.2.33",
-    "datarobot-drum==1.17.17",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.23.0",
     "datarobot-mlops==11.1.28",
-    "langchain-litellm>=0.2.3",
-    "opentelemetry-api>=1.33.0,<2.0.0",
-    "opentelemetry-sdk>=1.33.0,<2.0.0",
-    "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
-    "packaging>=25.0,<26.0",
+    "datarobot[core]>=3.17.0,<4.0.0",  # We use getenv to load runtime parameter values, and there are important bugfixes in 3.17
+    "gunicorn>=25.0.0"  # We require this to run dragent workers in deployments
 ]
 
 [project.optional-dependencies]
@@ -32,7 +27,7 @@ dev = [
 ]
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [
-    "psutil==5.9.8",
+    "psutil>=7.2.1",
     "ipykernel<6.29.0",
     "jupyter-client>=8.6.3",
     "jupyter-core>=5.8.1",
@@ -133,7 +128,11 @@ line_length = 120
 
 [tool.mypy]
 strict = true
-python_version = "3.11"
+# Intentionally no `python_version` pin: the CI matrix runs mypy under
+# 3.11/3.12/3.13 and, unset, mypy targets the running interpreter so each leg
+# type-checks against its own version. Pinning to 3.11 would make every leg
+# parse against 3.11 semantics, which rejects the PEP 695 `type` statement in
+# numpy 2.5.x's stubs (installed only on 3.12+).
 plugins = "pydantic.mypy"
 exclude = """(?x)(
     output/ # exclude files starting with "output"
@@ -173,14 +172,14 @@ follow_imports = "skip"
 [tool.uv]
 required-version = ">=0.7.0"
 override-dependencies = [
-    # crewai and drum pin otel to 1.34.x but datarobot-moderations needs 0.60b1
-    # instrumentation which requires otel 1.39.x. Override the entire otel family
-    # to stay version-synchronized at 1.39.x / 0.60b1.
-    "opentelemetry-api>=1.39.0,<2.0.0",
-    "opentelemetry-sdk>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-http>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-common>=1.39.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-grpc>=1.39.0,<2.0.0",
+    # crewai and drum pin otel to 1.34.x but we need the latest.
+    # Override the entire otel family to stay version-synchronized at 1.43.x/0.64b.0
+    "opentelemetry-api>=1.43.0,<2.0.0",
+    "opentelemetry-sdk>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.43.0,<2.0.0",
+    "opentelemetry-instrumentation>=0.64b0,<0.65",
 
     # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
     # recipe-datarobot-agent-application.
@@ -192,6 +191,22 @@ override-dependencies = [
     "openai>=2.30.0",  # litellm >= 1.83.7 pins openai at 2.24, causing dependency rollback and re-introducing CVEs.
     "pdfminer.six>=20251230",
     "ragas>=0.4.3",
+    # Mirrors datarobot-genai's own override/constraint-dependencies (pyproject.toml [tool.uv]),
+    # which only apply when genai locks itself and don't propagate to consumers of the package.
+    "cryptography>=48.0.1",
+    "PyJWT>=2.13.0",
+    "aiohttp>=3.14.1",
+    "langchain>=1.3.9",
+    # ragas 0.4.3 (pulled in by datarobot-genai) unconditionally imports
+    # `langchain_community.chat_models.vertexai.ChatVertexAI` at module load, but that module
+    # was removed in langchain-community 0.4.2. ragas leaves its langchain deps unpinned, so the
+    # `langchain>=1.3.9` CVE floor above otherwise drags langchain-community up to 0.4.2 and the
+    # import crashes. Cap below 0.4.2 (0.4.1 still ships the module) until ragas drops the import.
+    "langchain-community>=0.4.1,<0.4.2",
+    "langsmith>=0.8.18",
+    "pypdf>=6.13.3",
+    "python-multipart>=0.0.31",
+    "starlette>=1.3.1",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
@@ -221,6 +236,7 @@ override-dependencies = [
     # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
     "pyfiglet; sys_platform == 'never'",  # ASCII banner renderer for deepeval CLI; not used
     "wheel; sys_platform == 'never'",  # build-time packaging tool; not a runtime dependency
+    "datarobot-early-access; sys_platform == 'never'",  # randomly overlaps the core `datarobot`
 ]
 package = true
 environments = [

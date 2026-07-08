@@ -18,7 +18,7 @@ _The Dockerfile.local should be used when customizing the Dockerfile or building
 ## [Development] Synchronizing `pyproject.toml` and other files with `af-component-agents` [Preferred method]
 From within the `af-component-agents` repo run the following while replacing `path/to/` with the approprite path of your local environment:
 ```bash
-task docker_update_reqs AGENT_PATH=/path/to/datarobot-user-models/public_dropin_environments/python311_genai_agents
+task docker_update_reqs AGENT_PATH=../datarobot-user-models/public_dropin_environments/python311_genai_agents
 ```
 
 This will:
