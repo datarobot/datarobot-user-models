@@ -92,7 +92,8 @@ X11Forwarding no
 #PrintMotd yes
 #PrintLastLog yes
 #TCPKeepAlive yes
-#PermitUserEnvironment no
+PermitUserEnvironment yes
+SetEnv VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
 #Compression delayed
 ClientAliveInterval 60
 ClientAliveCountMax 10

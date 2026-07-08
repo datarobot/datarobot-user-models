@@ -1,7 +1,6 @@
 #!/bin/bash
 
 export HOME="/home/notebooks"
-export VSCODE_SERVER_CUSTOM_GLIBC_LINKER=/lib/libc.so.6
 
 # setup the working directory for the kernel
 if [ -z "$1" ]; then
