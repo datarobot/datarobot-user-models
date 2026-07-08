@@ -7,4 +7,4 @@ ipykernel==6.28.0
 jupyter-client==8.6.3
 jupyter-core==5.9.1
 jupyter-kernel-gateway==3.0.1
-psutil==5.9.8
+psutil==7.2.2
