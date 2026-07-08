@@ -117,10 +117,14 @@ pipeline:
                       # Iterate over each directory in the list
                       for DIR in $CHANGED_DIRS; do
                         # Java_codegen is moving to the new pipeline, skip it now
+                        set -x
+                        printf 'DEBUG: Processing %s\n' "${DIR}"
+                        printf 'DEBUG: Processing %s\n' "${DIR##*/}"
                         if [ "${DIR}" = 'public_dropin_environments/java_codegen' ]; then
                           printf 'Ignoring %s\n' "${DIR##*/}"
                           continue
                         fi
+                        set +x
 
                         # Run the script for each directory
                         cd ${DIR} || exit 1

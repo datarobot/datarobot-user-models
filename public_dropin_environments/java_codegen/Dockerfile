@@ -1,6 +1,6 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-guard image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev
+ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.14-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
 USER root
@@ -8,12 +8,12 @@ USER root
 # The JDK (not just JRE) is required because Py4J calls a Java method (o0.configure) that tries to execute 'javac'.
 # Pin OpenJDK 11.0.30+ (Oracle CPU Jan 2026 / OpenJDK 11u) — addresses CVE-2026-21932, CVE-2026-21945 on the 11 train.
 # Wolfi epoch for 11.0.30 GA is typically r6; override at build if your mirror uses a different release suffix.
-ARG OPENJDK11_APK_VERSION=11.0.30-r6
+ARG OPENJDK11_APK_VERSION=11.0.31-r2
 RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.14
 
 USER root
 
@@ -43,7 +43,7 @@ COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
-COPY --from=build /usr/lib/python3.13/site-packages/pip /usr/lib/python3.13/site-packages/pip
+COPY --from=build /usr/lib/python3.14/site-packages/pip /usr/lib/python3.14/site-packages/pip
 
 # Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
 COPY --from=build /usr/bin/rm /usr/bin/rm
@@ -76,7 +76,7 @@ ENV WITH_ERROR_SERVER=0 \
 
 # Both system python and venv python should look at both venv and system site
 # packages.
-ENV PYTHONPATH=/opt/venv/lib/python3.13/site-packages:/usr/lib/python3.13/site-packages
+ENV PYTHONPATH=/opt/venv/lib/python3.14/site-packages:/usr/lib/python3.14/site-packages
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
