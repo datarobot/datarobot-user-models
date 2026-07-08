@@ -6,13 +6,9 @@ readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
     "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.23.0",
-    "datarobot-drum==1.17.17",
     "datarobot-mlops==11.1.28",
-    "langchain-litellm>=0.2.3",
-    "opentelemetry-api>=1.33.0,<2.0.0",
-    "opentelemetry-sdk>=1.33.0,<2.0.0",
-    "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
-    "packaging>=25.0,<26.0",
+    "datarobot[core]>=3.17.0,<4.0.0",  # We use getenv to load runtime parameter values, and there are important bugfixes in 3.17
+    "gunicorn>=25.0.0"  # We require this to run dragent workers in deployments
 ]
 
 [project.optional-dependencies]
@@ -31,7 +27,7 @@ dev = [
 ]
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [
-    "psutil==5.9.8",
+    "psutil>=7.2.1",
     "ipykernel<6.29.0",
     "jupyter-client>=8.6.3",
     "jupyter-core>=5.8.1",
@@ -240,6 +236,7 @@ override-dependencies = [
     # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
     "pyfiglet; sys_platform == 'never'",  # ASCII banner renderer for deepeval CLI; not used
     "wheel; sys_platform == 'never'",  # build-time packaging tool; not a runtime dependency
+    "datarobot-early-access; sys_platform == 'never'",  # randomly overlaps the core `datarobot`
 ]
 package = true
 environments = [
