@@ -6,12 +6,11 @@ readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
     "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.23.0",
-    "datarobot-drum==1.17.17",
     "datarobot-mlops==11.1.28",
+    "datarobot>=3.17.0,<4.0.0",
     "langchain-litellm>=0.2.3",
     "opentelemetry-api>=1.33.0,<2.0.0",
     "opentelemetry-sdk>=1.33.0,<2.0.0",
-    "anyio>=4.11.0,<4.12.0", # Fix: ImportError: `set_current_async_library`
     "packaging>=25.0,<26.0",
 ]
 

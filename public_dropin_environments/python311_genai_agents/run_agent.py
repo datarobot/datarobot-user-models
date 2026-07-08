@@ -63,17 +63,16 @@ if (
     os.environ["PATH"] = str(Path(_VENV_DIR) / "bin") + os.pathsep + os.environ.get("PATH", "")
     os.environ["VIRTUAL_ENV"] = _VENV_DIR
 
-from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
+from datarobot_genai.core.telemetry.datarobot_otel import (
+    bootstrap_otel_provider_for_datarobot,
+)
 from datarobot_genai.dragent.inline import execute_dragent_inline
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.completion_create_params import (
     CompletionCreateParamsBase,
 )
 from opentelemetry import trace
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace import Span, use_span
 from pydantic import TypeAdapter
 
@@ -186,9 +185,10 @@ def setup_otel_env_variables(entity_id: str) -> None:
 
 
 def setup_otel_exporter() -> None:
-    otlp_exporter = OTLPSpanExporter()
-    span_processor = SimpleSpanProcessor(otlp_exporter)  # Do not use batch processor
-    trace.get_tracer_provider().add_span_processor(span_processor)  # type: ignore[attr-defined]
+    # Force to simple span processor to export spans immediately
+    os.environ["DATAROBOT_OTEL_SPAN_PROCESSOR"] = "simple"
+
+    bootstrap_otel_provider_for_datarobot()
 
 
 def set_otel_attributes(span: Span, attributes: str) -> None:
@@ -226,24 +226,6 @@ def setup_otel(args: Any) -> Span:
     return span
 
 
-def execute_drum_inline(
-    chat_completion: CompletionCreateParamsBase,
-    custom_model_dir: Path,
-) -> ChatCompletion | List[ChatCompletionChunk]:
-    root.info("Executing agent as [chat] endpoint. DRUM Inline Executor.")
-
-    root.info("Starting DRUM runner.")
-    with drum_inline_predictor(
-        target_type=TargetType.AGENTIC_WORKFLOW.value,
-        custom_model_dir=custom_model_dir,
-        target_name="response",
-    ) as predictor:
-        root.info("Executing Agent")
-
-        completion = predictor.chat(chat_completion)
-        return cast(ChatCompletion, completion)
-
-
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     chat_completion_dict = json.loads(chat_completion)
     chat_completion_dict.pop("stream", None)
@@ -277,22 +259,6 @@ def store_result(
             fp.write(json.dumps(result_dict))
 
 
-def is_dragent_server_enabled() -> bool:
-    value = os.environ.get("MLOPS_RUNTIME_PARAM_ENABLE_DRAGENT_SERVER")
-    if value is None:
-        return False
-    try:
-        parsed = json.loads(value)
-        # If it's a dict with a payload key
-        if isinstance(parsed, dict) and "payload" in parsed:
-            payload = parsed["payload"]
-            if isinstance(payload, bool):
-                return payload
-    except Exception:
-        pass
-    return False
-
-
 def run_agent_procedure(args: Any) -> None:
     # Parse input to fail early if it's not valid
     chat_completion = construct_prompt(args.chat_completion)
@@ -307,16 +273,10 @@ def run_agent_procedure(args: Any) -> None:
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
 
-        if is_dragent_server_enabled():
-            result = execute_dragent_inline(
-                chat_completion=chat_completion,
-                custom_model_dir=args.custom_model_dir,
-            )
-        else:
-            result = execute_drum_inline(
-                chat_completion=chat_completion,
-                custom_model_dir=args.custom_model_dir,
-            )
+        result = execute_dragent_inline(
+            chat_completion=chat_completion,
+            custom_model_dir=args.custom_model_dir,
+        )
         store_result(
             result,
             trace_id,
