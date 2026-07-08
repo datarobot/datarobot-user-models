@@ -187,6 +187,7 @@ def setup_otel_env_variables(entity_id: str) -> None:
 def setup_otel_exporter() -> None:
     # Force to simple span processor to export spans immediately
     os.environ["DATAROBOT_OTEL_SPAN_PROCESSOR"] = "simple"
+    os.environ["DATAROBOT_AGENT_INLINE_EXECUTION"] = "true"
 
     bootstrap_otel_provider_for_datarobot()
 
