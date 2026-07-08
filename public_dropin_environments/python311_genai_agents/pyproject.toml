@@ -236,6 +236,7 @@ override-dependencies = [
     # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
     "pyfiglet; sys_platform == 'never'",  # ASCII banner renderer for deepeval CLI; not used
     "wheel; sys_platform == 'never'",  # build-time packaging tool; not a runtime dependency
+    "datarobot-early-access; sys_platform == 'never'",  # randomly overlaps the core `datarobot`
 ]
 package = true
 environments = [
