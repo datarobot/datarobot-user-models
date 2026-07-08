@@ -151,6 +151,16 @@ RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
+# Install DR CLI plugins
+RUN /home/notebooks/.local/bin/dr/dr plugin install xp \
+    && /home/notebooks/.local/bin/dr/dr plugin install opencode \
+    && /home/notebooks/.local/bin/dr/dr plugin install assist
+
+# Install opencode CLI
+RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
+    && bash /tmp/opencode-install.sh --no-modify-path \
+    && rm /tmp/opencode-install.sh
+
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
