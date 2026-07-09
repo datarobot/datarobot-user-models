@@ -8,7 +8,7 @@ echo "Persisting container environment variables for sshd..."
     echo "# Ref: https://github.com/jenkinsci/docker-ssh-agent/issues/33#issuecomment-597367846"
     echo "set -a"
 
-    additionalPathParams='/home/notebooks/.local/bin/dr'
+    additionalPathParams='/home/notebooks/.local/bin/dr:/home/notebooks/.opencode/bin'
     # set -a ensures that all modified/added shell variables are exported
     # ignore PWD/HOME/SHLVL/_ because these are specific to the current user and session
     # ignore TERM because it is set by asyncssh
