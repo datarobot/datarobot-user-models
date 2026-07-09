@@ -116,6 +116,12 @@ pipeline:
 
                       # Iterate over each directory in the list
                       for DIR in $CHANGED_DIRS; do
+                        # Java_codegen is moving to the new pipeline, skip it now
+                        if [ "${DIR##*/}" = 'java_codegen' ]; then
+                          printf 'Ignoring %s\n' "${DIR##*/}"
+                          continue
+                        fi
+
                         # Run the script for each directory
                         cd ${DIR} || exit 1
                         echo "Running: bash ${ROOT_DIR}/tools/reconcile_dependencies.sh $DIR"
