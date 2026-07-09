@@ -6,9 +6,16 @@ VERBOSE_MODE=${1:-false}
 IS_CODESPACE=$([[ "${WORKING_DIR}" == *"/storage"* ]] && echo true || echo false)
 IS_PYTHON_KERNEL=$([[ "${NOTEBOOKS_KERNEL}" == "python" ]] && echo true || echo false)
 
+if [[ $IS_CODESPACE == true ]]; then
+  # set global variables for all kernels (python, R, etc.) in codespaces
+  export XDG_CACHE_HOME="${WORKING_DIR%/}/.cache"
+  export XDG_CONFIG_HOME="${WORKING_DIR%/}/.config"
+  export XDG_CONFIG_DIRS="${HOME}/.config"
+  export COLORTERM=truecolor
+fi
+
 if [[ $IS_CODESPACE == true && $IS_PYTHON_KERNEL == true && -z "${NOTEBOOKS_NO_PERSISTENT_DEPENDENCIES}" ]]; then
   export POETRY_VIRTUALENVS_CREATE=false
-  export XDG_CACHE_HOME="${WORKING_DIR%/}/.cache"
   # Persistent HF artifact installation
   export HF_HOME="${WORKING_DIR%/}/.cache"
   export HF_HUB_CACHE="${WORKING_DIR%/}/.cache"

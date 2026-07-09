@@ -14,8 +14,9 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.2.74
+ARG CLI_VERSION=v0.2.75
 ARG GITHELPER_VERSION=v0.0.29
+ARG OPENCODE_VERSION=1.17.11
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
@@ -158,7 +159,7 @@ RUN /home/notebooks/.local/bin/dr/dr plugin install xp \
 
 # Install opencode CLI
 RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
-    && bash /tmp/opencode-install.sh --no-modify-path \
+    && bash /tmp/opencode-install.sh --no-modify-path -v "$OPENCODE_VERSION" \
     && rm /tmp/opencode-install.sh
 
 # This is required for custom models to work with this image
