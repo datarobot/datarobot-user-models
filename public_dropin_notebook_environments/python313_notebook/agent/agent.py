@@ -96,6 +96,8 @@ async def ssh_endpoint(websocket: WebSocket) -> None:
     _done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
     for task in pending:
         task.cancel()
+    if pending:
+        await asyncio.gather(*pending, return_exceptions=True)
     try:
         await websocket.close()
     except Exception:
