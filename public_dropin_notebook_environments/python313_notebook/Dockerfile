@@ -136,6 +136,8 @@ ARG GIT_COMMIT
 
 ARG CLI_VERSION
 
+ARG OPENCODE_VERSION
+
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
