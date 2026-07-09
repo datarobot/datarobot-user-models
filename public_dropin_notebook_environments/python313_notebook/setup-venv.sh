@@ -22,7 +22,6 @@ if [[ $IS_CODESPACE == true && $IS_PYTHON_KERNEL == true && -z "${NOTEBOOKS_NO_P
   export HF_DATASETS_CACHE="${WORKING_DIR%/}/.datasets"
   export TRANSFORMERS_CACHE="${WORKING_DIR%/}/.models"
   export SENTENCE_TRANSFORMERS_HOME="${WORKING_DIR%/}/.models"
-  export COLORTERM=truecolor
 
   USR_VENV="${WORKING_DIR%/}/.venv"
   [[ $VERBOSE_MODE == true ]] && echo "Setting up a user venv ($USR_VENV)..."
