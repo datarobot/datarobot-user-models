@@ -76,9 +76,7 @@ class TestExtractAdditionalColumns:
             [[2.3, 0.2749, float("nan")]],
             columns=[prediction_column, "MAC_MAPE", "MAC_MAPE"],
         )
-        predictions, extra_model_output = extract_additional_columns(
-            result_df, [prediction_column]
-        )
+        predictions, extra_model_output = extract_additional_columns(result_df, [prediction_column])
         assert predictions.equals(pd.DataFrame({prediction_column: [2.3]}))
         assert extra_model_output.columns.tolist() == ["MAC_MAPE", "MAC_MAPE"]
         assert "MAC_MAPE" in caplog.text
