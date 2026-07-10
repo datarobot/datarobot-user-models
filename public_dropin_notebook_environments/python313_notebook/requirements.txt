@@ -17,7 +17,7 @@ joblib==1.2.0
 latexify-py==0.4.4
 lime==0.2.0.1
 matplotlib==3.11.0
-mistune==3.2.1
+mistune==3.3.3
 numpy==2.4.6
 opencv-python-headless==5.0.0.93
 openpyxl==3.0.10
