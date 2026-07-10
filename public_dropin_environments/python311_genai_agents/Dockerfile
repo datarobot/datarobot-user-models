@@ -12,6 +12,8 @@ ARG VENV_PATH=${WORKDIR}/.venv
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
+ARG CLI_VERSION=v0.2.75
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
@@ -135,6 +137,7 @@ ARG UNAME=notebooks
 ARG GIT_COMMIT
 ARG VENV_PATH
 ARG UV_CACHE_DIR=/tmp/uv-cache
+ARG CLI_VERSION
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
@@ -142,6 +145,14 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 USER root
 RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
 USER $UNAME
+
+# Install DR CLI. The binary lands at /home/notebooks/.local/bin/dr/dr; that directory is
+# added to PATH for terminal sessions in setup-ssh.sh (via additionalPathParams).
+RUN curl -fsSL -o /tmp/dr.tar.gz https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
+    && mkdir -p /home/notebooks/.local/bin/dr \
+    && tar -xzf /tmp/dr.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm /tmp/dr.tar.gz \
+    && chmod +x /home/notebooks/.local/bin/dr/dr
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
