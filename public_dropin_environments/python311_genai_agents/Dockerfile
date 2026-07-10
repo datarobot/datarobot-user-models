@@ -12,6 +12,10 @@ ARG VENV_PATH=${WORKDIR}/.venv
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
+ARG CLI_VERSION=v0.2.75
+# opencode CLI version (see https://github.com/anomalyco/opencode/releases)
+ARG OPENCODE_VERSION=1.17.11
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
@@ -30,9 +34,9 @@ USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache uv graphviz openblas openssh-server \
-    gzip zip unzip curl \
+    gzip zip unzip curl git \
     openjdk-11 vim nano procps tzdata \
-    && rm -f /etc/ssh/ssh_host_* 
+    && rm -f /etc/ssh/ssh_host_*
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
@@ -135,6 +139,8 @@ ARG UNAME=notebooks
 ARG GIT_COMMIT
 ARG VENV_PATH
 ARG UV_CACHE_DIR=/tmp/uv-cache
+ARG CLI_VERSION
+ARG OPENCODE_VERSION
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
@@ -142,6 +148,31 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 USER root
 RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
 USER $UNAME
+
+# The DR CLI plugins and opencode CLI install relative to $HOME (plugins -> ~/.config/datarobot,
+# opencode -> ~/.opencode/bin). HOME is not exported yet in this stage, so pin it here; the final
+# ENV below resets HOME=/opt for the custom-model runtime.
+ENV HOME=/home/notebooks
+
+# Install DR CLI. The binary lands at /home/notebooks/.local/bin/dr/dr; that directory is
+# added to PATH for terminal sessions in setup-ssh.sh (via additionalPathParams).
+RUN curl -fsSL -o /tmp/dr.tar.gz https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
+    && mkdir -p /home/notebooks/.local/bin/dr \
+    && tar -xzf /tmp/dr.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm /tmp/dr.tar.gz \
+    && chmod +x /home/notebooks/.local/bin/dr/dr
+
+# Install DR CLI plugins. These are fetched as .tar.xz archives from the plugin registry over
+# HTTP and extracted by the CLI itself (no git/node needed); they land in ~/.config/datarobot.
+RUN /home/notebooks/.local/bin/dr/dr plugin install xp \
+    && /home/notebooks/.local/bin/dr/dr plugin install opencode \
+    && /home/notebooks/.local/bin/dr/dr plugin install assist
+
+# Install opencode CLI. Installs to /home/notebooks/.opencode/bin, which is added to PATH for
+# terminal sessions in setup-ssh.sh (via additionalPathParams).
+RUN curl -fsSL -o /tmp/opencode-install.sh https://opencode.ai/install \
+    && bash /tmp/opencode-install.sh --no-modify-path -v "$OPENCODE_VERSION" \
+    && rm /tmp/opencode-install.sh
 
 # This is required for custom models to work with this image
 COPY ./start_server_custom_model.sh /opt/code/start_server.sh
