@@ -7,7 +7,7 @@ jupyter_core>=5.8.1
 ipykernel<6.29.0
 pandas
 numpy
-mistune>=3.2.1
+mistune>=3.3.0
 numpy
 uwsgi
 fastapi[All]>=0.122.0
