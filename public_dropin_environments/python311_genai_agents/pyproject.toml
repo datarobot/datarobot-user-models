@@ -190,6 +190,7 @@ constraint-dependencies = [
     "langsmith>=0.8.18",
     "mistune>=3.3.0",
     "nltk>=3.9.4",
+    "openai>=2.30.0",
     "pdfminer.six>=20251230",
     "pip>=26.1.2",
     "PyJWT>=2.13.0",
