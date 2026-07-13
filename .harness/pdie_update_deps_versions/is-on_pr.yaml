@@ -1,0 +1,14 @@
+inputSet:
+  name: On PR
+  identifier: On_PR
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: pdie_update_versions_dependencies
+    variables:
+      - name: srcref
+        type: String
+        value: <+trigger.sourceBranch>
+      - name: targetref
+        type: String
+        value: <+trigger.targetBranch>
