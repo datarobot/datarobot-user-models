@@ -178,7 +178,9 @@ constraint-dependencies = [
 
     # CVE fixes constraints. Keep ordered please.
     "aiohttp>=3.14.1",
+    "joserfc>=1.6.8",
     "langchain>=1.3.9",
+    "langgraph-checkpoint>=4.1.1",
     # ragas 0.4.3 (pulled in by datarobot-genai) unconditionally imports
     # `langchain_community.chat_models.vertexai.ChatVertexAI` at module load, but that module
     # was removed in langchain-community 0.4.2. ragas leaves its langchain deps unpinned, so the
@@ -189,6 +191,7 @@ constraint-dependencies = [
     "mistune>=3.3.0",
     "nltk>=3.9.4",
     "pdfminer.six>=20251230",
+    "pip>=26.1.2",
     "PyJWT>=2.13.0",
     "pypdf>=6.13.3",
     "python-multipart>=0.0.31",
