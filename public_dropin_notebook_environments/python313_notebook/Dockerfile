@@ -14,8 +14,8 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.2.75
-ARG GITHELPER_VERSION=v0.0.29
+ARG CLI_VERSION=v0.2.76
+ARG GITHELPER_VERSION=v0.0.30
 ARG OPENCODE_VERSION=1.17.11
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
