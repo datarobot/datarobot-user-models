@@ -1,0 +1,8 @@
+{
+  "id": "67d83b8379275f752a4de3ba",
+  "name": "[GenAI][NVIDIA] Python 3.12 with Moderations",
+  "description": "Python 3.12 environment for GenAI custom models with Moderation and assessment support. This environment is created to run on machines with NVIDIA GPU's.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "67d83be502e20f38b4db2a80",
+  "isPublic": true
+}
