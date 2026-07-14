@@ -154,8 +154,8 @@ RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
-# Install DR CLI plugins
-RUN /home/notebooks/.local/bin/dr/dr plugin install xp \
+RUN echo "[Install DR CLI plugins] GIT_COMMIT: $GIT_COMMIT" \
+    && /home/notebooks/.local/bin/dr/dr plugin install xp \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
 
