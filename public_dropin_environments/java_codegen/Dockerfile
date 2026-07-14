@@ -3,6 +3,7 @@
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.14-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
+
 USER root
 
 # The JDK (not just JRE) is required because Py4J calls a Java method (o0.configure) that tries to execute 'javac'.
