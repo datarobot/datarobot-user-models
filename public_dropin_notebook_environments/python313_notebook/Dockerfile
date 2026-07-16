@@ -44,15 +44,18 @@ RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
   pulumi pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
   gh uv task bash-completion xdg-utils \
   && rm -f /etc/ssh/ssh_host_* \
-  && rm -rf /var/cache/apk/
+  && rm -rf /var/cache/apk/ \
+  # Expose the JDK via the conventional default-jvm symlink
+  && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
-    NOTEBOOKS_KERNEL="python"
+    NOTEBOOKS_KERNEL="python" \
+    JAVA_HOME=/usr/lib/jvm/default-jvm
 
-ENV PATH="$VENV_PATH/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
