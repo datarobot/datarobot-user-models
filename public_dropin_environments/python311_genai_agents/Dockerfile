@@ -13,7 +13,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 # DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
-ARG CLI_VERSION=v0.2.75
+ARG CLI_VERSION=v0.2.76
 # opencode CLI version (see https://github.com/anomalyco/opencode/releases)
 ARG OPENCODE_VERSION=1.17.11
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
