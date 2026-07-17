@@ -1,5 +1,5 @@
 datarobot==3.17.0
-datarobot-genai==0.23.0
+datarobot-genai==0.24.0
 datarobot-mlops==11.1.28
 ecs-logging==2.2.0
 gunicorn==26.0.0
