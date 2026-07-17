@@ -188,6 +188,7 @@ constraint-dependencies = [
     # import crashes. Cap below 0.4.2 (0.4.1 still ships the module) until ragas drops the import.
     "langchain-community>=0.4.1,<0.4.2",
     "langsmith>=0.8.18",
+    "mcp>=1.28.1",
     "mistune>=3.3.0",
     "nltk>=3.10.0",
     "openai>=2.30.0",
@@ -221,6 +222,10 @@ override-dependencies = [
     # crewai prevents upgrade of `python-dotenv` and `json-repair`
     "json-repair>=0.60.1",
     "python-dotenv>=1.2.2",
+
+    # crewai 1.15.4 (required for the mcp>=1.28.1 CVE floor) pins aiofiles~=24.1 while
+    # nvidia-nat-core 1.7.0 requires aiofiles>=25.1 — irreconcilable as declared.
+    "aiofiles>=25.1,<26",
 
     # Excluded
     "gevent; sys_platform == 'never'",  # not used; therefore removed
