@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.23.0",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.24.0",
     "datarobot-mlops==11.1.28",
     "datarobot[core]>=3.17.0,<4.0.0",  # We use getenv to load runtime parameter values, and there are important bugfixes in 3.17
     "gunicorn>=25.0.0"  # We require this to run dragent workers in deployments
