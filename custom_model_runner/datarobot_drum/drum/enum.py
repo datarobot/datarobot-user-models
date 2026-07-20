@@ -297,6 +297,13 @@ class ArgumentsOptions:
     PUSH = "push"
 
 
+class DrumServerType:
+    GUNICORN = "gunicorn"
+    WERKZEUG = "werkzeug"
+    ALL = {GUNICORN, WERKZEUG}
+    DEFAULT = GUNICORN
+
+
 class ArgumentOptionsEnvVars:
     TARGET_TYPE = "TARGET_TYPE"
     CODE_DIR = "CODE_DIR"
