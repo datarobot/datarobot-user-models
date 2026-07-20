@@ -26,8 +26,10 @@ def run_drum_server():
                     DrumServerType.DEFAULT,
                 )
         else:
+            # TODO(remove after a few releases past 1.17.19): drop this migration notice
+            # once users have had time to adjust to the new default.
             logger.warning(
-                "Default DRUM server changed from '%s' to '%s'. "
+                "Default DRUM server changed from '%s' to '%s' as of DRUM 1.17.19. "
                 "Set DRUM_SERVER_TYPE='%s' to keep previous behavior.",
                 DrumServerType.WERKZEUG,
                 DrumServerType.GUNICORN,
