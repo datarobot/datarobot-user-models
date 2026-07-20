@@ -94,13 +94,13 @@ def test_non_server_mode_uses_main(setup_options, runtime_params, main, main_gun
     main_gunicorn.assert_not_called()
 
 
-@patch("datarobot_drum.drum.entry_point.logging")
+@patch("datarobot_drum.drum.entry_point.logger")
 @patch("datarobot_drum.drum.entry_point.main_gunicorn")
 @patch("datarobot_drum.drum.entry_point.main")
 @patch("datarobot_drum.drum.entry_point.RuntimeParameters")
 @patch("datarobot_drum.drum.entry_point.setup_options")
 def test_unsupported_server_type_logs_warning(
-    setup_options, runtime_params, main, main_gunicorn, mock_logging
+    setup_options, runtime_params, main, main_gunicorn, mock_logger
 ):
     setup_options.return_value = _make_options(ArgumentsOptions.SERVER)
     runtime_params.has.return_value = True
@@ -108,6 +108,25 @@ def test_unsupported_server_type_logs_warning(
 
     run_drum_server()
 
-    mock_logging.warning.assert_called_once()
-    warning_msg = mock_logging.warning.call_args[0][0]
+    mock_logger.warning.assert_called_once()
+    warning_msg = mock_logger.warning.call_args[0][0]
     assert "not supported" in warning_msg
+
+
+@patch("datarobot_drum.drum.entry_point.logger")
+@patch("datarobot_drum.drum.entry_point.main_gunicorn")
+@patch("datarobot_drum.drum.entry_point.main")
+@patch("datarobot_drum.drum.entry_point.RuntimeParameters")
+@patch("datarobot_drum.drum.entry_point.setup_options")
+def test_default_server_type_logs_change_warning(
+    setup_options, runtime_params, main, main_gunicorn, mock_logger
+):
+    setup_options.return_value = _make_options(ArgumentsOptions.SERVER)
+    runtime_params.has.return_value = False
+
+    run_drum_server()
+
+    mock_logger.warning.assert_called_once()
+    call_args = mock_logger.warning.call_args[0]
+    assert DrumServerType.WERKZEUG in call_args
+    assert DrumServerType.GUNICORN in call_args

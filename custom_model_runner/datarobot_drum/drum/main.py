@@ -49,7 +49,7 @@ import os
 import signal
 import sys
 
-from datarobot_drum.drum.common import config_logging, setup_otel
+from datarobot_drum.drum.common import setup_otel
 from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
@@ -64,8 +64,10 @@ def main(flask_app: Flask = None, worker_ctx: WorkerCtx = None):
     """
     The main entry point for the custom model runner.
 
-    This function initializes the runtime environment, sets up logging, handles
-    signal interruptions, and starts the CMRunner for executing user-defined models.
+    This function initializes the runtime environment, handles signal interruptions,
+    and starts the CMRunner for executing user-defined models. Logging is configured
+    once in entry_point.run_drum_server() before this function is reached (directly,
+    or inherited by forked gunicorn workers).
 
     Args:
         flask_app: Optional[Flask] Flask application instance, used when running using command line.
@@ -76,8 +78,6 @@ def main(flask_app: Flask = None, worker_ctx: WorkerCtx = None):
         None
     """
     with DrumRuntime(flask_app) as runtime:
-        config_logging()
-
         if worker_ctx:
             # Perform cleanup specific to the Gunicorn worker being terminated.
             # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
