@@ -14,9 +14,10 @@ from datarobot_drum.drum.enum import ArgumentsOptions, DrumServerType
 from datarobot_drum.drum.entry_point import run_drum_server
 
 
-def _make_options(subparser_name):
+def _make_options(subparser_name, docker=None):
     options = argparse.Namespace()
     options.subparser_name = subparser_name
+    options.docker = docker
     return options
 
 
@@ -130,3 +131,36 @@ def test_default_server_type_logs_change_warning(
     call_args = mock_logger.warning.call_args[0]
     assert DrumServerType.WERKZEUG in call_args
     assert DrumServerType.GUNICORN in call_args
+
+
+@patch("datarobot_drum.drum.entry_point.main_gunicorn")
+@patch("datarobot_drum.drum.entry_point.main")
+@patch("datarobot_drum.drum.entry_point.RuntimeParameters")
+@patch("datarobot_drum.drum.entry_point.setup_options")
+def test_server_mode_docker_forces_werkzeug_over_default(
+    setup_options, runtime_params, main, main_gunicorn
+):
+    setup_options.return_value = _make_options(ArgumentsOptions.SERVER, docker="some-image")
+    runtime_params.has.return_value = False
+
+    run_drum_server()
+
+    main.assert_called_once()
+    main_gunicorn.assert_not_called()
+
+
+@patch("datarobot_drum.drum.entry_point.main_gunicorn")
+@patch("datarobot_drum.drum.entry_point.main")
+@patch("datarobot_drum.drum.entry_point.RuntimeParameters")
+@patch("datarobot_drum.drum.entry_point.setup_options")
+def test_server_mode_docker_forces_werkzeug_over_explicit_gunicorn(
+    setup_options, runtime_params, main, main_gunicorn
+):
+    setup_options.return_value = _make_options(ArgumentsOptions.SERVER, docker="some-image")
+    runtime_params.has.return_value = True
+    runtime_params.get.return_value = DrumServerType.GUNICORN
+
+    run_drum_server()
+
+    main.assert_called_once()
+    main_gunicorn.assert_not_called()
