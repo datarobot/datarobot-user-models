@@ -33,6 +33,16 @@ def run_drum_server():
                 DrumServerType.GUNICORN,
                 DrumServerType.WERKZEUG,
             )
+
+        if server_type == DrumServerType.GUNICORN and getattr(options, "docker", None):
+            logger.warning(
+                "Gunicorn is not supported with --docker: gunicorn binds the host address "
+                "before the container starts, which conflicts with the container's own port "
+                "publish. Falling back to %s.",
+                DrumServerType.WERKZEUG,
+            )
+            server_type = DrumServerType.WERKZEUG
+
         if server_type == DrumServerType.GUNICORN:
             main_gunicorn()
         else:
