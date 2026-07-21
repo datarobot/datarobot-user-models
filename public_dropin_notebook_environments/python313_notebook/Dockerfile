@@ -92,12 +92,10 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
-# Adding SSHD requirements
+# Adding SSHD requirements: sshd prep + limit max processes
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
-  # sshd prep
   && touch /etc/profile.d/notebooks-load-env.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
-  # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
 
