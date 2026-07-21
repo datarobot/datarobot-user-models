@@ -37,8 +37,6 @@ ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
 
-ARG GIT_COMMIT
-# Inherits the globally computed cache-busting value
 ARG CACHE_BUSTER
 
 ARG GITHELPER_VERSION
