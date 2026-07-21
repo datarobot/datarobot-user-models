@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.2.76
+ARG CLI_VERSION=v0.2.78
 ARG GITHELPER_VERSION=v0.0.30
 ARG OPENCODE_VERSION=1.17.11
 
@@ -28,7 +28,12 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
-ARG GIT_COMMIT
+
+ARG ENVIRONMENT_VERSION_ID
+ARG GIT_COMMIT=unknown
+# Use ENVIRONMENT_VERSION_ID for cache busting if set, otherwise fall back to GIT_COMMIT
+ARG CACHE_BUSTER="${ENVIRONMENT_VERSION_ID:+ENVIRONMENT_VERSION_ID:$ENVIRONMENT_VERSION_ID}"
+ARG CACHE_BUSTER="${CACHE_BUSTER:-GIT_COMMIT:$GIT_COMMIT}"
 
 ARG GITHELPER_VERSION
 
@@ -37,7 +42,7 @@ ARG GITHELPER_VERSION
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
+RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
@@ -45,8 +50,7 @@ RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
   gh uv task bash-completion xdg-utils \
   && rm -f /etc/ssh/ssh_host_* \
   && rm -rf /var/cache/apk/ \
-  # Expose the JDK via the conventional default-jvm symlink
-  && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
+  && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -136,6 +140,7 @@ ARG UNAME
 ARG WORKDIR
 
 ARG GIT_COMMIT
+ARG CACHE_BUSTER
 
 ARG CLI_VERSION
 
@@ -157,7 +162,7 @@ RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
-RUN echo "[Install DR CLI plugins] GIT_COMMIT: $GIT_COMMIT" \
+RUN echo "[Install DR CLI plugins] $CACHE_BUSTER" \
     && /home/notebooks/.local/bin/dr/dr plugin install xp \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
