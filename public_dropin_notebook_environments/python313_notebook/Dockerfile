@@ -18,6 +18,14 @@ ARG CLI_VERSION=v0.2.78
 ARG GITHELPER_VERSION=v0.0.30
 ARG OPENCODE_VERSION=1.17.11
 
+ARG ENVIRONMENT_VERSION_ID
+ARG GIT_COMMIT
+# Cache-busting value: 'ENVIRONMENT_VERSION_ID:<id>' if set, else GIT_COMMIT, else 'no-cache-buster'.
+# Computed globally so every stage can inherit it via a bare `ARG CACHE_BUSTER`.
+ARG CACHE_BUSTER="${ENVIRONMENT_VERSION_ID:+ENVIRONMENT_VERSION_ID:$ENVIRONMENT_VERSION_ID}"
+ARG CACHE_BUSTER="${CACHE_BUSTER:-$GIT_COMMIT}"
+ARG CACHE_BUSTER="${CACHE_BUSTER:-no-cache-buster}"
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
@@ -29,11 +37,9 @@ ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
 
-ARG ENVIRONMENT_VERSION_ID
-ARG GIT_COMMIT=unknown
-# Use ENVIRONMENT_VERSION_ID for cache busting if set, otherwise fall back to GIT_COMMIT
-ARG CACHE_BUSTER="${ENVIRONMENT_VERSION_ID:+ENVIRONMENT_VERSION_ID:$ENVIRONMENT_VERSION_ID}"
-ARG CACHE_BUSTER="${CACHE_BUSTER:-GIT_COMMIT:$GIT_COMMIT}"
+ARG GIT_COMMIT
+# Inherits the globally computed cache-busting value
+ARG CACHE_BUSTER
 
 ARG GITHELPER_VERSION
 
@@ -162,7 +168,7 @@ RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
-RUN echo "[Install DR CLI plugins] $CACHE_BUSTER" \
+RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
     && /home/notebooks/.local/bin/dr/dr plugin install xp \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
