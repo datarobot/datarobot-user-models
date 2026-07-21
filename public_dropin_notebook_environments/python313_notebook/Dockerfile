@@ -14,9 +14,17 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.2.76
+ARG CLI_VERSION=v0.2.78
 ARG GITHELPER_VERSION=v0.0.30
 ARG OPENCODE_VERSION=1.17.11
+
+ARG ENVIRONMENT_VERSION_ID
+ARG GIT_COMMIT
+# Cache-busting value: 'ENVIRONMENT_VERSION_ID:<id>' if set, else GIT_COMMIT, else 'no-cache-buster'.
+# Computed globally so every stage can inherit it via a bare `ARG CACHE_BUSTER`.
+ARG CACHE_BUSTER="${ENVIRONMENT_VERSION_ID:+ENVIRONMENT_VERSION_ID:$ENVIRONMENT_VERSION_ID}"
+ARG CACHE_BUSTER="${CACHE_BUSTER:-$GIT_COMMIT}"
+ARG CACHE_BUSTER="${CACHE_BUSTER:-no-cache-buster}"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
@@ -28,7 +36,8 @@ ARG GID
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
-ARG GIT_COMMIT
+
+ARG CACHE_BUSTER
 
 ARG GITHELPER_VERSION
 
@@ -37,7 +46,7 @@ ARG GITHELPER_VERSION
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
+RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
@@ -45,8 +54,7 @@ RUN echo "[Python3.13] GIT_COMMIT: $GIT_COMMIT" && \
   gh uv task bash-completion xdg-utils \
   && rm -f /etc/ssh/ssh_host_* \
   && rm -rf /var/cache/apk/ \
-  # Expose the JDK via the conventional default-jvm symlink
-  && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm
+  && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -84,12 +92,10 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
-# Adding SSHD requirements
+# Adding SSHD requirements: sshd prep + limit max processes
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
-  # sshd prep
   && touch /etc/profile.d/notebooks-load-env.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
-  # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
 
@@ -136,6 +142,7 @@ ARG UNAME
 ARG WORKDIR
 
 ARG GIT_COMMIT
+ARG CACHE_BUSTER
 
 ARG CLI_VERSION
 
@@ -157,7 +164,7 @@ RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
-RUN echo "[Install DR CLI plugins] GIT_COMMIT: $GIT_COMMIT" \
+RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
     && /home/notebooks/.local/bin/dr/dr plugin install xp \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
