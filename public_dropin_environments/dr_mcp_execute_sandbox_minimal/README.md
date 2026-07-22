@@ -49,9 +49,13 @@ datarobotdev/datarobot-user-models:public_dropin_environments_dr_mcp_execute_san
 ```
 
 > The publish trigger is path-filtered to this folder, so the `_latest` tag is
-> (re)built only when files here change on master. The initial build (#2137)
-> predated the requirements.txt-less build fix (#2149), so this note exists to
-> re-trigger the publish.
+> (re)built only when files here change on master. The drop-in build fix for
+> environments without a `requirements.txt` (#2149) is now merged, but because
+> it only touched `tools/image-build-utils.sh` it did not re-fire this
+> path-filtered publish — so the `_latest` tag had never been built
+> successfully. This documentation change lands in this folder specifically to
+> re-trigger the `env_image_publish` pipeline now that the build fix is in
+> place, so the `_latest` tag is produced and pushed.
 
 ## Source of truth
 
