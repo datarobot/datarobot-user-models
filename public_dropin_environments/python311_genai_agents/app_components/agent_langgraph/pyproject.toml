@@ -55,6 +55,7 @@ constraint-dependencies = [
     "langchain-openai>=1.1.14",
     "langchain-text-splitters>=1.1.2",
     "langsmith>=0.8.18",
+    "mcp>=1.28.1",
     "nltk>=3.10.0",
     "pillow>=12.2.0",
     "pydantic-settings>=2.14.2",
