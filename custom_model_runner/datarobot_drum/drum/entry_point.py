@@ -4,9 +4,9 @@ from datarobot_drum.drum.main import main
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.utils.setup import setup_options
 
-from datarobot_drum.drum.enum import ArgumentsOptions, DrumServerType, LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import ArgumentsOptions, DrumServerType
 
-logger = get_drum_logger(LOGGER_NAME_PREFIX)
+logger = get_drum_logger(__name__)
 
 
 def run_drum_server():
