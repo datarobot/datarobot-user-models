@@ -76,7 +76,6 @@ fi
 # -----------------------------------------------------------------------------
 echo "Error: No valid entry point found in $SCRIPT_DIR"
 echo "This script requires one of the following:"
-echo "  - ENABLE_DRAGENT_SERVER runtime parameter set to True for NAT Server"
-echo "  - custom.py file for DRUM-based Custom Models"
+echo "  - workflow.yaml file for dragent-based Agents"
 echo "  - app/ directory for MCP Server applications"
 exit 1
