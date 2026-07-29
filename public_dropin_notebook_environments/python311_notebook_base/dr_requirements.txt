@@ -1,4 +1,4 @@
-setuptools==80.10.2
+setuptools==83.0.0
 ecs-logging==2.2.0
 jupyter-client==8.6.3
 jupyter_kernel_gateway==3.0.1

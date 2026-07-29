@@ -1,0 +1,177 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: Update Versions and Dependencies
+        identifier: Update_Versions_Dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: false
+          buildIntelligence:
+            enabled: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: update_versions_dependencies
+                  identifier: update_versions_dependencies
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      set -euo pipefail
+                      export IFS=$'\n'
+
+                      # All occurences of harness jexl interpolation should occur here, converting
+                      # to shell for native code throughout the rest of the script.
+                      export GH_TOKEN='<+secrets.getValue("account.githubpatsvcharnessgit2")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_PASS='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      declare SOURCE_REF='<+pipeline.variables.srcref>'
+                      declare TARGET_REF='<+pipeline.variables.targetref>'
+                      declare message='[auto] Update versions and dependencies'
+
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "Harness" \
+                          "PDIE update versions and dependencies" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      get_changed_envs() {
+                        local target_ref="${1:?Target branch required}"
+                        local env=''      # Environment name buf
+                        local reporoot='' # Absolute path to top level of repo
+                        reporoot="$(git rev-parse --show-toplevel)"
+                        source /usr/local/bin/git.changed-files.sh "${target_ref}"
+                        for i in "${FILES_A[@]}" "${FILES_M[@]}" "${FILES_R[@]}"; do
+                          # Ignore all changes outside of public_dropin_envs
+                          if [ "${i%%/*}" != 'public_dropin_environments' ]; then
+                            continue
+                          fi
+                          # If the parent directory is pdie, then a file outside of an env
+                          # dir was modified, so skip that too.
+                          env="$(cut -d/ -f2 <<<"${i}")"
+                          if [ ! -f "${reporoot}/public_dropin_environments/${env}/env_info.json" ]; then
+                            continue
+                          fi
+                          printf '%s\n' "${env}"
+                        done | sort | uniq
+                      }
+
+                      notify_exit() {
+                        local retval="${?}"
+                        local state='success'
+                        if [ "${retval}" -gt 0 ]; then
+                          state='failure'
+                        fi
+                        ghstatus.send "${state}"
+                      }
+
+                      #
+                      # Start here
+                      #
+                      trap notify_exit EXIT # Call notify_exit when the step finishes
+
+                      # Clone ourselves because harness clones strip creds and forcibly shallow clone
+                      # and we end up doing more work
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/datarobot-user-models.git"
+                      cd datarobot-user-models
+                      git checkout "${SOURCE_REF}"
+                      # Idempotence check. skip pipeline if any branch commits match our message,
+                      # otherwise we'll end up in an infinite loop of self-triggering pushes.
+                      if git log "^${TARGET_REF}" HEAD --pretty=%s | grep -q "${message//[/\\[}"; then
+                        exit 0
+                      fi
+
+                      # Configure local git
+                      /usr/local/bin/github.git-authorship.sh
+                      #git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+                      #git config --global --add safe.directory /harness  # Mark /harness as a safe directory
+
+                      # Sign in to Docker Hub for pulling internal images
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_PASS}"
+
+                      # Set GitHub status state
+                      ghstatus.send 'pending'
+
+                      # Retrieve current DataRobot version
+                      DRVER="$(/usr/local/bin/github.getfile.sh datarobot/DataRobot config/RELEASE_VERSION ${TARGET_REF})"
+                      printf 'Current DataRobot release version: %s\n' "${DRVER}"
+
+                      # Get list of changed environments
+                      cd public_dropin_environments
+                      CHANGED_ENVS=("$(get_changed_envs "${TARGET_REF}")")
+                      printf 'Changed Environments:\n'
+                      printf '* %s\n' ${CHANGED_ENVS[@]}
+
+                      # Iterate over each changed environment
+                      for env in ${CHANGED_ENVS[@]}; do
+                        # MIGRATION FILTER - only run on java_codegen for now. Delete once migrated.
+                        if [ "${env}" != 'java_codegen' ]; then
+                          continue
+                        fi
+
+                        printf 'Checking %s\n' "${env}"
+                        cd "${env}"
+                        # Update version id if user changed files but did not update this
+                        if ! git diff -U0 "${TARGET_REF}" HEAD -- env_info.json | grep -n 'environmentVersionId'; then
+                          /usr/local/bin/env_info.bump-version.sh
+                        fi
+                        # Update datarobot version if needed
+                        envverid="$(jq -r .environmentVersionId < env_info.json)"
+                        sed -i \
+                          -e "s/v[0-9\.]\+-latest/v${DRVER}-latest/g" \
+                          -e "s/v[0-9\.]\+-${envverid}/v${DRVER}-${envverid}/g" \
+                          env_info.json
+
+                        # Regen requirements with correct python version in case needed.
+                        pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
+                        # Explicitly pull quietly to not blow up console logs
+                        docker pull --quiet "datarobotdev/py-gen-requirements:${pyver}"
+                        docker run -v "$(pwd):/work" "datarobotdev/py-gen-requirements:${pyver}"
+
+                        git add env_info.json requirements.txt
+                        cd ..
+                      done
+                      # Failure on nothing to commit, so don't try to push or show changes
+                      if git commit -m "${message}"; then
+                        git show HEAD
+                        git push origin
+                      fi
+                    resources:
+                      limits:
+                        memory: 1Gi
+                  description: Ensure up-to-date versions ids and requirements for each changed environment.
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  variables:
+    - name: srcref
+      type: String
+      description: Branch to build from
+      required: false
+      value: <+input>.default(master)
+    - name: targetref
+      type: String
+      description: Target branch for the src branch to merge into. Used for detecting changed files between this branch and the src branch.
+      required: false
+      value: <+input>.default(HEAD~1)
+  identifier: pdie_update_versions_dependencies
+  description: |-
+    For each changed environment, ensures:
+    * the env_info version id was bumped
+    * the DataRobot release version is correct
+    * requirements.txt is up-to-date
+  name: PDIE Update Versions and Dependencies

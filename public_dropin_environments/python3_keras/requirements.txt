@@ -74,13 +74,13 @@ optree==0.19.1
 orjson==3.11.9
 packaging==26.2
 pandas==3.0.3
-pillow==12.2.0
+pillow==12.3.0
 progress==1.6.1
 proto-plus==1.28.0
 protobuf==6.33.6
 psutil==7.2.2
 py4j==0.10.9.9
-pyasn1==0.6.3
+pyasn1==0.6.4
 pyasn1-modules==0.4.2
 pycparser==3.0
 pydantic==2.13.4

@@ -1,4 +1,5 @@
 import logging
+import signal
 import subprocess
 from pathlib import Path
 import sys
@@ -8,6 +9,42 @@ import shlex
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+
+
+# Signals the orchestrator/runtime may send to the drum entry-point that must
+# reach the gunicorn master so it can run its graceful shutdown (which is what
+# fires each worker's worker_exit hook → ctx.stop() / ctx.cleanup()).
+_FORWARDED_SIGNALS = (
+    signal.SIGTERM,
+    signal.SIGINT,
+    signal.SIGHUP,
+    signal.SIGQUIT,
+    signal.SIGUSR1,
+    signal.SIGUSR2,
+)
+
+
+def _install_signal_forwarder(proc):
+    def _forward(sig, _frame):
+        # Relay first: logging is not async-signal-safe (a signal landing
+        # mid-write can raise a reentrancy error), so nothing may run before
+        # send_signal that could fail and swallow the relay.
+        try:
+            proc.send_signal(sig)
+        except ProcessLookupError:
+            pass
+        try:
+            logger.info("Forwarded signal %s to gunicorn master (pid=%s)", sig, proc.pid)
+        except Exception:
+            pass
+
+    for s in _FORWARDED_SIGNALS:
+        try:
+            signal.signal(s, _forward)
+        except (ValueError, OSError):
+            # ValueError: not the main thread; OSError: signal not available
+            # on this platform. Skip and let the default disposition stand.
+            pass
 
 
 def main_gunicorn():
@@ -45,13 +82,20 @@ def main_gunicorn():
     ]
 
     try:
-        subprocess.run(gunicorn_command, env=env, check=True)
+        proc = subprocess.Popen(gunicorn_command, env=env)
     except FileNotFoundError:
         logger.error("gunicorn module not found. Ensure it is installed.")
         raise
-    except subprocess.CalledProcessError as e:
-        logger.error("Gunicorn exited with non-zero status %s", e.returncode)
-        raise
+
+    # Without this, a SIGTERM from the container runtime kills this Python
+    # parent immediately and leaves the gunicorn master orphaned — worker_exit
+    # callbacks (ctx.stop()/ctx.cleanup()) never run.
+    _install_signal_forwarder(proc)
+
+    returncode = proc.wait()
+    if returncode != 0:
+        logger.error("Gunicorn exited with non-zero status %s", returncode)
+        sys.exit(returncode)
 
 
 if __name__ == "__main__":

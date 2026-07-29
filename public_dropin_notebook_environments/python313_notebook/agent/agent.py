@@ -50,6 +50,60 @@ except CGroupVersionUnsupported:
         watcher = DummyWatcher()
 
 
+async def _pump_ws_to_tcp(websocket: WebSocket, writer: asyncio.StreamWriter) -> None:
+    try:
+        while True:
+            data = await websocket.receive_bytes()
+            writer.write(data)
+            await writer.drain()
+    except Exception:
+        pass
+    finally:
+        try:
+            writer.close()
+            await writer.wait_closed()
+        except Exception:
+            pass
+
+
+async def _pump_tcp_to_ws(reader: asyncio.StreamReader, websocket: WebSocket) -> None:
+    try:
+        while True:
+            data = await reader.read(4096)
+            if not data:
+                break
+            await websocket.send_bytes(data)
+    except Exception:
+        pass
+
+
+@app.websocket_route("/ssh")  # type: ignore[untyped-decorator]
+async def ssh_endpoint(websocket: WebSocket) -> None:
+    """Bridge a WebSocket connection to the local sshd (port 8022)."""
+    await websocket.accept()
+    try:
+        reader, writer = await asyncio.open_connection('127.0.0.1', 8022)
+    except OSError as exc:
+        logger.error("Failed to connect to sshd: %s", exc)
+        # Error code 1011 == Internal Error
+        await websocket.close(code=1011, reason=str(exc))
+        return
+
+    tasks = [
+        asyncio.create_task(_pump_ws_to_tcp(websocket, writer)),
+        asyncio.create_task(_pump_tcp_to_ws(reader, websocket)),
+    ]
+    _done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+    for task in pending:
+        task.cancel()
+    if pending:
+        await asyncio.gather(*pending, return_exceptions=True)
+    try:
+        await websocket.close()
+    except Exception:
+        pass
+
+
 @app.websocket_route("/ws")  # type: ignore[untyped-decorator]
 async def websocket_endpoint(websocket: WebSocket) -> None:
     await websocket.accept()
