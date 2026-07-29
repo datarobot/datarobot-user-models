@@ -69,14 +69,19 @@ def _on_alarm(_signum: int, _frame: Any) -> None:
 # workloads (polars / pyarrow thread pools) yet far below what a fork-bomb
 # needs to hurt the node.
 #
-# RLIMIT_NPROC counts all tasks (processes AND threads) for the container's
-# UID, so the cap must comfortably exceed a reasonable thread-pool size. Like
-# the wall-clock above, this is defense-in-depth for accidental/abusive
-# process creation — the hard enforcement is a pod/node cgroup ``pids`` limit
-# (tracked separately); this runner-side cap needs no cluster support and
-# works in local/dev containers too.
+# RLIMIT_NPROC counts all tasks (processes AND threads) for the *real UID*,
+# and on Linux that accounting is host-wide within a user namespace — every
+# concurrent sandbox container running as the same UID (e.g. 65534) draws
+# from the same budget, not just this container. The default therefore has
+# to sit far above what a single sandbox (or a node full of them) legitimately
+# uses — polars / pyarrow thread pools are tens of tasks each — while staying
+# well below fork-bomb territory. Like the wall-clock above, this is
+# defense-in-depth for accidental/abusive process creation — the hard
+# per-container enforcement is a pod/node cgroup ``pids`` limit (tracked
+# separately); this runner-side cap needs no cluster support and works in
+# local/dev containers too.
 # ===========================================================================
-DEFAULT_MAX_PROCS = 256
+DEFAULT_MAX_PROCS = 4096
 
 
 def _apply_process_limit() -> None:
