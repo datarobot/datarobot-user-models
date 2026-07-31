@@ -13,18 +13,15 @@ inputSet:
             spec:
               number: <+trigger.prNumber>
     variables:
-      - name: env_folder
-        type: String
-        value: public_dropin_environments
-      - name: env_name
-        type: String
-        value: dr_mcp_execute_sandbox_minimal
       - name: context_path
         type: String
-        value: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+        value: public_dropin_environments/dr_mcp_execute_sandbox_minimal
       - name: dockerfile_path
         type: String
-        value: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+        value: public_dropin_environments/dr_mcp_execute_sandbox_minimal/Dockerfile
+      - name: image_namespace_repo
+        type: String
+        value: datarobotdev/datarobot-user-models
       - name: image_tag
         type: String
         value: pr-<+trigger.prNumber>
