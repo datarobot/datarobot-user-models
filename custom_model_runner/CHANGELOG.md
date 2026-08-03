@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.17.20] - 2026-08-03
+##### Changed
+- Default `DRUM_CLIENT_REQUEST_TIMEOUT` is now 600 seconds (was 120s for the gunicorn server, and the werkzeug client-request-timeout feature was disabled by default). Set `DRUM_CLIENT_REQUEST_TIMEOUT=0` to disable, or any other value to override.
+
 #### [1.17.19] - 2026-07-29
 ##### Changed
 - Default DRUM server in `drum server` mode changed from `werkzeug` to `gunicorn`. Set `DRUM_SERVER_TYPE=werkzeug` to keep previous behavior. A warning is logged on startup when this default is used implicitly.
