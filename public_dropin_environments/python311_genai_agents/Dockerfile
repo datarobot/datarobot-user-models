@@ -147,6 +147,9 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
 USER root
 RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+# Cache is populated during the builder stage as notebooks:notebooks (10101:10101).
+# The runtime UID is arbitrary and unknown at build time, so open it up for anyone.
+RUN mkdir -p "${UV_CACHE_DIR}" && chmod -R a+rwX "${UV_CACHE_DIR}"
 USER $UNAME
 
 # The DR CLI plugins and opencode CLI install relative to $HOME (plugins -> ~/.config/datarobot,
