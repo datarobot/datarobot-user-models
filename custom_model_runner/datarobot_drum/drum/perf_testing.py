@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-
 import collections
 import json
 import os
@@ -90,24 +89,6 @@ def _kill_drum_perf_test_server_process(pid, verbose=False):
         return
     if verbose:
         print("Detected running perf test drum server process ... killing it")
-
-    # drum server runs under os.setsid, so pid leads its own process group. In
-    # gunicorn mode that group also holds the workers; signal the whole group so
-    # workers don't outlive a killed master.
-    try:
-        pgid = os.getpgid(pid)
-    except (ProcessLookupError, OSError):
-        pgid = None
-
-    if pgid is not None and pgid != os.getpgrp():
-        for sig in (signal.SIGTERM, signal.SIGKILL):
-            try:
-                os.killpg(pgid, sig)
-            except ProcessLookupError:
-                return
-            time.sleep(0.3)
-        return
-
     try:
         proc = psutil.Process(pid)
         proc.terminate()
@@ -406,7 +387,7 @@ class CMRunTests:
         env_vars = os.environ
         env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
 
-        pipe_r, pipe_w = os.pipe()
+        (pipe_r, pipe_w) = os.pipe()
         self._server_process_fd_read = pipe_r
         self._server_process_fd_write = pipe_w
 
