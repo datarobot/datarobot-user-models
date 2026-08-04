@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-
 import logging
 from typing import Optional
 
@@ -18,6 +17,7 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 from flask import Flask
 
 from datarobot_drum.drum.exceptions import DrumCommonException
+
 
 logger = get_drum_logger(__name__)
 logger.setLevel(logging.ERROR)
@@ -89,13 +89,6 @@ class DrumRuntime:
 
         with verbose_stdout(self.options.verbose):
             run_error_server(host, port, exc_value, self.flask_app)
-
-        if self.flask_app is not None:
-            # Gunicorn/CLI mode: run_error_server registered the 513 routes on the
-            # already-serving Flask app and returned without blocking (unlike
-            # werkzeug's app.run()). Suppress the exception so the worker keeps
-            # serving the error instead of crashing and taking the master down.
-            return True
 
         return False  # propagate exception further
 

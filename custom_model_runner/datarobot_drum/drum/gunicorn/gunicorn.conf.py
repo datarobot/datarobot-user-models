@@ -20,7 +20,7 @@ if RuntimeParameters.has("DRUM_WEBSERVER_BACKLOG"):
     if 1 <= temp_backlog <= 10000:
         backlog = temp_backlog
 
-timeout = 600
+timeout = 120
 if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
     temp_timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
     if 0 <= temp_timeout <= 3600:
