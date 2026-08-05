@@ -5,10 +5,14 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, nat, auth]==0.24.0",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.26.24",
     "datarobot-mlops==11.1.28",
     "datarobot[core]>=3.17.0,<4.0.0",  # We use getenv to load runtime parameter values, and there are important bugfixes in 3.17
-    "gunicorn>=25.0.0"  # We require this to run dragent workers in deployments
+    "gunicorn>=25.0.0",  # We require this to run dragent workers in deployments
+
+    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
+    # recipe-datarobot-agent-application.
+    "ag-ui-protocol==0.1.15",
 ]
 
 [project.optional-dependencies]
@@ -169,94 +173,124 @@ module = "datarobot.*"
 implicit_reexport = true
 follow_imports = "skip"
 
-[tool.uv]
-required-version = ">=0.7.0"
-constraint-dependencies = [
-    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
-    # recipe-datarobot-agent-application.
-    "ag-ui-protocol==0.1.15",
+# -----------------------------------------------------------------------
+# af-component marker - declares what this component is, without anything
+# needing to import it or activate its environment. Two readers today:
+#
+#  - the core CLI, which discovers components by scanning for this table;
+#  - cve-sync, which pairs this template with its policy/copier.yaml entry
+#    on `type`, and refuses to render a template that declares none. It
+#    reads the type out of the raw text, before rendering, so the marker
+#    has to stay outside any jinja conditional.
+# -----------------------------------------------------------------------
+[tool.af-component]
+type = "agent"
 
-    # CVE fixes constraints. Keep ordered please.
-    "aiohttp>=3.14.1",
-    "joserfc>=1.6.8",
-    "langchain>=1.3.9",
-    "langgraph-checkpoint>=4.1.1",
-    # ragas 0.4.3 (pulled in by datarobot-genai) unconditionally imports
-    # `langchain_community.chat_models.vertexai.ChatVertexAI` at module load, but that module
-    # was removed in langchain-community 0.4.2. ragas leaves its langchain deps unpinned, so the
-    # `langchain>=1.3.9` CVE floor above otherwise drags langchain-community up to 0.4.2 and the
-    # import crashes. Cap below 0.4.2 (0.4.1 still ships the module) until ragas drops the import.
-    "langchain-community>=0.4.1,<0.4.2",
-    "langsmith>=0.8.18",
-    "mcp>=1.28.1",
-    "mistune>=3.3.0",
-    "nltk>=3.10.0",
-    "openai>=2.30.0",
-    "pdfminer.six>=20251230",
+[tool.uv]
+# exclude-dependencies requires uv >= 0.10.0. Treat the floor below as a label,
+# not a guarantee: an older uv rejects exclude-dependencies as an unknown key,
+# which fails parsing of this entire [tool.uv] table and takes required-version
+# down with it. uv then only warns, exits 0, and resolves with the exclusions
+# silently absent. Confirmed on 0.7.0, 0.8.0, 0.8.17 and 0.9.0; the hard failure
+# only starts somewhere in late 0.9.x. Because the guard cannot protect itself,
+# the image build asserts the uv version before syncing.
+required-version = ">=0.10.0"
+# Packages a generated agent is verified not to need at runtime. Dropping a
+# package is a judgement about this project, so it is deliberately NOT org-wide
+# CVE policy and lives outside the cve-sync markers, where cve-sync leaves it
+# alone. uv's exclude-dependencies is not published in wheel metadata, so these
+# do not arrive from datarobot-genai's own exclusions and must be restated here.
+exclude-dependencies = [
+    "gevent",                   # not used; therefore removed
+    "onnxruntime",              # not used; therefore removed
+    "fastembed",                # not used; therefore removed
+    "langchain-milvus",         # not used and having CVEs
+    "pymilvus",                 # not used and having CVEs
+    "diskcache",                # not used and having CVEs
+    "annoy",                    # not used, issues with building it
+    "uv",                       # not a runtime dependency
+    # crewai / crewai-tools bloat
+    "build",                    # Python build system pulled in by crewai; runtime unnecessary
+    "kubernetes",               # K8s client pulled in by crewai-tools; not used
+    "stagehand",                # Playwright web automation pulled in by crewai-tools; not used
+    "pytube",                   # YouTube downloader pulled in by crewai-tools; not used
+    "youtube-transcript-api",   # YouTube transcripts pulled in by crewai-tools; not used
+    "lancedb",                  # optional vector DB pulled in by crewai; not used
+    "openpyxl",                 # Excel parser pulled in by crewai-tools; not used
+    "python-docx",              # Word doc parser pulled in by crewai-tools; not used
+    "crewai-cli",               # CLI tool pulled in by crewai 1.15+; not needed at runtime
+    # llama-index bloat
+    "llama-index-cli",          # CLI tool pulled in by llama-index; not needed at runtime
+    # nemoguardrails — server / CLI stack pulled in via datarobot-moderations[all]; not used at runtime
+    "watchdog",                 # file watcher for guardrails hot-reload; not used
+    # prompt-toolkit and wcwidth are intentionally NOT excluded: IPython (via ipykernel /
+    # agentic_playground) has a hard import-time dependency on prompt-toolkit; excluding it
+    # causes ModuleNotFoundError at runtime.
+    "typer",                    # CLI framework for guardrails CLI; not used
+    "shellingham",              # shell detection; sole dependent was typer
+    # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
+    "pyfiglet",                 # ASCII banner renderer for deepeval CLI; not used
+    "wheel",                    # build-time packaging tool; not a runtime dependency
+    "datarobot-early-access",   # randomly overlaps the core `datarobot`
+]
+# Managed by cve-sync from policy/. Do not hand-edit between the markers below:
+# `cve-sync sync` regenerates both keys wholesale from policy and drops anything
+# policy lacks. Contribute a needed entry to cve-sync policy/ instead. This note
+# sits ABOVE the begin marker on purpose, since everything inside is replaced.
+# cve-sync:begin
+constraint-dependencies = [
     "pip>=26.1.2",
-    "PyJWT>=2.13.0",
-    "pypdf>=6.13.3",
-    "python-multipart>=0.0.31",
-    "ragas>=0.4.3",
-    "soupsieve>=2.8.4",
+    "pdfminer.six>=20251230",
+    "aiohttp>=3.14.3",
+    "openai>=2.30.0",
+    "langchain>=1.3.9",
+    "langsmith>=0.8.18",
+    "nltk>=3.10.0",
+    "langgraph-checkpoint>=4.1.1",
     "starlette>=1.3.1",
+    "python-multipart>=0.0.31",
+    "joserfc>=1.6.8",
+    "soupsieve>=2.8.4",
+    "pypdf>=6.14.2",
+    "pyarrow>=23.0.1",
+    "pillow>=12.3.0",
+    "banks>=2.4.2",
+    "bleach>=6.4.0",
+    "idna>=3.15",
+    "jupyter-server>=2.20.0",
+    "jupyterlab>=4.5.10",
+    "langchain-classic>=1.0.7",
+    "langchain-openai>=1.1.14",
+    "langchain-text-splitters>=1.1.2",
+    "mistune>=3.3.0",
+    "notebook>=7.5.6",
+    "pyasn1>=0.6.4",
+    "pygments>=2.20.0",
+    "pytest>=9.0.3",
+    "requests>=2.33.0",
+    "setuptools>=83.0.0",
+    "tornado>=6.5.7",
+    "transformers>=5.5.0",
+    "urllib3>=2.7.0",
 ]
 override-dependencies = [
-    # crewai and drum pin otel to 1.34.x but we need the latest.
-    # Override the entire otel family to stay version-synchronized at 1.43.x/0.64b.0
+    "crewai>=1.11.0",
+    "cryptography>=50.0.0",
+    "PyJWT>=2.13.0",
+    "litellm>=1.91.1,<2.0.0",
+    "python-dotenv>=1.2.2,<2.0.0",
     "opentelemetry-api>=1.43.0,<2.0.0",
     "opentelemetry-sdk>=1.43.0,<2.0.0",
     "opentelemetry-exporter-otlp-proto-http>=1.43.0,<2.0.0",
     "opentelemetry-exporter-otlp-proto-common>=1.43.0,<2.0.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.43.0,<2.0.0",
     "opentelemetry-instrumentation>=0.64b0,<0.65",
-
-    # nvidia-nat-core hard-pins cryptography<47 and PyJWT<2.13 across all stable releases.
-    # Overrides are required to force CVE-safe versions until NAT relaxes their upper bounds.
-    "cryptography>=48.0.1",
-    "PyJWT>=2.13.0",
-
-    # nvidia-nat prevents `litellm` upgrade over 1.85, but `datarobot-genai` already expects >=1.91.1
-    "litellm>=1.91.1,<2.0.0",
-
-    # crewai prevents upgrade of `python-dotenv` and `json-repair`
+    "click>=8.3.3",
     "json-repair>=0.60.1",
-    "python-dotenv>=1.2.2",
-
-    # crewai 1.15.4 (required for the mcp>=1.28.1 CVE floor) pins aiofiles~=24.1 while
-    # nvidia-nat-core 1.7.0 requires aiofiles>=25.1 — irreconcilable as declared.
+    "mcp>=1.28.1",
     "aiofiles>=25.1,<26",
-
-    # Excluded
-    "gevent; sys_platform == 'never'",  # not used; therefore removed
-    "onnxruntime; sys_platform == 'never'",  # not used; therefore removed
-    "fastembed; sys_platform == 'never'",  # not used; therefore removed
-    "langchain-milvus; sys_platform == 'never'",  # not used and having CVEs
-    "pymilvus; sys_platform == 'never'",  # not used and having CVEs
-    "diskcache; sys_platform == 'never'",  # not used and having CVEs
-    "annoy; sys_platform == 'never'",  # not used, issues with building it
-    "uv; sys_platform == 'never'",  # not a runtime dependency
-    "build; sys_platform == 'never'",  # Python build system pulled in by crewai; runtime unnecessary
-    "kubernetes; sys_platform == 'never'",  # K8s client pulled in by crewai-tools; not used
-    "stagehand; sys_platform == 'never'",  # Playwright web automation pulled in by crewai-tools; not used
-    "pytube; sys_platform == 'never'",  # YouTube downloader pulled in by crewai-tools; not used
-    "youtube-transcript-api; sys_platform == 'never'",  # YouTube transcripts pulled in by crewai-tools; not used
-    "lancedb; sys_platform == 'never'",  # optional vector DB pulled in by crewai; not used
-    "openpyxl; sys_platform == 'never'",  # Excel parser pulled in by crewai-tools; not used
-    "python-docx; sys_platform == 'never'",  # Word doc parser pulled in by crewai-tools; not used
-    "llama-index-cli; sys_platform == 'never'",  # CLI tool pulled in by llama-index; not needed at runtime
-    "scikit-network; sys_platform == 'never'",  # graph analysis pulled in by ragas; not used
-    # nemoguardrails — server / CLI stack pulled in via datarobot-moderations[all]; not used at runtime
-    "watchdog; sys_platform == 'never'",  # file watcher for guardrails hot-reload; not used
-    # prompt-toolkit and wcwidth are intentionally NOT excluded: IPython (via ipykernel / agentic_playground)
-    # has a hard import-time dependency on prompt-toolkit; excluding it causes ModuleNotFoundError at runtime.
-    "typer; sys_platform == 'never'",  # CLI framework for guardrails CLI; not used
-    "shellingham; sys_platform == 'never'",  # shell detection; sole dependent was typer
-    # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
-    "pyfiglet; sys_platform == 'never'",  # ASCII banner renderer for deepeval CLI; not used
-    "wheel; sys_platform == 'never'",  # build-time packaging tool; not a runtime dependency
-    "datarobot-early-access; sys_platform == 'never'",  # randomly overlaps the core `datarobot`
 ]
+# cve-sync:end
 package = true
 environments = [
   "sys_platform == 'darwin'",
