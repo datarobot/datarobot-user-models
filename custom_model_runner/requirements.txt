@@ -1,4 +1,4 @@
-argcomplete
+argcomplete==3.7.0  # 3.7.1 breaks on Python 3.9: `str | bytes` class-level annotation evaluated eagerly
 # trafaret version pinning is defined by `datarobot`
 trafaret>=2.0.0
 docker>=4.2.2
