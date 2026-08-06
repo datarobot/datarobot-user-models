@@ -30,14 +30,30 @@ ARG VENV_PATH
 USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-# Refresh index and upgrade curl for CVE-2026-3805 (fixed in curl >= 8.19.0).
+# Refresh the index, then explicitly upgrade packages that arrive pre-installed in the base
+# image. The `apk add` below cannot fix those: apk treats an already-installed package as
+# satisfied and leaves the base image's version in place, so a rebuild alone never bumps them.
+#   curl: CVE-2026-3805, needs >= 8.19.0
+#   wget: needs >= 1.25.0-r15
+# openjdk-11 is installed by us rather than the base image, so the unpinned add already tracks
+# the newest build (>= 11.0.32-r0). It is listed here as well so that a future base image which
+# starts shipping a JDK cannot silently hold us on an old one.
 # hadolint ignore=DL3018,DL3059
 RUN apk update \
   && apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
     openjdk-11 vim nano procps tzdata \
-  && apk upgrade --no-cache curl
+  && apk upgrade --no-cache curl wget openjdk-11
+# pulumi and pulumi-language-python are deliberately left unpinned so each build picks up the
+# newest available build, which is what remediates CVEs against them. The upgrade below is a
+# no-op whenever that already happens: our builder does no layer caching, so the `apk add`
+# re-runs every build and `--no-cache` refetches the index rather than reusing a stale one.
+# It is spelled out anyway so the remediation is visible here instead of being an implicit
+# side effect of not pinning. If a pulumi CVE survives a rebuild, the fixed version does not
+# exist in the Chainguard repo our base image is entitled to, and the fix has to come from
+# that supplier rather than from this file.
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache rust sqlite task pulumi pulumi-language-python
+RUN apk add --no-cache rust sqlite task pulumi pulumi-language-python \
+  && apk upgrade --no-cache pulumi pulumi-language-python
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
