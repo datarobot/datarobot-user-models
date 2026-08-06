@@ -37,6 +37,22 @@ RUN apk add --no-cache uv graphviz openblas openssh-server \
     gzip zip unzip curl git \
     openjdk-11 vim nano procps tzdata \
     && rm -f /etc/ssh/ssh_host_*
+
+# Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
+# cannot be pinned and the version floats with the apk index. pyproject.toml declares
+# exclude-dependencies, which needs uv >= 0.10.0. An older uv rejects that unknown key,
+# which fails parsing of the entire [tool.uv] table and takes its own required-version
+# guard down with it. uv then only warns, exits 0, and resolves with the exclusions
+# silently absent, quietly restoring the packages we dropped for CVE reasons. Fail the
+# build here instead. Compared with bash builtins so this needs no awk or sort -V.
+RUN v="$(uv --version)" && v="${v#uv }" && v="${v%% *}" \
+    && IFS=. read -r maj min _ <<< "$v" \
+    && if [ "$maj" -eq 0 ] && [ "$min" -lt 10 ]; then \
+         echo "ERROR: uv $v is below the 0.10.0 floor required by exclude-dependencies" >&2; \
+         exit 1; \
+       fi \
+    && echo "uv $v satisfies the >=0.10.0 exclude-dependencies floor"
+
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
