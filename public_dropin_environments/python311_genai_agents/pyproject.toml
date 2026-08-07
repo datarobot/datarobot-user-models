@@ -3,7 +3,7 @@ name = "DockerContext"
 version = "0.1.0"
 description = "Implementation of DockerContext"
 readme = "README.md"
-requires-python = ">=3.11, <3.12"
+requires-python = ">=3.13, <3.14"
 dependencies = [
     "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.26.24",
     "datarobot-mlops==11.1.28",
@@ -83,7 +83,7 @@ exclude = [
 line-length = 88
 indent-width = 4
 
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.

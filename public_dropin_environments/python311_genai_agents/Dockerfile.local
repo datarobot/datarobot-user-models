@@ -23,7 +23,7 @@ ARG UV_CACHE_DIR=/tmp/uv-cache
 # hadolint ignore=DL3007
 FROM cgr.dev/chainguard/wolfi-base:latest AS chainguard_python_dev
 
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.13
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 RUN echo "[Python $PYTHON_VERSION]"
 
@@ -174,7 +174,8 @@ USER $UNAME
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
+    # Globbed on the minor version so a Python bump cannot silently turn this into a no-op.
+    rm -rf ${VENV_PATH}/lib/python3.*/site-packages/.vscode ${VENV_PATH}/lib/python3.*/site-packages/vscode_extension ${VENV_PATH}/lib/python3.*/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 
