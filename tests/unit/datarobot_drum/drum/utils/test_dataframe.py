@@ -1,7 +1,10 @@
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.utils.dataframe import extract_additional_columns
+from datarobot_drum.drum.utils.dataframe import (
+    DISALLOW_DUPLICATE_EXTRA_MODEL_OUTPUT_COLUMNS_ENV_VAR_NAME,
+    extract_additional_columns,
+)
 
 
 class TestExtractAdditionalColumns:
@@ -66,3 +69,24 @@ class TestExtractAdditionalColumns:
         assert extra_model_output.equals(
             pd.DataFrame([["high", "fast", 55]], columns=additional_columns)
         )
+
+    def test_duplicate_additional_column_names_warns_by_default(self, caplog):
+        prediction_column = "Predictions"
+        result_df = pd.DataFrame(
+            [[2.3, 0.2749, float("nan")]],
+            columns=[prediction_column, "MAC_MAPE", "MAC_MAPE"],
+        )
+        predictions, extra_model_output = extract_additional_columns(result_df, [prediction_column])
+        assert predictions.equals(pd.DataFrame({prediction_column: [2.3]}))
+        assert extra_model_output.columns.tolist() == ["MAC_MAPE", "MAC_MAPE"]
+        assert "MAC_MAPE" in caplog.text
+
+    def test_duplicate_additional_column_names_raises_when_disallowed(self, monkeypatch):
+        monkeypatch.setenv(DISALLOW_DUPLICATE_EXTRA_MODEL_OUTPUT_COLUMNS_ENV_VAR_NAME, "1")
+        prediction_column = "Predictions"
+        result_df = pd.DataFrame(
+            [[2.3, 0.2749, float("nan")]],
+            columns=[prediction_column, "MAC_MAPE", "MAC_MAPE"],
+        )
+        with pytest.raises(ValueError, match="MAC_MAPE"):
+            extract_additional_columns(result_df, [prediction_column])

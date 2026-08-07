@@ -55,7 +55,10 @@ from datarobot_drum.drum.exceptions import (
     DrumTransformException,
     DrumSerializationError,
 )
-from datarobot_drum.drum.utils.dataframe import extract_additional_columns
+from datarobot_drum.drum.utils.dataframe import (
+    check_for_duplicate_extra_model_output_columns,
+    extract_additional_columns,
+)
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import (
@@ -704,6 +707,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                             target_column = target_column[1:-1]
                 else:
                     target_column = PRED_COLUMN
+                check_for_duplicate_extra_model_output_columns(result_df)
                 extra_model_output = result_df.drop(columns=[target_column])
                 predictions_df = result_df[[target_column]]
             else:
