@@ -36,7 +36,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apk add --no-cache uv graphviz openblas openssh-server \
     gzip zip unzip curl git \
     openjdk-11 vim nano procps tzdata \
-    && rm -f /etc/ssh/ssh_host_*
+    && rm -f /etc/ssh/ssh_host_* \
+    && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
 
 # Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
 # cannot be pinned and the version floats with the apk index. pyproject.toml declares
@@ -64,9 +65,10 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
-    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES" \
+    JAVA_HOME=/usr/lib/jvm/default-jvm
 
-ENV PATH="$VENV_PATH/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN uv venv ${VENV_PATH}

@@ -14,9 +14,11 @@
 
 import asyncio
 import logging
+from typing import Union
 
 import ecs_logging
 from cgroup_watchers import CGroupFileReader
+from cgroup_watchers import CGroupV2FileReader
 from cgroup_watchers import CGroupVersionUnsupported
 from cgroup_watchers import CGroupWatcher
 from cgroup_watchers import DummyWatcher
@@ -35,11 +37,23 @@ logger.addHandler(handler)
 
 app = FastAPI()
 
+watcher: Union[CGroupWatcher, DummyWatcher]
+
 try:
-    watcher = CGroupWatcher(CGroupFileReader(), SystemWatcher())
+    watcher = CGroupWatcher(CGroupV2FileReader(), SystemWatcher())
+    logger.info("Using CGroup V2 Watcher")
 except CGroupVersionUnsupported:
-    logger.warning("CGroup Version Unsupported. Dummy utilization will be broadcasted")
-    watcher = DummyWatcher()
+    logger.debug("CGroup V2 not available, trying V1")
+    try:
+        watcher = CGroupWatcher(CGroupFileReader(), SystemWatcher())
+        logger.info("Using CGroup V1 Watcher")
+    except CGroupVersionUnsupported:
+        logger.debug("CGroup V1 not available")
+        logger.warning(
+            "CGroup not supported. Using DummyWatcher with SystemWatcher (psutil) "
+            "for system-wide resource metrics instead of container-specific cgroup metrics"
+        )
+        watcher = DummyWatcher()
 
 
 @app.websocket_route("/ws")
