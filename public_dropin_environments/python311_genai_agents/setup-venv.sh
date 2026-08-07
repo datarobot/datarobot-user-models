@@ -28,6 +28,31 @@ if [[ $IS_CODESPACE == true && $IS_PYTHON_KERNEL == true && -z "${NOTEBOOKS_NO_P
   KERNEL_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
   deactivate
 
+  # If a user has previously created a session with a different python version we need to figure that out
+  # If so we'll delete the existing venv to avoid errors and issues - for example when pip installing new packages
+  if [ -d "$USR_VENV" ]; then
+    [[ $VERBOSE_MODE == true ]] && echo "$USR_VENV does exist - will check python symlinks to see if they are broken..."
+    # Here we are getting all the symlinks for the venv and checking if any of them are broken
+    readarray -d '' VENV_SYMLINKS < <(find "$USR_VENV" -type l -print0)
+    python_symlinks_broken=false
+    for i in "${VENV_SYMLINKS[@]}"; do
+      if [[ "$i" == *"python"* ]]; then
+        [[ $VERBOSE_MODE == true ]] && echo "Checking symlink (${i}).";
+        if [ ! -e "$i" ] ; then
+          [[ $VERBOSE_MODE == true ]] && echo "Symlink (${i}) broken...";
+          python_symlinks_broken=true
+          break
+        fi
+      fi
+    done
+
+    # If any python symlinks are broken delete the venv that we know exists from checks above
+    if [[ $python_symlinks_broken == true ]]; then
+      [[ $VERBOSE_MODE == true ]] && echo "Python symlinks are broken - deleting existing virtual env..."
+      rm -rf "${USR_VENV}"
+    fi
+  fi
+
   python3 -m venv "${USR_VENV}"
   # shellcheck disable=SC1091
   source "${USR_VENV}/bin/activate"
