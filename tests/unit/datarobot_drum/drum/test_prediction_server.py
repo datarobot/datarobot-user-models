@@ -238,11 +238,15 @@ def test_http_exception(openai_client, chat_python_model_adapter):
 
 
 @pytest.mark.parametrize(
-    "processes_param, expected_processes, request_timeout",
-    [(None, 1, None), (None, 1, 0), (10, 10, 600)],
+    "processes_param, expected_processes, request_timeout, expect_handler",
+    [
+        (None, 1, None, True),  # default timeout (600s) applies, handler enabled
+        (None, 1, 0, False),  # explicitly disabled
+        (10, 10, 600, True),  # explicit timeout matching the default
+    ],
 )
-def test_run_flask_app(processes_param, expected_processes, request_timeout):
-    if request_timeout:
+def test_run_flask_app(processes_param, expected_processes, request_timeout, expect_handler):
+    if request_timeout is not None:
         os.environ[
             "MLOPS_RUNTIME_PARAM_DRUM_CLIENT_REQUEST_TIMEOUT"
         ] = f'{{"type": "numeric", "payload": {request_timeout}}}'
@@ -268,7 +272,7 @@ def test_run_flask_app(processes_param, expected_processes, request_timeout):
         "threaded": False,
         "processes": expected_processes,
     }
-    if request_timeout:
+    if expect_handler:
         called_kwargs["request_handler"] = TimeoutWSGIRequestHandler
 
     app.run.assert_called_with(**called_kwargs)
