@@ -50,7 +50,7 @@ RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
-  "pulumi>=3.256.0-r3" pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
+  "pulumi>=3.256.0-r3" pulumi-language-python pulumi-language-yaml "pulumi-language-go>=3.256.0-r3" pulumi-language-nodejs \
   gh uv task bash-completion xdg-utils \
   && rm -f /etc/ssh/ssh_host_* \
   && rm -rf /var/cache/apk/ \
