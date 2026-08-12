@@ -5,7 +5,7 @@
 #    pip-compile --cert=None --client-cert=None --index-url=https://pypi.org/simple --no-annotate --no-emit-index-url --no-emit-trusted-host --output-file=requirements.txt --pip-args=None requirements.in
 #
 annotated-types==0.8.0
-argcomplete==3.7.0
+argcomplete==3.7.2
 azure-core==1.41.0
 azure-identity==1.25.3
 azure-storage-blob==12.19.0
