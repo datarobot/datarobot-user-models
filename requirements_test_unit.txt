@@ -3,3 +3,4 @@ pytest-cov
 responses
 scikit-learn==1.3.2
 openai>=1.55.3
+httpx
