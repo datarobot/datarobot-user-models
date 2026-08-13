@@ -23,7 +23,7 @@ ARG UV_CACHE_DIR=/tmp/uv-cache
 # hadolint ignore=DL3007
 FROM cgr.dev/chainguard/wolfi-base:latest AS chainguard_python_dev
 
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.13
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 RUN echo "[Python $PYTHON_VERSION]"
 
@@ -75,7 +75,8 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache uv graphviz openblas openssh-server \
     gzip zip unzip curl \
-    openjdk-11 vim nano procps tzdata
+    openjdk-11 vim nano procps tzdata \
+    && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
 
 # Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
 # cannot be pinned and the version floats with the apk index. pyproject.toml declares
@@ -104,9 +105,10 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
-    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES" \
+    JAVA_HOME=/usr/lib/jvm/default-jvm
 
-ENV PATH="$VENV_PATH/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 # hadolint ignore=SC1091
@@ -174,7 +176,8 @@ USER $UNAME
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
+    # Globbed on the minor version so a Python bump cannot silently turn this into a no-op.
+    rm -rf ${VENV_PATH}/lib/python3.*/site-packages/.vscode ${VENV_PATH}/lib/python3.*/site-packages/vscode_extension ${VENV_PATH}/lib/python3.*/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 

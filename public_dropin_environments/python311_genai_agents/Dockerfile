@@ -19,7 +19,7 @@ ARG OPENCODE_VERSION=1.17.11
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -36,8 +36,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN apk add --no-cache uv graphviz openblas openssh-server \
     gzip zip unzip curl git \
     openjdk-11 vim nano procps tzdata \
-    && rm -f /etc/ssh/ssh_host_* \
-    && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
+    && rm -f /etc/ssh/ssh_host_*
 
 # Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
 # cannot be pinned and the version floats with the apk index. pyproject.toml declares
@@ -65,10 +64,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
-    DEEPEVAL_TELEMETRY_OPT_OUT="YES" \
-    JAVA_HOME=/usr/lib/jvm/default-jvm
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
-ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN uv venv ${VENV_PATH}
@@ -135,8 +133,7 @@ USER $UNAME
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    # Globbed on the minor version so a Python bump cannot silently turn this into a no-op.
-    rm -rf ${VENV_PATH}/lib/python3.*/site-packages/.vscode ${VENV_PATH}/lib/python3.*/site-packages/vscode_extension ${VENV_PATH}/lib/python3.*/site-packages/.venv && \
+    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 

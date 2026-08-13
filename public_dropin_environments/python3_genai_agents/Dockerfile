@@ -13,53 +13,13 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 # DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
-ARG CLI_VERSION=v0.2.75
+ARG CLI_VERSION=v0.2.78
 # opencode CLI version (see https://github.com/anomalyco/opencode/releases)
 ARG OPENCODE_VERSION=1.17.11
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
-# This reproduces a open source variant of https://images.chainguard.dev/directory/image/python
-# hadolint ignore=DL3007
-FROM cgr.dev/chainguard/wolfi-base:latest AS chainguard_python_dev
-
-ARG PYTHON_VERSION=3.11
-SHELL ["/bin/sh", "-o", "pipefail", "-c"]
-RUN echo "[Python $PYTHON_VERSION]"
-
-ENV PATH="${PATH}:/sbin"
-RUN apk update && apk upgrade
-# Wolfi python image
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache ca-certificates-bundle gdbm glibc glibc-locale-posix \
-ld-linux libbz2-1 libcrypto3 libexpat1 libffi libgcc libssl3 libstdc++ \
-mpdecimal ncurses ncurses-terminfo readline sqlite-libs \
-wolfi-baselayout xz zlib
-# Wolfi python dev image
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache apk-tools  bash  binutils  build-base  busybox  cyrus-sasl  \
-gcc  git  glibc-dev  gmp  heimdal-libs  isl  keyutils-libs  \
-krb5-conf  krb5-libs  libatomic  libbrotlicommon1  libbrotlidec1  \
-libcom_err  libcrypt1  libcurl-openssl4  libgo  libgomp  libidn2  \
-libldap  libnghttp2-14  libpcre2-8-0  libpsl  libquadmath  libstdc++-dev  \
-libunistring  libverto  libxcrypt  libxcrypt-dev  libzstd1  \
-linux-headers  make  mpc  mpfr  nss-db  nss-hesiod  \
-openssf-compiler-options  pkgconf  posix-cc-wrappers  wget
-# Python
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache \
-    python-$PYTHON_VERSION \
-    python-$PYTHON_VERSION-base \
-    py$PYTHON_VERSION-pip \
-    py3-pip-wheel
-# Python dev
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache python-$PYTHON_VERSION-dev \
-    python-$PYTHON_VERSION-base-dev \
-    py$PYTHON_VERSION-pip-base \
-    py$PYTHON_VERSION-setuptools
-
-FROM chainguard_python_dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
 
 ARG UNAME
 ARG UID
@@ -74,8 +34,10 @@ USER root
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache uv graphviz openblas openssh-server \
-    gzip zip unzip curl \
-    openjdk-11 vim nano procps tzdata
+    gzip zip unzip curl git \
+    openjdk-11 vim nano procps tzdata \
+    && rm -f /etc/ssh/ssh_host_* \
+    && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
 
 # Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
 # cannot be pinned and the version floats with the apk index. pyproject.toml declares
@@ -99,17 +61,16 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
     UV_COMPILE_BYTECODE=1 \
-    UV_LINK_MODE=copy \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
-    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES" \
+    JAVA_HOME=/usr/lib/jvm/default-jvm
 
-ENV PATH="$VENV_PATH/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=SC1091
 RUN uv venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
@@ -142,11 +103,11 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   # Limit max processes
   && touch /etc/profile.d/bash-profile-load.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
-  && mkdir -p /opt \
-  && chown "$UNAME:$UNAME" /opt \
   && mkdir -p "${UV_CACHE_DIR}" \
   && chown -R "$UNAME:$UNAME" "${UV_CACHE_DIR}"
 
+# Set after root `uv venv` / chown so Kaniko/BuildKit: `uv sync` as notebooks does not inherit a
+# root-owned ${UV_CACHE_DIR} (see sdists-v9/.git permission denied).
 ENV UV_CACHE_DIR=${UV_CACHE_DIR}
 
 USER $UNAME
@@ -174,7 +135,8 @@ USER $UNAME
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
+    # Globbed on the minor version so a Python bump cannot silently turn this into a no-op.
+    rm -rf ${VENV_PATH}/lib/python3.*/site-packages/.vscode ${VENV_PATH}/lib/python3.*/site-packages/vscode_extension ${VENV_PATH}/lib/python3.*/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 
@@ -187,9 +149,8 @@ COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 # Monitoring agent port
 EXPOSE 8889
 
-# Final image continues from builder (not base + COPY --from=builder). Kaniko's snapshotter
-# can break venv symlinks / ownership when re-tarring and extracting the whole WORKDIR across
-# stages; inheriting the same filesystem avoids that path (see CMPT-5321).
+# CMPT-5321 / Kaniko: continue from builder so the kernel .venv is not re-tarred across
+# COPY --from=builder (snapshot symlink / ownership issues).
 FROM builder AS kernel
 # this stage is what actually going to be run as kernel image and it's clean from all build junks
 
