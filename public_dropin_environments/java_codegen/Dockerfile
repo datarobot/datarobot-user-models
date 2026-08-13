@@ -1,5 +1,8 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-gaurd image if you build your own.
+# RAPTOR-18950: no-op content bump to force a new environmentVersionId, since the EE Helm
+# build pipeline was reusing a cached tag->digest resolution for the floating :3.11 base
+# and kept publishing the pre-fix image even after two rebuilds under the old version id.
 ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
