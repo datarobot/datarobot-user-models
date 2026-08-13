@@ -1,3 +1,8 @@
+# NOT AUTO-APPLIED. Harness does not read trigger YAML from git; triggers are
+# stored inline in Harness. This file is the intended definition and must be
+# pasted into a new trigger on the env_image_publish pipeline by hand, then
+# enabled. See .harness/README.md ("Registering an entity in Harness").
+# Verify with .harness/scripts/check_harness_entities.sh.
 trigger:
   name: dr_mcp_execute_sandbox_minimal on push
   identifier: dr_mcp_execute_sandbox_minimal_on_push_master
