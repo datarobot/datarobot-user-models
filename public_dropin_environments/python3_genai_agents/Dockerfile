@@ -19,6 +19,7 @@ ARG OPENCODE_VERSION=1.17.11
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
+# This is the python 3.13 base image from Chainguard
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
 
 ARG UNAME
