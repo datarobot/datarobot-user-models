@@ -3,6 +3,8 @@
 This template environment can be used to create GenAI-powered custom models and includes common dependencies for
 workflows using CrewAI, LangGraph, Llama-Index and other agentic workflows.
 
+This is a Python 3 base image. For the exact version of Python 3 currently used by the image please see the `Dockerfile` and `Dockerfile.local`. These pin specific python versions and Chainguard base images.
+
 Additionally, this environment is fully compatible with `Codespaces` and `Notebooks` in the DataRobot platform.
 
 ## Supported Libraries
