@@ -1,6 +1,6 @@
 ag-ui-protocol==0.1.15
 datarobot==3.17.0
-datarobot-genai==0.26.24
+datarobot-genai==0.27.11
 datarobot-mlops==11.1.28
 ecs-logging==2.2.0
 gunicorn==26.0.0
