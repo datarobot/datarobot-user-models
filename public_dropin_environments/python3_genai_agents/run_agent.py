@@ -34,7 +34,7 @@ ENABLE_STDOUT_REDIRECT = str(os.environ.get("ENABLE_STDOUT_REDIRECT", 0)).lower(
     "True",
 ]
 
-# Bootstarp: new agentic env doesn't have agent dependencies pre-installed and updated
+# Bootstrap: new agentic env doesn't have agent dependencies pre-installed and updated
 # template has it's own toml/lock file that should be used to set up venv with runtime deps.
 # Code below bootstraps agent's venv, if it's not there and toml/lock files are present, and
 # prepends custom venv paths in sys.path, causing all following libs to be imported from there.
