@@ -4,7 +4,7 @@ datarobot-genai==0.26.24
 datarobot-mlops==11.1.28
 ecs-logging==2.2.0
 gunicorn==26.0.0
-ipykernel==6.28.0
+ipykernel==6.30.0
 jupyter-client==8.6.3
 jupyter-core==5.9.1
 jupyter-kernel-gateway==3.0.1
