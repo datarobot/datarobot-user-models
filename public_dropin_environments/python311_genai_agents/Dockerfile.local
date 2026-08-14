@@ -95,6 +95,12 @@ RUN v="$(uv --version)" && v="${v#uv }" && v="${v%% *}" \
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
+# linux-pam (an openssh-server dependency) installs unix_chkpwd setgid-shadow so PAM
+# can read /etc/shadow. Nothing here reaches pam_unix auth: sshd is pubkey-only and runs
+# unprivileged, and accounts are created passwordless. Drop the setgid bit but keep the
+# binary, so a future PAM stack referencing it fails closed rather than with ENOENT.
+RUN if [ -e /usr/bin/unix_chkpwd ]; then chmod g-s /usr/bin/unix_chkpwd; fi
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
