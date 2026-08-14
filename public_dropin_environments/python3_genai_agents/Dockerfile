@@ -12,6 +12,8 @@ ARG VENV_PATH=${WORKDIR}/.venv
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
+# Python version baked into the image
+ARG PYTHON_VERSION=3.13
 # DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
 ARG CLI_VERSION=v0.2.82
 # opencode CLI version (see https://github.com/anomalyco/opencode/releases)
@@ -20,7 +22,7 @@ ARG OPENCODE_VERSION=1.17.11
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
 # This is the python 3.13 base image from Chainguard
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
