@@ -14,6 +14,9 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
+# DataRobot CLI version baked into the image (see https://github.com/datarobot-oss/cli/releases)
+ARG CLI_VERSION=v0.2.83
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
@@ -124,6 +127,8 @@ ARG WORKDIR
 
 ARG GIT_COMMIT
 
+ARG CLI_VERSION
+
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
@@ -132,10 +137,11 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
 # Install DR CLI
-RUN wget -q https://github.com/datarobot-oss/cli/releases/download/v0.2.60/dr_v0.2.60_Linux_x86_64.tar.gz \
+RUN curl -fsSL -o /tmp/dr.tar.gz https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
-    && tar -xvzf dr_v0.2.60_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
-    && rm dr_v0.2.60_Linux_x86_64.tar.gz
+    && tar -xzf /tmp/dr.tar.gz -C /home/notebooks/.local/bin/dr \
+    && rm /tmp/dr.tar.gz \
+    && chmod +x /home/notebooks/.local/bin/dr/dr
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
