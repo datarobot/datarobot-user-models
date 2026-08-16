@@ -71,4 +71,10 @@ ENV MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS='{"type": "numeric", "payload": 1}'
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
+# Hand off to the Chainguard base image's built-in non-root user so the
+# container does not run as root by default. chown $HOME (covers $CODE_DIR
+# and the venv) first so the runtime user can still write there.
+RUN chown -R nonroot:nonroot ${HOME}
+USER nonroot
+
 ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_server.sh \"$@\"", "--"]
