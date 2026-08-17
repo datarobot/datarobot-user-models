@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [Unreleased]
+##### Changed
+- `drum server` in `gunicorn` mode now `exec`s into gunicorn so its master runs as PID 1, receiving container signals and owning the exit status directly (removes the drum-side signal forwarder).
+
 #### [1.17.20.post1] - 2026-08-04
 ##### Changed
 - Revert default DRUM server change to `gunicorn` from 1.17.19 (#2154). Default is `werkzeug` again.
