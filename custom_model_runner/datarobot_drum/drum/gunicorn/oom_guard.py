@@ -65,9 +65,8 @@ def install():
     real_kill_worker = Arbiter.kill_worker
 
     def kill_worker(self, pid, sig):
-        # Only a master-sent SIGKILL can be confused with an OOM SIGKILL; other
-        # signals never surface as WTERMSIG==SIGKILL, so tracking them would only
-        # falsely mark live workers (e.g. SIGUSR1 log-reopen) and disable the guard.
+        # Track only master-sent SIGKILL; other signals (e.g. SIGUSR1)
+        # would falsely mark live workers and disable the guard.
         if sig == signal.SIGKILL:
             _master_initiated_kills.add(pid)
         return real_kill_worker(self, pid, sig)
