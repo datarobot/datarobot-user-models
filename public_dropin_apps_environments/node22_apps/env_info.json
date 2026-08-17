@@ -4,7 +4,7 @@
   "description": "Base image for NodeJS 22 custom applications.",
   "programmingLanguage": "other",
   "environmentVersionId": "6f481a9f0a7c64e17aa19450",
-  "environmentVersionDescription": "The base environment uses Node.js v22.x without any additional packages, the exact subversion depends on the current Chainguard image version",
+  "environmentVersionDescription": "The base environment uses Node.js v22.x without any additional packages, the exact subversion depends on the current Chainguard image version.",
   "imageRepository": "env-tpl-node",
   "isDownloadable": true,
   "contextUrl": null,
