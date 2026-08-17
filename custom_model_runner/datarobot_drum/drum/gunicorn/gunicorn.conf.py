@@ -1,6 +1,9 @@
 # Import DRUM's WSGI application
 import os
 from datarobot_drum import RuntimeParameters
+from datarobot_drum.drum.gunicorn import oom_guard
+
+oom_guard.install()
 
 workers = 1
 if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
@@ -119,3 +122,7 @@ def worker_exit(worker, code):
             ctx.stop()
         finally:
             ctx.cleanup()
+
+
+def child_exit(server, worker):
+    oom_guard.handle_child_exit(server, worker)
