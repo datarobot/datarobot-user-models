@@ -7,13 +7,9 @@
 #
 """Crash the gunicorn master when a worker is OOM-killed.
 
-The kernel/cgroup OOM killer sends SIGKILL to the offending worker. By default
-the gunicorn master just respawns it, so Kubernetes never observes a restart and
-its OOM-handling (pod restart, backoff, alerts) never fires. DataRobot's runtime
-delegates OOM handling to Kubernetes, so an absorbed OOM is a silent failure.
-
-This module makes the master exit non-zero when a worker dies from an unsolicited
-SIGKILL, letting the container exit and Kubernetes restart the pod.
+The OOM killer SIGKILLs a worker and the master silently respawns it, so
+Kubernetes never sees the restart and its OOM handling never fires. This makes
+the master exit non-zero on an unsolicited worker SIGKILL so k8s restarts the pod.
 """
 import logging
 import os
@@ -23,9 +19,7 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
-# Signals the master sends to its own workers on purpose (recycling, timeout,
-# graceful shutdown). A SIGKILL that is NOT one of these was sent by something
-# outside gunicorn — the OOM killer being the case we care about.
+# Kills the master issued itself; a SIGKILL not from here came from the OOM killer.
 _master_initiated_kills = set()
 
 # PIDs the master reaped that were terminated by an unsolicited SIGKILL.
@@ -71,7 +65,11 @@ def install():
     real_kill_worker = Arbiter.kill_worker
 
     def kill_worker(self, pid, sig):
-        _master_initiated_kills.add(pid)
+        # Only a master-sent SIGKILL can be confused with an OOM SIGKILL; other
+        # signals never surface as WTERMSIG==SIGKILL, so tracking them would only
+        # falsely mark live workers (e.g. SIGUSR1 log-reopen) and disable the guard.
+        if sig == signal.SIGKILL:
+            _master_initiated_kills.add(pid)
         return real_kill_worker(self, pid, sig)
 
     Arbiter.kill_worker = kill_worker

@@ -85,11 +85,25 @@ def test_handle_child_exit_forgets_pid_after_handling():
     assert 4242 not in oom_guard._sigkilled_workers
 
 
-def test_install_wraps_waitpid_and_records_sigkill(monkeypatch):
-    fake_arbiter = MagicMock()
-    fake_arbiter.Arbiter.kill_worker = MagicMock()
-    monkeypatch.setitem(__import__("sys").modules, "gunicorn.arbiter", fake_arbiter)
+class _FakeArbiterModule:
+    class Arbiter:
+        def kill_worker(self, pid, sig):
+            pass
 
+
+@pytest.fixture
+def installed_guard(monkeypatch):
+    monkeypatch.setitem(__import__("sys").modules, "gunicorn.arbiter", _FakeArbiterModule)
+    real_waitpid = os.waitpid
+    real_kill_worker = _FakeArbiterModule.Arbiter.kill_worker
+    oom_guard.install()
+    yield _FakeArbiterModule.Arbiter()
+    os.waitpid = real_waitpid
+    _FakeArbiterModule.Arbiter.kill_worker = real_kill_worker
+
+
+def test_install_wraps_waitpid_and_records_sigkill(monkeypatch):
+    monkeypatch.setitem(__import__("sys").modules, "gunicorn.arbiter", _FakeArbiterModule)
     real_waitpid = os.waitpid
     monkeypatch.setattr(os, "waitpid", lambda *a, **k: (4242, signal.SIGKILL))
     try:
@@ -99,4 +113,19 @@ def test_install_wraps_waitpid_and_records_sigkill(monkeypatch):
         os.waitpid = real_waitpid
 
     assert pid == 4242
+    assert oom_guard.is_oom_death(4242)
+
+
+def test_master_sigkill_marks_pid_but_non_kill_signal_does_not(installed_guard):
+    installed_guard.kill_worker(111, signal.SIGUSR1)
+    installed_guard.kill_worker(222, signal.SIGKILL)
+
+    assert 111 not in oom_guard._master_initiated_kills
+    assert 222 in oom_guard._master_initiated_kills
+
+
+def test_sigusr1_before_oom_sigkill_still_detects_oom(installed_guard):
+    installed_guard.kill_worker(4242, signal.SIGUSR1)
+    oom_guard._record_reaped(4242, _sigkill_status())
+
     assert oom_guard.is_oom_death(4242)
