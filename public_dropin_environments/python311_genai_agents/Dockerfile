@@ -169,6 +169,8 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
 USER root
 RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+# custom model deployments and workloads use (securityContext.runAsUser: 1000) -- grant access to uv cache to all users to avoid any access errors
+RUN chmod -R 777 "${UV_CACHE_DIR}"
 USER $UNAME
 
 # The DR CLI plugins and opencode CLI install relative to $HOME (plugins -> ~/.config/datarobot,
@@ -201,7 +203,6 @@ COPY ./start_server_custom_model.sh /opt/code/start_server.sh
 ENV VENV_DIR=/opt/venv \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \
-    UV_FROZEN=1 \
     HOME=/opt \
     CODE_DIR=/opt/code \
     ADDRESS=0.0.0.0:8080

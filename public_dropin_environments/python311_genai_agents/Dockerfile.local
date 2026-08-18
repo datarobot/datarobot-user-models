@@ -243,7 +243,6 @@ COPY ./start_server_custom_model.sh /opt/code/start_server.sh
 ENV VENV_DIR=/opt/venv \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \
-    UV_FROZEN=1 \
     HOME=/opt \
     CODE_DIR=/opt/code \
     ADDRESS=0.0.0.0:8080

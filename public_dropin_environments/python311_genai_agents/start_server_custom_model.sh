@@ -17,7 +17,6 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 export UV_PROJECT="${CODE_DIR:-/opt/code}"
 export UV_PROJECT_ENVIRONMENT="${VENV_DIR:-/opt/venv}"
 export UV_COMPILE_BYTECODE=0  # Disable compilation
-export UV_NO_CACHE=1       # Disable caching for reproducibility
 export UV_CACHE_DIR="${UV_CACHE_DIR:-/tmp/uv-cache}"
 
 # Create venv in code dir.
