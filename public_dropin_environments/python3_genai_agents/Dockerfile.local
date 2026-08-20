@@ -25,6 +25,8 @@ ARG UV_CACHE_DIR=/tmp/uv-cache
 # hadolint ignore=DL3007
 FROM cgr.dev/chainguard/wolfi-base:latest AS chainguard_python_dev
 
+ARG PYTHON_VERSION
+
 SHELL ["/bin/sh", "-o", "pipefail", "-c"]
 RUN echo "[Python $PYTHON_VERSION]"
 
