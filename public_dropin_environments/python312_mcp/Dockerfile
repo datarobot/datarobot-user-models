@@ -100,17 +100,19 @@ ENV UV_COMPILE_BYTECODE=1
 ARG WORKDIR
 ARG VENV_PATH
 ARG UNAME
+ARG UID
+ARG GID
 ARG UV_CACHE_DIR
 ARG GIT_COMMIT
 
 LABEL com.datarobot.repo-name="datarobot-user-models"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
-COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
-COPY ./uv.lock ${WORKDIR}/uv.lock
+COPY --chown=${UID}:${GID} ./pyproject.toml ${WORKDIR}/pyproject.toml
+COPY --chown=${UID}:${GID} ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
-USER $UNAME
+USER ${UNAME}
 
 # Bakes the dependency set into ${VENV_PATH} (which Workload API entrypoints resolve
 # through PATH) and, just as importantly, warms ${UV_CACHE_DIR} so the custom-model
@@ -123,12 +125,15 @@ USER root
 # Custom model deployments and workloads run as securityContext.runAsUser: 1000, which is
 # neither the build user nor root -- grant both the runtime venv target and the uv cache to
 # all users to avoid access errors.
-RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
+RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv
 RUN chmod -R 777 "${UV_CACHE_DIR}"
-USER $UNAME
 
 # This is required for custom models to work with this image
-COPY ./start_server_custom_model.sh /opt/code/start_server.sh
+COPY --chown=${UID}:${GID} ./start_server_custom_model.sh /opt/code/start_server.sh
+
+# Last USER must be non-root. Platform runtimes still override this with
+# securityContext.runAsUser: 1000; this is the default for docker run and scanners.
+USER ${UNAME}
 
 WORKDIR /
 # PATH is deliberately not restated here -- `PATH="$VENV_PATH/bin:$PATH"` is set in the

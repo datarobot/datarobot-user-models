@@ -8,8 +8,7 @@ It is a deliberate narrowing of [`python311_genai_agents`](../python311_genai_ag
 same base image, same uv/lock toolchain, same custom-model start-script contract — but
 only the MCP dependency line, and none of the Codespaces/Notebooks runtime. There is no
 sshd, no Jupyter kernel gateway, no IPython extensions, no monitoring agent and no
-DataRobot CLI, and the only port exposed is 8080. See [DESIGN.md](DESIGN.md) for the
-rationale and the full list of what was dropped.
+DataRobot CLI, and the only port exposed is 8080.
 
 This is not a replacement for
 [`dr_mcp_execute_sandbox_minimal`](../dr_mcp_execute_sandbox_minimal), which is a
