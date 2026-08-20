@@ -17,14 +17,14 @@ from datarobot_drum import RuntimeParameters
 logger = logging.getLogger(__name__)
 
 
-def _test_connectivity(endpoint, region, api_key):
+def _test_connectivity(endpoint, region, api_key, ssl_context):
     # The root path of the endpoint can be used for health checks
     url = f"https://{endpoint}.{region}.inference.ml.azure.com/"
     logger.info("Checking liveness of endpoint: %s", url)
 
     req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
     try:
-        urllib.request.urlopen(req)
+        urllib.request.urlopen(req, context=ssl_context)
     except urllib.error.HTTPError as error:
         logger.error(
             "Failed to connect to %s status_code=%s\n%s",
@@ -48,9 +48,10 @@ def load_model(code_dir):
     url = f"https://{endpoint}.{region}.inference.ml.azure.com/score"
     verify_ssl = RuntimeParameters.get("verifySSL").lower() == "true"
 
+    ssl_context = None
     if verify_ssl:
-        allowSelfSignedHttps()
-    _test_connectivity(endpoint, region, api_key)
+        ssl_context = allowSelfSignedHttps()
+    _test_connectivity(endpoint, region, api_key, ssl_context)
 
     # Can return any object as a placeholder for a model that we can
     # then use again in the `score()` function.
@@ -67,6 +68,7 @@ def score(data, model, **kwargs):
         json.dumps(payload).encode("utf-8"),
         model.url,
         model.api_key,
+        model.ssl_context,
         deployment=model.deployment,
     )
 
@@ -75,12 +77,14 @@ def score(data, model, **kwargs):
     return predictions_data
 
 
-### The code below was adapted from the snippet provided in the AzureML UI
+### Adapted from the self-signed-cert snippet provided in the AzureML UI. Returns an
+### explicit per-request SSLContext instead of patching ssl's process-wide default, so it
+### only affects this endpoint's own requests, not unrelated HTTPS calls in the container.
 def allowSelfSignedHttps():
-    ssl._create_default_https_context = ssl._create_unverified_context
+    return ssl._create_unverified_context()
 
 
-def make_remote_prediction_request(payload, url, api_key, deployment=None):
+def make_remote_prediction_request(payload, url, api_key, ssl_context, deployment=None):
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
@@ -91,7 +95,7 @@ def make_remote_prediction_request(payload, url, api_key, deployment=None):
 
     req = urllib.request.Request(url, data=payload, headers=headers)
     try:
-        response = urllib.request.urlopen(req)
+        response = urllib.request.urlopen(req, context=ssl_context)
     except urllib.error.HTTPError as error:
         logger.error(
             "The request failed with status_code=%s; headers=%s;\n%s",
