@@ -6,12 +6,16 @@
 #  The copyright notice above does not evidence any actual or intended
 #  publication of such source code.
 import abc
+import logging
 import re
+import shutil
 import time
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import psutil
+
+logger = logging.getLogger("kernel_agent")
 
 NANO_SECS = 10**9
 
@@ -190,6 +194,35 @@ class BaseWatcher:
 
     def memory_usage_percentage(self) -> float:
         raise NotImplementedError
+
+    def disk_usage_stats(self, path: Path = Path("/home/notebooks/storage")) -> tuple[int | None, float | None]:
+        """
+        Return disk usage for the filesystem that `path` lives on, as (total, percentage):
+
+        - total: total capacity of that filesystem, in bytes, or None if it couldn't be read.
+        - percentage: percentage (0-100) of that filesystem currently used, rounded to 2 decimal
+          places, or None if it couldn't be read.
+
+        Note: this reports usage for the whole filesystem `path` resolves to, not just `path`
+        itself - if `path` isn't on its own dedicated mount, this includes everything else
+        sharing that filesystem (e.g. container image layers), not only files under `path`.
+        """
+
+        # disk isn't a cgroup-scoped resource here, so this is shared by both
+        # CGroupWatcher and DummyWatcher rather than needing a per-cgroup-version reader
+
+        try:
+            usage = shutil.disk_usage(path)
+        except FileNotFoundError:
+            # Expected when this session has no persistent storage volume mounted - not an error.
+            return None, None
+        except OSError:
+            logger.warning("Failed to read disk usage stats for %s", path, exc_info=True)
+            return None, None
+        if usage.total == 0:
+            return usage.total, 0.0
+        percentage = round(usage.used / usage.total * 100, 2)
+        return usage.total, percentage
 
 
 class CGroupWatcher(BaseWatcher):
