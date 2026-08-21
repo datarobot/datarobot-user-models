@@ -5,7 +5,7 @@
 #    pip-compile --cert=None --client-cert=None --index-url=https://pypi.org/simple --no-annotate --no-emit-index-url --no-emit-trusted-host --output-file=requirements.txt --pip-args=None requirements.in
 #
 annotated-types==0.8.0
-argcomplete==3.7.2
+argcomplete==3.7.0
 azure-core==1.41.0
 azure-identity==1.25.3
 azure-storage-blob==12.19.0
@@ -18,7 +18,7 @@ charset-normalizer==3.4.9
 click==8.4.2
 cryptography==50.0.0
 datarobot==3.18.0
-datarobot-drum==1.17.18
+datarobot-drum==1.18.0.dev1
 datarobot-mlops==11.2.42
 datarobot-storage==2.2.0
 docker==7.2.0

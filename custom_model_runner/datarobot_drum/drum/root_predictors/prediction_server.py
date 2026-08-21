@@ -68,8 +68,11 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 tracer = trace.get_tracer(__name__)
 
 
+DEFAULT_CLIENT_REQUEST_TIMEOUT = 600
+
+
 class TimeoutWSGIRequestHandler(WSGIRequestHandler):
-    timeout = 3600
+    timeout = DEFAULT_CLIENT_REQUEST_TIMEOUT
     if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
         timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
 
@@ -348,17 +351,10 @@ class PredictionServer(PredictMixin):
         return []
 
     def is_client_request_timeout_enabled(self):
-        if (
-            RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
-            and int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT")) > 0
-        ):
-            logger.info(
-                "Client request timeout is enabled, timeout: %s",
-                str(int(TimeoutWSGIRequestHandler.timeout)),
-            )
-            return True
-        else:
-            return False
+        timeout = DEFAULT_CLIENT_REQUEST_TIMEOUT
+        if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
+        return timeout > 0
 
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
