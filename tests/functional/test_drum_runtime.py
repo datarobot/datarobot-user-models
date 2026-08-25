@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import collections
 from unittest import mock
 import pytest
@@ -88,5 +89,14 @@ class TestDrumRuntime:
                 runtime.options = TestDrumRuntime.Options(True)
                 runtime.initialization_succeeded = False
                 raise TestDrumRuntime.StubDrumException()
+
+        mock_run_error_server.assert_called()
+
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
+    def test_exception_with_error_server_gunicorn(self, mock_run_error_server):
+        with DrumRuntime(flask_app=mock.Mock()) as runtime:
+            runtime.options = TestDrumRuntime.Options(True)
+            runtime.initialization_succeeded = False
+            raise TestDrumRuntime.StubDrumException()
 
         mock_run_error_server.assert_called()
