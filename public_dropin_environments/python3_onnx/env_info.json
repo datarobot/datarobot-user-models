@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only ONNX custom models. This environment contains ONNX runtime and only requires your model artifact as an .onnx file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a8cbcadc53377e51da12672",
+  "environmentVersionId": "6a8dba31128108c0cd60aae6",
   "environmentVersionDescription": "Python Version: 3.12",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_onnx",
   "imageRepository": "env-python-onnx",
   "tags": [
-    "v11.12.0-6a8cbcadc53377e51da12672",
-    "6a8cbcadc53377e51da12672",
+    "v11.12.0-6a8dba31128108c0cd60aae6",
+    "6a8dba31128108c0cd60aae6",
     "v11.12.0-latest"
   ]
 }

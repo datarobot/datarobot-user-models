@@ -43,10 +43,14 @@ COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
 
+# RAPTOR-19423: pip resolves to the interpreter's own prefix here, so packages land in
+# /usr/lib/python3.12/site-packages and the ${VIRTUAL_ENV}-only jar sweep added by #2146
+# never matched. Sweep the real install prefix too so the DRUM Java predictor jars
+# (which bundle log4j-core/log4j-api) are actually removed; this image ships no JRE.
 RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
-    find ${VIRTUAL_ENV} -path '*/datarobot_drum/*.jar' -delete && \
+    find ${VIRTUAL_ENV} /usr/lib/python3.12/site-packages -path '*/datarobot_drum/*.jar' -delete && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
