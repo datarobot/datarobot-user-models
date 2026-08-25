@@ -50,10 +50,19 @@ COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
 
+# RAPTOR-19425: the `-delete` sweep below must cover the system site-packages as well as
+# ${VIRTUAL_ENV}. The venv is created --without-pip, so the install runs through
+# `/usr/bin/python -m pip`, which resolves its target from the interpreter's own sys.prefix
+# and therefore lands every distribution (datarobot-drum included) in
+# /usr/lib/python3.12/site-packages, leaving ${VIRTUAL_ENV} empty. Scoping the find to
+# ${VIRTUAL_ENV} alone matched nothing, so DRUM's bundled java_predictor jars
+# (drum-predictors-1.1.1.jar, drum-py4j-entrypoint-1.0.0.jar - both shading
+# org.apache.logging.log4j:log4j-api 2.25.4, CVE-2026-49844) stayed in the image. This
+# environment ships no JVM, so the jars are unreachable dead weight either way.
 RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
-    find ${VIRTUAL_ENV} -path '*/datarobot_drum/*.jar' -delete && \
+    find ${VIRTUAL_ENV} /usr/lib/python3.12/site-packages -path '*/datarobot_drum/*.jar' -delete && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
