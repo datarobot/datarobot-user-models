@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 #### [Unreleased]
+##### Security
+- Bump `org.apache.logging.log4j:log4j-core` 2.25.4 -> 2.25.5 in the Java predictor
+  poms (`predictors`, `py4j_entrypoint`), which pulls `log4j-api` 2.25.5 and resolves
+  CVE-2026-49844 / GHSA-qv9r-c865-cp47 in `drum-predictors-*.jar` and
+  `drum-py4j-entrypoint-*.jar`. RAPTOR-19427.
 ##### Changed
 - `drum server` in `gunicorn` mode now `exec`s into gunicorn so its master runs as PID 1, receiving container signals and owning the exit status directly (removes the drum-side signal forwarder).
 
