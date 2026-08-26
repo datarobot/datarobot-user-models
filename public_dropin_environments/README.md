@@ -11,6 +11,7 @@ In this repository, we provide several example environments that you can use and
 * [Python 3 + xgboost](python3_xgboost)
 * [Python 3 + keras/tensorflow](python3_keras)
 * [Python 3 + ONNX](python3_onnx)
+* [Python 3.12 + MCP](python312_mcp)
 * [R + caret](r_lang)
 * [Java Scoring Code](java_codegen)
 * [Julia + MLJ](../example_dropin_environments/julia_mlj)
