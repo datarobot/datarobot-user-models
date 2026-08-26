@@ -15,6 +15,7 @@ supported-markers = [
 [manifest]
 constraints = [
     { name = "aiohttp", specifier = ">=3.14.3" },
+    { name = "authlib", specifier = ">=1.7.1" },
     { name = "banks", specifier = ">=2.4.2" },
     { name = "bleach", specifier = ">=6.4.0" },
     { name = "h2", specifier = ">=4.4.1" },
@@ -34,7 +35,7 @@ constraints = [
     { name = "openai", specifier = ">=2.30.0" },
     { name = "pdfminer-six", specifier = ">=20251230" },
     { name = "pillow", specifier = ">=12.3.0" },
-    { name = "pip", specifier = ">=26.1.2" },
+    { name = "pip", specifier = ">=26.2" },
     { name = "pyarrow", specifier = ">=23.0.1" },
     { name = "pyasn1", specifier = ">=0.6.4" },
     { name = "pygments", specifier = ">=2.20.0" },
@@ -1070,7 +1071,7 @@ wheels = [
 
 [[package]]
 name = "datarobot"
-version = "3.17.0"
+version = "3.18.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1085,9 +1086,9 @@ dependencies = [
     { name = "typing-extensions", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "urllib3", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/44/2e/2d72db2fe202e2f5151a3d465a026c7ffa0f06ec0900260973daeb2cf69c/datarobot-3.17.0.tar.gz", hash = "sha256:a3587725adb06bfc58942dec0f7cd26e7ba0918e11b6e72a6848636ba5fb58fa", size = 834279, upload-time = "2026-06-30T12:52:39.292Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/87/fe696ed62eb8f72a29b036a71086434e39db7ef096a280526c8073017652/datarobot-3.18.0.tar.gz", hash = "sha256:47f289b65211416fba37b384b57a0ec82efdb76546aabda95c1ff7076b41e72c", size = 834279, upload-time = "2026-07-28T18:34:22.698Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/bb/9771102c62cea69f9e1ade151a23855d93c959109d30668fba598272d9ab/datarobot-3.17.0-py3-none-any.whl", hash = "sha256:c54471022ea29324fe8a21b34b9473d1d75da1599de66ad8ef8d28dde47b08b0", size = 902398, upload-time = "2026-06-30T12:52:37.68Z" },
+    { url = "https://files.pythonhosted.org/packages/20/5a/999f30688e3f352110e02034681f3393133a0fcc2db2bc88ee92377b15c8/datarobot-3.18.0-py3-none-any.whl", hash = "sha256:c1272693b9ebb3cbf6e4e4066bb714e003208cb3957d4489d751a380e7062a97", size = 900686, upload-time = "2026-07-28T18:34:20.498Z" },
 ]
 
 [package.optional-dependencies]
@@ -1118,11 +1119,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.27.11"
+version = "0.28.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/99/2f/5960fe389fb28650898b39e8ee5f385d2ae430c9db4339402b13cd0ad0a8/datarobot_genai-0.27.11.tar.gz", hash = "sha256:2a75ff50205d218053a3d84ab94e34c6bf96d81c245cb696fcf563eecf978701", size = 589077, upload-time = "2026-08-13T14:33:44.786Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/78/55a5b5ff564dcd1a0422232fd82277cf35d646b14a2a4e7223b897905fe9/datarobot_genai-0.28.3.tar.gz", hash = "sha256:2a439346864b65752d48b9faae90298324f629b0303cfa8fcf68ce00fe1430d5", size = 598394, upload-time = "2026-08-20T15:19:02.215Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e1/86/1eef5b1433d76a3d5f691eff3e1c070f7f7b55578b745b3d05ff99957f28/datarobot_genai-0.27.11-py3-none-any.whl", hash = "sha256:69769b41292de4c3505d238f549741d8ed5af7c014393062bd81c9af14485e43", size = 834683, upload-time = "2026-08-13T14:33:42.849Z" },
+    { url = "https://files.pythonhosted.org/packages/15/66/89a5f0a4ed82a8700539a724a1c2414fcde4f818cde30df6108fb068bf0a/datarobot_genai-0.28.3-py3-none-any.whl", hash = "sha256:234290910ad737e49ac68234ee3a7bb633bc4528e6cd790b58640df4839e595f", size = 844569, upload-time = "2026-08-20T15:18:59.957Z" },
 ]
 
 [package.optional-dependencies]
@@ -1132,6 +1133,7 @@ auth = [
     { name = "httpx", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "okta-client-python", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pydantic", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "pydantic-settings", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyjwt", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
 crewai = [
@@ -1234,6 +1236,7 @@ drtools = [
     { name = "polars", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyarrow", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pydantic", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
+    { name = "pydantic-settings", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pyjwt", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "pypdf", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "python-dateutil", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
@@ -1535,13 +1538,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "ag-ui-protocol", specifier = "==0.1.15" },
-    { name = "datarobot", extras = ["core"], specifier = ">=3.17.0,<4.0.0" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.27.11" },
+    { name = "datarobot", extras = ["core"], specifier = ">=3.18.0,<4.0.0" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.28.3" },
     { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
     { name = "gunicorn", specifier = ">=25.0.0" },
-    { name = "ipykernel", marker = "extra == 'agentic-playground'", specifier = "<6.29.0" },
+    { name = "ipykernel", marker = "extra == 'agentic-playground'", specifier = "==6.30.0" },
     { name = "jupyter-client", marker = "extra == 'agentic-playground'", specifier = ">=8.6.3" },
     { name = "jupyter-core", marker = "extra == 'agentic-playground'", specifier = ">=5.8.1" },
     { name = "jupyter-kernel-gateway", marker = "extra == 'agentic-playground'", specifier = ">=3.0.1" },
@@ -2368,7 +2371,7 @@ wheels = [
 
 [[package]]
 name = "ipykernel"
-version = "6.28.0"
+version = "6.30.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appnope", marker = "sys_platform == 'darwin'" },
@@ -2385,9 +2388,9 @@ dependencies = [
     { name = "tornado", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
     { name = "traitlets", marker = "sys_platform == 'darwin' or sys_platform == 'linux' or sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a1/12/ec23e176d7931a305b76631c0079885fb32424db190b6790cb25ded3f337/ipykernel-6.28.0.tar.gz", hash = "sha256:69c11403d26de69df02225916f916b37ea4b9af417da0a8c827f84328d88e5f3", size = 157701, upload-time = "2023-12-26T15:01:04.807Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/38/27/9e6e30ed92f2ac53d29f70b09da8b2dc456e256148e289678fa0e825f46a/ipykernel-6.30.0.tar.gz", hash = "sha256:b7b808ddb2d261aae2df3a26ff3ff810046e6de3dfbc6f7de8c98ea0a6cb632c", size = 165125, upload-time = "2025-07-21T10:36:09.259Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/71/348c659f0fbbf526ca77fae9fd31d43a3c90d4d60ae3df6d477055ee90d5/ipykernel-6.28.0-py3-none-any.whl", hash = "sha256:c6e9a9c63a7f4095c0a22a79f765f079f9ec7be4f2430a898ddea889e8665661", size = 114084, upload-time = "2023-12-26T15:01:00.522Z" },
+    { url = "https://files.pythonhosted.org/packages/1f/3d/00813c3d9b46e3dcd88bd4530e0a3c63c0509e5d8c9eff34723ea243ab04/ipykernel-6.30.0-py3-none-any.whl", hash = "sha256:fd2936e55c4a1c2ee8b1e5fa6a372b8eecc0ab1338750dee76f48fa5cca1301e", size = 117264, upload-time = "2025-07-21T10:36:06.854Z" },
 ]
 
 [[package]]
@@ -4795,11 +4798,11 @@ wheels = [
 
 [[package]]
 name = "pip"
-version = "26.1.2"
+version = "26.2.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/01/91/47e7d486260f618783899587af63ccf7980fb60245c3e63dd4571c6b57ad/pip-26.1.2.tar.gz", hash = "sha256:f49cd134c61cf2fd75e0ce2676db03e4054504a5a4986d00f8299ae632dc4605", size = 1840799, upload-time = "2026-05-31T17:33:58.56Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/15/4500e320e6b101ec3b719ae85b697d9940b6cda672bc555bd6016fc60c6f/pip-26.2.1.tar.gz", hash = "sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f", size = 1848877, upload-time = "2026-08-04T22:51:14.148Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/95/6b5cb3461ea5673ba0995989746db58eb18b91b54dbf331e72f569540946/pip-26.1.2-py3-none-any.whl", hash = "sha256:382ff9f685ee3bc25864f820aa50505825f10f5458ffff07e30a6d96e5715cab", size = 1813144, upload-time = "2026-05-31T17:33:56.772Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl", hash = "sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e", size = 1816632, upload-time = "2026-08-04T22:51:12.472Z" },
 ]
 
 [[package]]
