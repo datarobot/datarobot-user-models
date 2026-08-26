@@ -1,0 +1,86 @@
+[project]
+name = "DockerContext"
+version = "0.1.0"
+description = "Implementation of DockerContext"
+readme = "README.md"
+requires-python = ">=3.12, <3.13"
+dependencies = [
+    "datarobot-genai[drmcp]==0.26.24",
+    "datarobot[core]>=3.17.0,<4.0.0",  # getenv for runtime parameters; bugfixes in 3.17
+]
+
+# Declares what this component is. Read by the core CLI for component discovery, and by
+# cve-sync, which pairs this template with its policy/copier.yaml entry on `type` and
+# refuses to render a template that declares none. `mcp` is a new value and needs a
+# matching policy entry before the first sync.
+[tool.af-component]
+type = "mcp"
+
+[tool.uv]
+# Required by exclude-dependencies below. An older uv rejects that key, which fails
+# parsing of this whole table and silently takes required-version down with it -- so the
+# image build asserts the uv version as well. Keep both.
+required-version = ">=0.10.0"
+# Runtime-unnecessary packages. A judgement about this project rather than org CVE
+# policy, hence outside the cve-sync markers. Empty: every entry python311_genai_agents
+# carries targets the crewai / llama-index / nemoguardrails / deepeval / ipykernel
+# stacks, none of which `datarobot-genai[drmcp]` pulls.
+exclude-dependencies = []
+# Managed by cve-sync from policy/. Do not hand-edit between the markers: `cve-sync
+# sync` regenerates both keys wholesale and drops anything policy lacks. Contribute
+# needed entries to policy instead. This note sits ABOVE the marker on purpose.
+#
+# Seeded by hand, diverging from policy in two ways that must be contributed upstream
+# or the first sync will regress the lock:
+#
+#  1. Floors as CONSTRAINTS, not overrides. uv overrides DISCARD the dependents' own
+#     bounds. Policy's otel overrides did exactly that, resolving
+#     opentelemetry-sdk 1.43.0 against opentelemetry-api 1.44.0 and violating sdk's
+#     declared `opentelemetry-api==1.43.0`. As constraints the floors still apply and
+#     each package's own pins survive.
+#  2. No ceilings. Policy's `<2.0.0` / `<0.65` otel caps exist for the agent stack
+#     (nvidia-nat, litellm, openinference); nothing here needs them, and they held otel
+#     back a minor version.
+# cve-sync:begin
+constraint-dependencies = [
+    "aiohttp>=3.14.3",
+    "click>=8.3.3",
+    "cryptography>=50.0.0",
+    "idna>=3.15",
+    "joserfc>=1.6.8",
+    "mcp>=1.28.1,<2.0.0",
+    "openai>=2.30.0",
+    "opentelemetry-api>=1.43.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.43.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.43.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.43.0",
+    "opentelemetry-instrumentation>=0.64b0",
+    "opentelemetry-sdk>=1.43.0",
+    "pyarrow>=23.0.1",
+    "pygments>=2.20.0",
+    "PyJWT>=2.13.0",
+    "pypdf>=6.14.2",
+    "python-dotenv>=1.2.2",
+    "python-multipart>=0.0.31",
+    "requests>=2.33.0",
+    "soupsieve>=2.8.4",
+    "starlette>=1.3.1",
+    "urllib3>=2.7.0",
+]
+override-dependencies = []
+# cve-sync:end
+# Dependency manifest for a docker build context, not an importable package.
+package = false
+environments = [
+  "sys_platform == 'darwin'",
+  "sys_platform == 'linux'",
+  "sys_platform == 'win32'"
+]
+
+# This can be set to allow for proxy indexes in air-gapped environments
+# [[tool.uv.index]]
+# name = "mirror"
+# url = "https://mirror_url/"
+
+[dependency-groups]
+extras = []

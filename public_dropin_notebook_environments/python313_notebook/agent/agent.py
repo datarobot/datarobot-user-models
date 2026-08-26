@@ -110,9 +110,12 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
 
     try:
         while True:
+            total_disk_size, disk_usage_percentage = watcher.disk_usage_stats()
             await websocket.send_json({
                 "cpu_percent": watcher.cpu_usage_percentage(),
                 "mem_percent": watcher.memory_usage_percentage(),
+                "total_disk_size": total_disk_size,
+                "disk_usage_percentage": disk_usage_percentage,
             })
 
             await asyncio.sleep(3)

@@ -7,7 +7,7 @@ datarobot-drum==1.17.18
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.6.16
 datarobot-predict==1.9.4
-datarobot[core]==3.18.0
+datarobot[core]==3.19.0rc0
 dummyPy==0.3
 eli5==0.16.0
 gensim==4.4.0

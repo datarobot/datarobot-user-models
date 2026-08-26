@@ -1,1 +1,2 @@
 public_dropin_environments/dr_mcp_execute_sandbox_minimal/ @datarobot/mcp
+public_dropin_environments/python312_mcp/ @datarobot/mcp
