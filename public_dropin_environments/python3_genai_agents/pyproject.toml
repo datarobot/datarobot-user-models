@@ -5,9 +5,13 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.13, <3.14"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.26.24",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.28.3",
     "datarobot-mlops==11.1.28",
-    "datarobot[core]>=3.17.0,<4.0.0",  # We use getenv to load runtime parameter values, and there are important bugfixes in 3.17
+    # datarobot.core.config gives us getenv-based runtime parameter loading, plus the
+    # DataRobotAppFrameworkBaseSettings and LLMConfig classes that agent/config.py and
+    # datarobot-genai both build on. 3.18 is the first release carrying those LLM config
+    # pieces. datarobot-genai brings the auth and fs extras along with its own.
+    "datarobot[core]>=3.18.0,<4.0.0",
     "gunicorn>=25.0.0",  # We require this to run dragent workers in deployments
 
     # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
@@ -32,9 +36,10 @@ dev = [
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [
     "psutil>=7.2.1",
-    # Pinned to the exact version the notebook environment ships. The notebooks frontend
-    # parses kernel output in ways that break on versions it has not qualified, so this
-    # tracks their pin rather than moving ahead of it.
+    # Pinned to the exact version the notebook environments ship (see
+    # dr_requirements.txt in python311_notebook_base and python313_notebook).
+    # The notebooks frontend parses kernel output in ways that break on versions
+    # it has not qualified, so this tracks their pin rather than moving ahead of it.
     "ipykernel==6.30.0",
     "jupyter-client>=8.6.3",
     "jupyter-core>=5.8.1",
@@ -242,56 +247,59 @@ exclude-dependencies = [
 # sits ABOVE the begin marker on purpose, since everything inside is replaced.
 # cve-sync:begin
 constraint-dependencies = [
-    "pip>=26.1.2",
-    "pdfminer.six>=20251230",
     "aiohttp>=3.14.3",
-    "openai>=2.30.0",
-    "langchain>=1.3.9",
-    "langsmith>=0.8.18",
-    "nltk>=3.10.0",
-    "langgraph-checkpoint>=4.1.1",
-    "starlette>=1.3.1",
-    "python-multipart>=0.0.31",
-    "joserfc>=1.6.8",
-    "soupsieve>=2.8.4",
-    "pypdf>=6.14.2",
-    "pyarrow>=23.0.1",
-    "pillow>=12.3.0",
+    "authlib>=1.7.1",
     "banks>=2.4.2",
     "bleach>=6.4.0",
+    "h2>=4.4.1",
     "idna>=3.15",
+    "joserfc>=1.6.8",
     "jupyter-server>=2.20.0",
     "jupyterlab>=4.5.10",
+    "langchain>=1.3.9",
     "langchain-classic>=1.0.7",
     "langchain-openai>=1.1.14",
     "langchain-text-splitters>=1.1.2",
+    "langgraph-checkpoint>=4.1.1",
+    "langsmith>=0.8.18",
     "mistune>=3.3.0",
+    "nltk>=3.10.0",
     "notebook>=7.5.6",
+    "openai>=2.30.0",
+    "pdfminer.six>=20251230",
+    "pillow>=12.3.0",
+    "pip>=26.2",
+    "pyarrow>=23.0.1",
     "pyasn1>=0.6.4",
     "pygments>=2.20.0",
+    "pymdown-extensions>=11.0.1",
+    "pypdf>=6.15.0",
     "pytest>=9.0.3",
+    "python-multipart>=0.0.31",
     "requests>=2.33.0",
     "setuptools>=83.0.0",
+    "soupsieve>=2.8.4",
+    "starlette>=1.3.1",
     "tornado>=6.5.7",
     "transformers>=5.5.0",
     "urllib3>=2.7.0",
 ]
 override-dependencies = [
+    "aiofiles>=25.1,<26",
+    "click>=8.3.3",
     "crewai>=1.11.0",
     "cryptography>=50.0.0",
-    "PyJWT>=2.13.0",
+    "json-repair>=0.60.1",
     "litellm>=1.91.1,<2.0.0",
-    "python-dotenv>=1.2.2,<2.0.0",
+    "mcp>=1.28.1",
     "opentelemetry-api>=1.43.0,<2.0.0",
-    "opentelemetry-sdk>=1.43.0,<2.0.0",
-    "opentelemetry-exporter-otlp-proto-http>=1.43.0,<2.0.0",
     "opentelemetry-exporter-otlp-proto-common>=1.43.0,<2.0.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.43.0,<2.0.0",
     "opentelemetry-instrumentation>=0.64b0,<0.65",
-    "click>=8.3.3",
-    "json-repair>=0.60.1",
-    "mcp>=1.28.1",
-    "aiofiles>=25.1,<26",
+    "opentelemetry-sdk>=1.43.0,<2.0.0",
+    "PyJWT>=2.13.0",
+    "python-dotenv>=1.2.2,<2.0.0",
 ]
 # cve-sync:end
 package = true
