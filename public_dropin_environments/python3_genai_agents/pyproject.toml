@@ -1,0 +1,322 @@
+[project]
+name = "DockerContext"
+version = "0.1.0"
+description = "Implementation of DockerContext"
+readme = "README.md"
+requires-python = ">=3.13, <3.14"
+dependencies = [
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.28.3",
+    "datarobot-mlops==11.1.28",
+    # datarobot.core.config gives us getenv-based runtime parameter loading, plus the
+    # DataRobotAppFrameworkBaseSettings and LLMConfig classes that agent/config.py and
+    # datarobot-genai both build on. 3.18 is the first release carrying those LLM config
+    # pieces. datarobot-genai brings the auth and fs extras along with its own.
+    "datarobot[core]>=3.18.0,<4.0.0",
+    "gunicorn>=25.0.0",  # We require this to run dragent workers in deployments
+
+    # Keep this in sync with the ag-ui-protocol version in fastapi_server/pyproject.toml of the
+    # recipe-datarobot-agent-application.
+    "ag-ui-protocol==0.1.15",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.15.0",
+    "pre-commit>=4.2.0",
+    "pydantic>=2.6.1",
+    "pytest-cov>=6.1.1",
+    "pytest>=7.4.0",
+    "pytest-asyncio>=1.2.0",
+    "requests-mock>=1.12.1",
+    "ruff>=0.12.0",
+    "types-requests>=2.32.4.20250913",
+    "yamlfix>=1.17.0",
+    "debugpy>=1.8.20",
+]
+# Additional dependencies required to run the agent in DataRobot Agentic playground
+agentic_playground = [
+    "psutil>=7.2.1",
+    # Pinned to the exact version the notebook environments ship (see
+    # dr_requirements.txt in python311_notebook_base and python313_notebook).
+    # The notebooks frontend parses kernel output in ways that break on versions
+    # it has not qualified, so this tracks their pin rather than moving ahead of it.
+    "ipykernel==6.30.0",
+    "jupyter-client>=8.6.3",
+    "jupyter-core>=5.8.1",
+    "jupyter-kernel-gateway>=3.0.1",
+    "ecs-logging>=2.2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pycache__",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "docker_context",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+target-version = "py313"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["E4", "E7", "E9", "F", "I"]
+ignore = ["PLC0415"]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.format]
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"
+
+[tool.yamlfix]
+allow_duplicate_keys = true
+line_length = 120
+
+[tool.mypy]
+strict = true
+# Intentionally no `python_version` pin: the CI matrix runs mypy under
+# 3.11/3.12/3.13 and, unset, mypy targets the running interpreter so each leg
+# type-checks against its own version. Pinning to 3.11 would make every leg
+# parse against 3.11 semantics, which rejects the PEP 695 `type` statement in
+# numpy 2.5.x's stubs (installed only on 3.12+).
+plugins = "pydantic.mypy"
+exclude = """(?x)(
+    output/ # exclude files starting with "output"
+    | deployment_.*/
+    | docker_context/
+    | include/   # or files starting with "include."
+    | venv/
+    | .venv/
+    | .cache
+    | e2e/
+    | tests/
+    | build/
+  )"""
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_untyped_defs = true
+disable_error_code = ["typeddict-unknown-key"]
+enable_error_code = "ignore-without-code"
+implicit_reexport = true
+ignore_missing_imports = true
+no_implicit_optional = true
+show_column_numbers = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unused_configs = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "datarobot.*"
+implicit_reexport = true
+follow_imports = "skip"
+
+# -----------------------------------------------------------------------
+# af-component marker - declares what this component is, without anything
+# needing to import it or activate its environment. Two readers today:
+#
+#  - the core CLI, which discovers components by scanning for this table;
+#  - cve-sync, which pairs this template with its policy/copier.yaml entry
+#    on `type`, and refuses to render a template that declares none. It
+#    reads the type out of the raw text, before rendering, so the marker
+#    has to stay outside any jinja conditional.
+# -----------------------------------------------------------------------
+[tool.af-component]
+type = "agent"
+
+[tool.uv]
+# exclude-dependencies requires uv >= 0.10.0. Treat the floor below as a label,
+# not a guarantee: an older uv rejects exclude-dependencies as an unknown key,
+# which fails parsing of this entire [tool.uv] table and takes required-version
+# down with it. uv then only warns, exits 0, and resolves with the exclusions
+# silently absent. Confirmed on 0.7.0, 0.8.0, 0.8.17 and 0.9.0; the hard failure
+# only starts somewhere in late 0.9.x. Because the guard cannot protect itself,
+# the image build asserts the uv version before syncing.
+required-version = ">=0.10.0"
+# Packages a generated agent is verified not to need at runtime. Dropping a
+# package is a judgement about this project, so it is deliberately NOT org-wide
+# CVE policy and lives outside the cve-sync markers, where cve-sync leaves it
+# alone. uv's exclude-dependencies is not published in wheel metadata, so these
+# do not arrive from datarobot-genai's own exclusions and must be restated here.
+exclude-dependencies = [
+    "gevent",                   # not used; therefore removed
+    "onnxruntime",              # not used; therefore removed
+    "fastembed",                # not used; therefore removed
+    "langchain-milvus",         # not used and having CVEs
+    "pymilvus",                 # not used and having CVEs
+    "diskcache",                # not used and having CVEs
+    "annoy",                    # not used, issues with building it
+    "uv",                       # not a runtime dependency
+    # crewai / crewai-tools bloat
+    "build",                    # Python build system pulled in by crewai; runtime unnecessary
+    "kubernetes",               # K8s client pulled in by crewai-tools; not used
+    "stagehand",                # Playwright web automation pulled in by crewai-tools; not used
+    "pytube",                   # YouTube downloader pulled in by crewai-tools; not used
+    "youtube-transcript-api",   # YouTube transcripts pulled in by crewai-tools; not used
+    "lancedb",                  # optional vector DB pulled in by crewai; not used
+    "openpyxl",                 # Excel parser pulled in by crewai-tools; not used
+    "python-docx",              # Word doc parser pulled in by crewai-tools; not used
+    "crewai-cli",               # CLI tool pulled in by crewai 1.15+; not needed at runtime
+    # llama-index bloat
+    "llama-index-cli",          # CLI tool pulled in by llama-index; not needed at runtime
+    # nemoguardrails — server / CLI stack pulled in via datarobot-moderations[all]; not used at runtime
+    "watchdog",                 # file watcher for guardrails hot-reload; not used
+    # prompt-toolkit and wcwidth are intentionally NOT excluded: IPython (via ipykernel /
+    # agentic_playground) has a hard import-time dependency on prompt-toolkit; excluding it
+    # causes ModuleNotFoundError at runtime.
+    "typer",                    # CLI framework for guardrails CLI; not used
+    "shellingham",              # shell detection; sole dependent was typer
+    # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
+    "pyfiglet",                 # ASCII banner renderer for deepeval CLI; not used
+    "wheel",                    # build-time packaging tool; not a runtime dependency
+    "datarobot-early-access",   # randomly overlaps the core `datarobot`
+]
+# Managed by cve-sync from policy/. Do not hand-edit between the markers below:
+# `cve-sync sync` regenerates both keys wholesale from policy and drops anything
+# policy lacks. Contribute a needed entry to cve-sync policy/ instead. This note
+# sits ABOVE the begin marker on purpose, since everything inside is replaced.
+# cve-sync:begin
+constraint-dependencies = [
+    "aiohttp>=3.14.3",
+    "authlib>=1.7.1",
+    "banks>=2.4.2",
+    "bleach>=6.4.0",
+    "h2>=4.4.1",
+    "idna>=3.15",
+    "joserfc>=1.6.8",
+    "jupyter-server>=2.20.0",
+    "jupyterlab>=4.5.10",
+    "langchain>=1.3.9",
+    "langchain-classic>=1.0.7",
+    "langchain-openai>=1.1.14",
+    "langchain-text-splitters>=1.1.2",
+    "langgraph-checkpoint>=4.1.1",
+    "langsmith>=0.8.18",
+    "mistune>=3.3.0",
+    "nltk>=3.10.0",
+    "notebook>=7.5.6",
+    "openai>=2.30.0",
+    "pdfminer.six>=20251230",
+    "pillow>=12.3.0",
+    "pip>=26.2",
+    "pyarrow>=23.0.1",
+    "pyasn1>=0.6.4",
+    "pygments>=2.20.0",
+    "pymdown-extensions>=11.0.1",
+    "pypdf>=6.15.0",
+    "pytest>=9.0.3",
+    "python-multipart>=0.0.31",
+    "requests>=2.33.0",
+    "setuptools>=83.0.0",
+    "soupsieve>=2.8.4",
+    "starlette>=1.3.1",
+    "tornado>=6.5.7",
+    "transformers>=5.5.0",
+    "urllib3>=2.7.0",
+]
+override-dependencies = [
+    "aiofiles>=25.1,<26",
+    "click>=8.3.3",
+    "crewai>=1.11.0",
+    "cryptography>=50.0.0",
+    "json-repair>=0.60.1",
+    "litellm>=1.91.1,<2.0.0",
+    "mcp>=1.28.1",
+    "opentelemetry-api>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-common>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.43.0,<2.0.0",
+    "opentelemetry-exporter-otlp-proto-http>=1.43.0,<2.0.0",
+    "opentelemetry-instrumentation>=0.64b0,<0.65",
+    "opentelemetry-sdk>=1.43.0,<2.0.0",
+    "PyJWT>=2.13.0",
+    "python-dotenv>=1.2.2,<2.0.0",
+]
+# cve-sync:end
+package = true
+environments = [
+  "sys_platform == 'darwin'",
+  "sys_platform == 'linux'",
+  "sys_platform == 'win32'"
+]
+
+# This can be set to allow for proxy indexes in air-gapped environments
+# [[tool.uv.index]]
+# name = "mirror"
+# url = "https://mirror_url/"
+
+[dependency-groups]
+extras = []
+
+
+[tool.setuptools.packages.find]
+include = ["agent*"]
