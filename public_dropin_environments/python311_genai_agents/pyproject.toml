@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.28.3",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.29.12",
     "datarobot-mlops==11.1.28",
     # datarobot.core.config gives us getenv-based runtime parameter loading, plus the
     # DataRobotAppFrameworkBaseSettings and LLMConfig classes that agent/config.py and
@@ -35,12 +35,12 @@ dev = [
 ]
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [
-    "psutil>=7.2.1",
     # Pinned to the exact version the notebook environments ship (see
     # dr_requirements.txt in python311_notebook_base and python313_notebook).
     # The notebooks frontend parses kernel output in ways that break on versions
     # it has not qualified, so this tracks their pin rather than moving ahead of it.
     "ipykernel==6.30.0",
+    "psutil>=7.2.1",
     "jupyter-client>=8.6.3",
     "jupyter-core>=5.8.1",
     "jupyter-kernel-gateway>=3.0.1",
@@ -263,7 +263,7 @@ constraint-dependencies = [
     "langgraph-checkpoint>=4.1.1",
     "langsmith>=0.8.18",
     "mistune>=3.3.0",
-    "nltk>=3.10.0",
+    "nltk>=3.10.2",
     "notebook>=7.5.6",
     "openai>=2.30.0",
     "pdfminer.six>=20251230",
