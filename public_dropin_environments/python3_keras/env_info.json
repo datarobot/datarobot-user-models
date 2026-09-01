@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a8dbb034317932de4d0c771",
+  "environmentVersionId": "6a95446dc8f01007946c7fce",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_keras",
   "imageRepository": "env-python-keras",
   "tags": [
-    "v11.1-6a8dbb034317932de4d0c771",
-    "6a8dbb034317932de4d0c771",
+    "v11.1-6a95446dc8f01007946c7fce",
+    "6a95446dc8f01007946c7fce",
     "v11.1-latest"
   ]
 }
