@@ -1,5 +1,5 @@
 -r requirements_test_unit.txt
-docker>=4.2.2,<8.0.0
+docker>=7.1.0,<8.0.0
 pytest-runner
 pytest-xdist
 PyYAML>=3.11
