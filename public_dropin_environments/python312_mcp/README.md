@@ -25,7 +25,7 @@ For specific version information and the complete list of included packages, see
 ### Custom model
 
 The platform runs `/opt/code/start_server.sh` (this folder's
-[`start_server_custom_model.sh`](start_server_custom_model.sh)). Package your server
+[`start_server.sh`](start_server.sh)). Package your server
 with:
 
 ```

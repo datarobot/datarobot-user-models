@@ -129,7 +129,7 @@ RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv
 RUN chmod -R 777 "${UV_CACHE_DIR}"
 
 # This is required for custom models to work with this image
-COPY --chown=${UID}:${GID} ./start_server_custom_model.sh /opt/code/start_server.sh
+COPY --chown=${UID}:${GID} ./start_server.sh /opt/code/start_server.sh
 
 # Last USER must be non-root. Platform runtimes still override this with
 # securityContext.runAsUser: 1000; this is the default for docker run and scanners.
