@@ -1,6 +1,6 @@
 inputSet:
-  name: python312_mcp_image_build_default_pr_input
-  identifier: python312_mcp_image_build_default_pr_input
+  name: python3_mcp_image_build_default_pr_input
+  identifier: python3_mcp_image_build_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
@@ -15,13 +15,13 @@ inputSet:
     variables:
       - name: context_path
         type: String
-        value: public_dropin_environments/python312_mcp
+        value: public_dropin_environments/python3_mcp
       - name: dockerfile_path
         type: String
-        value: public_dropin_environments/python312_mcp/Dockerfile
+        value: public_dropin_environments/python3_mcp/Dockerfile
       - name: image_namespace_repo
         type: String
         value: datarobotdev/datarobot-user-models
       - name: image_tag
         type: String
-        value: public_dropin_environments_python312_mcp_latest
+        value: public_dropin_environments_python3_mcp_latest

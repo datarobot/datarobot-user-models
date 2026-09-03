@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.12, <3.13"
 dependencies = [
-    "datarobot-genai[drmcp]==0.26.24",
+    "datarobot-genai[drmcp]>=0.29.23,<0.30.0",
     "datarobot[core]>=3.17.0,<4.0.0",  # getenv for runtime parameters; bugfixes in 3.17
 ]
 

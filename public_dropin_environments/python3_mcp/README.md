@@ -56,7 +56,7 @@ the image make that work, and all three are load-bearing:
 ## Build locally
 
 1. From the terminal, run
-   `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python312_mcp/ .`
+   `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_mcp/ .`
 2. Using either the API or the UI, create a new Custom Environment with the tarball
    created in step 1.
 

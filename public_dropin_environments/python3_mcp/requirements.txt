@@ -1,0 +1,2 @@
+datarobot==3.18.0
+datarobot-genai==0.29.23

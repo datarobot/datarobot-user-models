@@ -1,6 +1,6 @@
 trigger:
-  name: python312_mcp on pr
-  identifier: python312_mcp_on_pr
+  name: python3_mcp on pr
+  identifier: python3_mcp_on_pr
   enabled: true
   stagesToExecute: []
   description: ""
@@ -21,7 +21,7 @@ trigger:
           payloadConditions:
             - key: changedFiles
               operator: Contains
-              value: public_dropin_environments/python312_mcp
+              value: public_dropin_environments/python3_mcp
             - key: targetBranch
               operator: Equals
               value: master
@@ -33,4 +33,4 @@ trigger:
             - Synchronize
   pipelineBranchName: <+trigger.branch>
   inputSetRefs:
-    - python312_mcp_image_build_pr_input
+    - python3_mcp_image_build_pr_input
