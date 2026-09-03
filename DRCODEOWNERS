@@ -19,11 +19,11 @@
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
 /                                                                 @datarobot/genai-systems
-/.harness/python312_mcp_image_build_default_pr_input.yaml          @datarobot/mcp
-/.harness/python312_mcp_image_build_pr_input.yaml                  @datarobot/mcp
-/.harness/python312_mcp_on_pr.yaml                                 @datarobot/mcp
-/.harness/python312_mcp_on_push_master.yaml                        @datarobot/mcp
-/.harness/python312_mcp_publish_to_docker_pr_input.yaml            @datarobot/mcp
+/.harness/python312_mcp_image_build_default_pr_input.yaml         @datarobot/mcp
+/.harness/python312_mcp_image_build_pr_input.yaml                 @datarobot/mcp
+/.harness/python312_mcp_on_pr.yaml                                @datarobot/mcp
+/.harness/python312_mcp_on_push_master.yaml                       @datarobot/mcp
+/.harness/python312_mcp_publish_to_docker_pr_input.yaml           @datarobot/mcp
 /MODEL-METADATA.md                                                @datarobot/genai-systems @datarobot/core-modeling
 /README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
