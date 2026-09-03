@@ -19,6 +19,11 @@
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
 /                                                                 @datarobot/genai-systems
+/.harness/python3_mcp_image_build_default_pr_input.yaml           @datarobot/core-modeling
+/.harness/python3_mcp_image_build_pr_input.yaml                   @datarobot/core-modeling
+/.harness/python3_mcp_on_pr.yaml                                  @datarobot/core-modeling
+/.harness/python3_mcp_on_push_master.yaml                         @datarobot/core-modeling
+/.harness/python3_mcp_publish_to_docker_pr_input.yaml             @datarobot/core-modeling
 /MODEL-METADATA.md                                                @datarobot/genai-systems @datarobot/core-modeling
 /README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
@@ -34,9 +39,9 @@
 /public_dropin_environments/dr_mcp_execute_sandbox_minimal        @datarobot/mcp
 /public_dropin_environments/java_codegen                          @datarobot/predictions
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
-/public_dropin_environments/python312_mcp                         @datarobot/mcp
 /public_dropin_environments/python3_genai_agents                  @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_mcp                           @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
 /public_dropin_environments/python3_pytorch                       @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_sklearn                       @datarobot/genai-systems @datarobot/core-modeling
