@@ -49,11 +49,11 @@ def load_model(code_dir):
     verify_ssl = RuntimeParameters.get("verifySSL").lower() == "true"
 
     ssl_context = None
-    if verify_ssl:
+    if not verify_ssl:
         logger.warning(
-            "verifySSL=true is disabling TLS certificate verification for this endpoint. "
-            "Despite the name, setting this to true skips certificate verification; set it "
-            "to false (or leave it unset) to keep verification enabled."
+            "verifySSL=false: TLS certificate verification is disabled for this endpoint. "
+            "Credentials sent to it can be intercepted by an on-path attacker. Only use this "
+            "for an endpoint with a self-signed or otherwise untrusted certificate."
         )
         ssl_context = allowSelfSignedHttps()
     _test_connectivity(endpoint, region, api_key, ssl_context)
