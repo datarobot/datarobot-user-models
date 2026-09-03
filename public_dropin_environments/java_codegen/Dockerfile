@@ -14,6 +14,9 @@ RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
+# RAPTOR-19887: rebuild for CVE-2026-63073 - libcrypto3/libssl3 3.6.3-r5 -> 3.6.4-r1.
+# Both ship from this rolling base and are not pinned here, so bumping
+# environmentVersionId in env_info.json is the whole fix.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13
 
 USER root
