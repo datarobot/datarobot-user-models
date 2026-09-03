@@ -23,4 +23,7 @@ runtimeParameterDefinitions:
   - fieldName: verifySSL
     type: string
     defaultValue: "true"
-    description: Wether to verify certificate trust chain
+    description: >-
+      Whether to verify the endpoint's certificate trust chain. Defaults to "true" (verify).
+      Set to "false" only if the endpoint uses a self-signed or otherwise untrusted
+      certificate; this disables verification and exposes the API key to interception.
