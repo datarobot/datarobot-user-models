@@ -1,10 +1,10 @@
 {
   "id": "6a871a01922a6a76e1a23647",
-  "name": "[DataRobot] Python 3.12 MCP",
+  "name": "[DataRobot] Python 3 MCP",
   "description": "This template environment hosts MCP (Model Context Protocol) servers built with FastMCP and the DataRobot MCP toolkit. Package your server as an app/ directory alongside a pyproject.toml and uv.lock and deploy it as a custom model, or use this image as the base for a Workload API container. It is a serving-only environment: it carries no agent frameworks and no interactive development runtime.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a9811f6cec15a076d1aa668",
+  "environmentVersionId": "6a9abfbd16a558076d455ef4",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_mcp",
   "imageRepository": "env-python-mcp",
   "tags": [
-    "v11.13.0-6a9811f6cec15a076d1aa668",
-    "6a9811f6cec15a076d1aa668",
+    "v11.13.0-6a9abfbd16a558076d455ef4",
+    "6a9abfbd16a558076d455ef4",
     "v11.13.0-latest"
   ]
 }
