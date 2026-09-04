@@ -16,8 +16,10 @@ supported-markers = [
 constraints = [
     { name = "aiohttp", specifier = ">=3.14.3" },
     { name = "authlib", specifier = ">=1.7.1" },
-    { name = "banks", specifier = ">=2.4.2" },
+    { name = "banks", specifier = ">=2.4.5" },
     { name = "bleach", specifier = ">=6.4.0" },
+    { name = "datasets", specifier = ">=5.0.1" },
+    { name = "gitpython", specifier = ">=3.1.59" },
     { name = "h2", specifier = ">=4.4.1" },
     { name = "hydra-core", specifier = ">=1.3.4" },
     { name = "idna", specifier = ">=3.15" },
@@ -26,11 +28,13 @@ constraints = [
     { name = "jupyterlab", specifier = ">=4.5.10" },
     { name = "langchain", specifier = ">=1.3.9" },
     { name = "langchain-classic", specifier = ">=1.0.7" },
+    { name = "langchain-core", specifier = ">=1.3.3" },
     { name = "langchain-openai", specifier = ">=1.1.14" },
     { name = "langchain-text-splitters", specifier = ">=1.1.2" },
     { name = "langgraph-checkpoint", specifier = ">=4.1.1" },
     { name = "langsmith", specifier = ">=0.8.18" },
-    { name = "mistune", specifier = ">=3.3.0" },
+    { name = "mako", specifier = ">=1.3.12" },
+    { name = "mistune", specifier = ">=3.3.3" },
     { name = "nltk", specifier = ">=3.10.3" },
     { name = "notebook", specifier = ">=7.5.6" },
     { name = "openai", specifier = ">=2.30.0" },
@@ -50,6 +54,7 @@ constraints = [
     { name = "starlette", specifier = ">=1.3.1" },
     { name = "tornado", specifier = ">=6.5.8" },
     { name = "transformers", specifier = ">=5.10.0" },
+    { name = "ujson", specifier = ">=5.13.0" },
     { name = "urllib3", specifier = ">=2.7.0" },
 ]
 overrides = [
@@ -557,7 +562,7 @@ wheels = [
 
 [[package]]
 name = "banks"
-version = "2.4.2"
+version = "2.5.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "deprecated" },
@@ -567,9 +572,9 @@ dependencies = [
     { name = "platformdirs" },
     { name = "pydantic" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/51/08fb68d23f4b0f6256fe85dc86e9576941550f890b079352fba719e07b39/banks-2.4.2.tar.gz", hash = "sha256:cda6013bd377ea7b701933578bfb9370fc21ad70bc13cedfc3f5cb2c034ca3dc", size = 188633, upload-time = "2026-04-27T12:15:22.021Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/f0/ce5b3105a8551fdcedb509ab5340066247b3cd1b28e79f9296be2d6d3bf4/banks-2.5.0.tar.gz", hash = "sha256:fdd4fd54b84dbe31cb51a1173c960697c73d683a52fb0b1d1957a557a8d6fcc8", size = 194585, upload-time = "2026-08-08T15:54:16.548Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/00/b6/8dc5477681b782e2f99de703e7a99828883364b9e03a60d3e2c47053d56a/banks-2.4.2-py3-none-any.whl", hash = "sha256:5fe407cc48c101f3e13d1cf732b83b8246003337612f13c0705d2e81f6faffb7", size = 35050, upload-time = "2026-04-27T12:15:20.785Z" },
+    { url = "https://files.pythonhosted.org/packages/07/9c/7dc7b15cecc03baa47d413b2599487b1fab270169b00feaa5e74978845f3/banks-2.5.0-py3-none-any.whl", hash = "sha256:8804c58f23e41a5aabe9ecfdf64235cdf1d5f3b16ad95ec2a54b6dc738dc1dfc", size = 38620, upload-time = "2026-08-08T15:54:15.505Z" },
 ]
 
 [[package]]
@@ -1120,11 +1125,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.29.15"
+version = "0.29.20"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/57/e8/6c6e2319c5141298a3caa4d2de9946ead09c2bd57ff2e2720c688b47ed4e/datarobot_genai-0.29.15.tar.gz", hash = "sha256:221cb6797ab58fd80ca21f54cc774e6cd763cb79100bab61aa31f1477b836529", size = 619395, upload-time = "2026-09-01T13:41:22.128Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6d/84/8be5e4c981e50cb33c3c90d39825d607ed305d2ee12798d235973209fe08/datarobot_genai-0.29.20.tar.gz", hash = "sha256:bb5c2885afab3e32419559159d7cb9c626188e7c4640628800252963df8a35cc", size = 624044, upload-time = "2026-09-02T10:11:11.3Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b1/6a/7b89ac2e9136d6e534d670de874280a59e8c3eb4ff2dd1f9f0467c12ddb9/datarobot_genai-0.29.15-py3-none-any.whl", hash = "sha256:a4ea3a1648ade0a317c9762ba88a4bac6d49b1633960751ab3d0a6fa7f19a1ce", size = 872045, upload-time = "2026-09-01T13:41:20.242Z" },
+    { url = "https://files.pythonhosted.org/packages/20/f1/1a1425ac40260467c23ef9ef25e7864a72298c8fe0e67da98669578a2c04/datarobot_genai-0.29.20-py3-none-any.whl", hash = "sha256:def1ddf3568167da264fd7676a6f774b391f2d2c61319a1acbc7b97f470a1144", size = 877599, upload-time = "2026-09-02T10:11:09.034Z" },
 ]
 
 [package.optional-dependencies]
@@ -1551,7 +1556,7 @@ dev = [
 requires-dist = [
     { name = "ag-ui-protocol", specifier = "==0.1.15" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.18.0,<4.0.0" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.15" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.20" },
     { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
