@@ -4,7 +4,7 @@
   "description": "This environment is the Python 3.13 Execution Environment that is present in DR Codespaces/Notebooks. It can also be used as a template to expand upon and create custom Python 3.13 notebook environments.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a9aab1c9a978339593e87df",
+  "environmentVersionId": "6a9ec638deb00a0767dd317c",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
