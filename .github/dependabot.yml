@@ -31,13 +31,19 @@ updates:
     directory: "/public_dropin_notebook_environments/python313_notebook"
 
     # Dependabot has no release webhook, so the release is not what triggers
-    # this — a cron poll is. Every 4 hours (6 checks/day) puts a bump PR up
-    # within a few hours of a pulumi-datarobot release. GitHub documents no
-    # minimum interval for `cron`, but also guarantees no sub-daily SLA, so
-    # treat "within a few hours" as best-effort, not a contract.
+    # this — a cron poll is. Daily is as fast as this mechanism goes:
+    # Dependabot enforces a 24h minimum and rejects anything shorter outright
+    # ("Cronjob expression '0 */4 * * *' has a minimum interval of 4 hours
+    # which is less than the minimum allowed interval of 24 hours"). A tighter
+    # cadence would have to be a scripted poll, not Dependabot.
+    #
+    # cron rather than `interval: "daily"` because `daily` runs weekdays only,
+    # while a cron expression covers all seven days. 18:00 UTC because
+    # pulumi-datarobot releases have landed between 07:00 and 17:00 UTC, so an
+    # evening poll picks them up the same day.
     schedule:
       interval: "cron"
-      cronjob: "0 */4 * * *"
+      cronjob: "0 18 * * *"
       timezone: "Etc/UTC"
 
     # The allowlist is what keeps this config narrow. Adding a dependency name
