@@ -1,0 +1,55 @@
+# Dependabot version updates for datarobot-user-models.
+#
+# Scope: this config exists for one job only — proposing `pulumi-datarobot`
+# bumps shortly after that provider is released, so the notebook environment
+# doesn't drift behind the Pulumi provider used by app templates. It is
+# deliberately NOT a general "update all Python deps" setup: the pins in the
+# dropin environments are bumped deliberately, usually CVE-driven and paired
+# with an environment version id bump, so an unrestricted Dependabot would
+# open PRs that can't be merged as-is.
+#
+# NOTE: `/dependbot.yml` at the repo root (note the missing "a") is NOT this
+# file and has never been active — Dependabot only reads `.github/dependabot.yml`.
+# That stray file dates to 2021, still uses the deprecated `reviewers` key, and
+# covers 11 directories on a `monthly` interval. It is intentionally left
+# untouched here rather than activated: moving it into `.github/` would switch
+# on unrestricted updates across all of those directories at once. Deciding
+# what to do with it is a separate call for its owners.
+#
+# CI note: this repo builds via Jenkins/Harness, not GitHub Actions. Checks on
+# a Dependabot PR therefore depend on those PR triggers firing for bot-authored
+# branches — verify that on the first PR this opens.
+#
+# Docs: https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    # python313_notebook is the only environment that pins pulumi-datarobot.
+    # Dependabot's pip fetcher picks up every *.txt / *.in file in this
+    # directory that parses as a requirements file, which here means both
+    # requirements.txt (where the pin lives) and dr_requirements.txt.
+    directory: "/public_dropin_notebook_environments/python313_notebook"
+
+    # Dependabot has no release webhook, so the release is not what triggers
+    # this — a cron poll is. Every 4 hours (6 checks/day) puts a bump PR up
+    # within a few hours of a pulumi-datarobot release. GitHub documents no
+    # minimum interval for `cron`, but also guarantees no sub-daily SLA, so
+    # treat "within a few hours" as best-effort, not a contract.
+    schedule:
+      interval: "cron"
+      cronjob: "0 */4 * * *"
+      timezone: "Etc/UTC"
+
+    # The allowlist is what keeps this config narrow. Adding a dependency name
+    # here is the only way to opt another package into automated bump PRs.
+    # It scopes version updates only (`applies-to` defaults to
+    # version-updates), so Dependabot security updates are unaffected.
+    allow:
+      - dependency-name: "pulumi-datarobot"
+
+    # Only one dependency is in scope, so one PR at a time is enough.
+    # Dependabot supersedes its own open PR when a newer version appears.
+    open-pull-requests-limit: 1
+
+    commit-message:
+      prefix: "chore"
