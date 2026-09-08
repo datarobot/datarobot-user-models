@@ -1,4 +1,4 @@
-# Python 3.12 MCP Drop-In Template Environment
+# Python 3 MCP Drop-In Template Environment
 
 A serving-only execution environment for MCP (Model Context Protocol) servers built
 with [FastMCP](https://gofastmcp.com/) and the DataRobot MCP toolkit
