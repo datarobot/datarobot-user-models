@@ -24,7 +24,7 @@ trigger:
               value: master
             - key: changedFiles
               operator: Regex
-              value: ^(custom_model_runner/|public_dropin_environments/python3_xgboost/|tests/|harness_scripts/functional_by_framework/|requirements_for_per_framework_tests\.txt)
+              value: ^(custom_model_runner/|public_dropin_environments/python3_xgboost/|tests/|harness_scripts/functional_by_framework/|requirements_for_per_framework_tests\.txt).*
           headerConditions: []
           repoName: datarobot-user-models
           actions:
