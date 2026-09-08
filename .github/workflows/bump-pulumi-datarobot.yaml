@@ -1,0 +1,91 @@
+---
+name: Bump pulumi-datarobot
+
+# Opens a PR bumping the pinned pulumi-datarobot version in the Python 3.13
+# notebook environment. Driven by the provider's release, not by polling:
+# pulumi-datarobot's release.yml dispatches `pulumi-datarobot-released` here
+# once its SDK is on PyPI. See scripts/bump_pulumi_datarobot.sh for the
+# skip/fail rules.
+#
+# This repo builds on Jenkins/Harness, not GitHub Actions; this workflow exists
+# only to open the bump PR. The PR's own checks come from the usual PR
+# pipelines, which are webhook-driven and so are unaffected by the rule that a
+# PR opened with GITHUB_TOKEN doesn't trigger *Actions* workflows. The first PR
+# this opens is the test of that.
+
+on:
+  # Sent by the release job in datarobot-community/pulumi-datarobot, with the
+  # released version in client_payload.version. Note that repository_dispatch
+  # only ever runs the copy of this workflow on the default branch.
+  repository_dispatch:
+    types: [pulumi-datarobot-released]
+
+  # Manual runs: re-run a dispatch that failed, or backfill a missed release.
+  # Leave the version empty to bump to whatever is currently newest.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to bump to, e.g. 0.11.2 (empty = latest published)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: bump-pulumi-datarobot
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    name: Bump pulumi-datarobot
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      # The version comes from the dispatch payload, or from the manual input,
+      # or is empty -- in which case the script resolves the newest release
+      # itself. It is verified against PyPI and GitHub either way.
+      - name: Check the released version and apply the bump
+        id: check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASED_VERSION: ${{ github.event.client_payload.version || github.event.inputs.version }}
+        run: scripts/bump_pulumi_datarobot.sh --check "$RELEASED_VERSION"
+
+      - name: Setup Python
+        if: steps.check.outputs.should_bump == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Changing an environment's contents without a new environmentVersionId
+      # leaves the platform treating it as the same version. Harness has
+      # update_env_version input sets for the public_dropin_environments envs
+      # but none for the notebook environments, so it is not done for us --
+      # this runs the same tools/env_version_update.py that pipeline runs.
+      # bson comes from pymongo; the script needs nothing else and makes no
+      # network calls.
+      - name: Regenerate the environmentVersionId
+        if: steps.check.outputs.should_bump == 'true'
+        run: |
+          python3 -m pip install --quiet pymongo
+          python3 tools/env_version_update.py \
+            --file public_dropin_notebook_environments/python313_notebook/env_info.json
+          git --no-pager diff --stat
+
+      - name: Open the bump PR
+        if: steps.check.outputs.should_bump == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          scripts/bump_pulumi_datarobot.sh --open-pr \
+            "${{ steps.check.outputs.current }}" \
+            "${{ steps.check.outputs.target }}"
