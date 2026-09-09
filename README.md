@@ -173,3 +173,5 @@ If artifact for model template is not in the [./tests/fixtures/drop_in_model_art
 ## Communication<a name="communication"></a>
 Some places to ask for help are:
 - open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
+
+<!-- canary check CFX-7556 — verifying Harness changedFiles Regex semantics, do not merge -->
