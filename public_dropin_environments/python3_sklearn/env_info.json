@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only scikit-learn custom models. This environment contains scikit-learn and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a9ec7be6753b7d2b2bb7c59",
+  "environmentVersionId": "6aa186ff4a8f57076d0a99cb",
   "environmentVersionDescription": "Python Version: 3.12",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_sklearn",
   "imageRepository": "env-python-sklearn",
   "tags": [
-    "v11.13.0-6a9ec7be6753b7d2b2bb7c59",
-    "6a9ec7be6753b7d2b2bb7c59",
+    "v11.13.0-6aa186ff4a8f57076d0a99cb",
+    "6aa186ff4a8f57076d0a99cb",
     "v11.13.0-latest"
   ]
 }
