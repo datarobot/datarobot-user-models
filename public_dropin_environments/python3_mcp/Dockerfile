@@ -91,7 +91,9 @@ RUN chown -R "$UNAME:$UNAME" ${WORKDIR} ${VENV_PATH} \
 # root-owned ${UV_CACHE_DIR} (see sdists-v9/.git permission denied).
 ENV UV_CACHE_DIR=${UV_CACHE_DIR}
 
-USER $UNAME
+# Literal rather than `USER $UNAME`: scanners do not expand build args, so an
+# ARG-valued USER reads to them as "the stage still ends as root".
+USER mcp
 
 FROM base AS builder
 
@@ -112,7 +114,7 @@ COPY --chown=${UID}:${GID} ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY --chown=${UID}:${GID} ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
-USER ${UNAME}
+USER mcp
 
 # Bakes the dependency set into ${VENV_PATH} (which Workload API entrypoints resolve
 # through PATH) and, just as importantly, warms ${UV_CACHE_DIR} so the custom-model
@@ -131,9 +133,8 @@ RUN chmod -R 777 "${UV_CACHE_DIR}"
 # This is required for custom models to work with this image
 COPY --chown=${UID}:${GID} ./start_server.sh /opt/code/start_server.sh
 
-# Last USER must be non-root. Platform runtimes still override this with
-# securityContext.runAsUser: 1000; this is the default for docker run and scanners.
-USER ${UNAME}
+
+USER mcp
 
 WORKDIR /
 # PATH is deliberately not restated here -- `PATH="$VENV_PATH/bin:$PATH"` is set in the
