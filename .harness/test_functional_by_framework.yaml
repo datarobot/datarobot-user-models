@@ -220,7 +220,7 @@ pipeline:
                       -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
                   when:
                     stageStatus: All
-                    condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.should_run_tests> == "true"
+                    condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.should_run_tests> != "false"
           caching:
             enabled: false
             paths: []
@@ -231,7 +231,7 @@ pipeline:
             type: Cloud
             spec: {}
         when:
-          pipelineStatus: Success
+          pipelineStatus: All
   variables:
     - name: framework
       type: String
