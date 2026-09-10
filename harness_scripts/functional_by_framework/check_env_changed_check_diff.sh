@@ -60,13 +60,28 @@ if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
     fi
 fi
 
+# Decide whether this framework's check is relevant to this PR at all.
+# Fires if the diff touches DRUM source, this framework's own env, shared test
+# code/fixtures, or the test-runner scripts themselves. python312 additionally
+# depends on model_templates/python3_dummy_regression (see TestPython312Fips).
+# When false, the pipeline posts no GitHub status at all for this framework,
+# so no check entry appears on the PR.
+should_run_tests=false
+if echo "${changed_paths}" | grep -qE "^(custom_model_runner/|${ENV_FOLDER}/${FRAMEWORK}/|tests/|harness_scripts/functional_by_framework/|requirements_for_per_framework_tests\.txt)"; then
+    should_run_tests=true
+elif [ "${FRAMEWORK}" = "python312" ] && echo "${changed_paths}" | grep -qE "^model_templates/"; then
+    should_run_tests=true
+fi
+
 # Required by the Harness step
 export changed_deps
 export test_image_namespace
 export test_image_repository
 export test_image_tag
+export should_run_tests
 
 echo "changed_deps: $changed_deps"
 echo "test_image_namespace: $test_image_namespace"
 echo "test_image_repository: $test_image_repository"
 echo "test_image_tag: $test_image_tag"
+echo "should_run_tests: $should_run_tests"

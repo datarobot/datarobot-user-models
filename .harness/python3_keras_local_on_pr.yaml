@@ -22,9 +22,6 @@ trigger:
             - key: targetBranch
               operator: Equals
               value: master
-            - key: changedFiles
-              operator: Regex
-              value: ^(custom_model_runner/|public_dropin_environments/python3_keras/|tests/|harness_scripts/functional_by_framework/|requirements_for_per_framework_tests\.txt).*
           headerConditions: []
           repoName: datarobot-user-models
           actions:
