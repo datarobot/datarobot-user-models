@@ -198,7 +198,7 @@ pipeline:
                       if [[ "$status_1" == "null" ]]; then
                         status_1="SUCCEEDED"
                       fi
-                      github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
+                      github_status_key="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
 
                       echo "Update PR status"
                       echo "Status_0: $status_0; Status_1: $status_1"
