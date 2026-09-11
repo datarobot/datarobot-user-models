@@ -25,6 +25,9 @@ trigger:
             - key: <+trigger.payload.sender.login>
               operator: NotEquals
               value: datarobot-harness[bot]
+            - key: changedFiles
+              operator: DoesNotContain
+              value: public_dropin_notebook_environments/
           headerConditions: []
           repoName: datarobot-user-models
           actions:

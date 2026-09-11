@@ -22,6 +22,9 @@ trigger:
             - key: targetBranch
               operator: In
               value: master, release/.*
+            - key: changedFiles
+              operator: DoesNotContain
+              value: public_dropin_notebook_environments/
           headerConditions: []
           jexlCondition: <+trigger.payload.pull_request.head.repo.fork> != true
           repoName: datarobot-user-models
