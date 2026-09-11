@@ -14,10 +14,10 @@ boto3==1.43.85
 botocore==1.43.85
 certifi==2026.7.22
 cffi==2.1.1
-charset-normalizer==3.5.1
-click==8.5.0
-cryptography==50.0.1
-datarobot==3.19.0
+charset-normalizer==3.5.0
+click==8.4.2
+cryptography==50.0.0
+datarobot==3.18.0
 datarobot-drum[java]==1.17.18
 datarobot-mlops==11.2.42
 datarobot-storage==2.2.0
