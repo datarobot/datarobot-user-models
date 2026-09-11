@@ -23,3 +23,5 @@ Upon successful build, the custom environment can be used in notebooks, by selec
 from `Session environment` > `Environment` in the notebook sidebar.
 
 Please see [DataRobot documentation](https://docs.datarobot.com/en/docs/workbench/wb-notebook/wb-code-nb/wb-env-nb.html#custom-environment-images) for more information.
+
+<!-- CFX-7556 validation: confirming notebook-only PR no longer triggers sklearn/R/java/mlops/general checks, do not merge -->
