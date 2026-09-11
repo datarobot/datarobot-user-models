@@ -51,7 +51,7 @@ RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
   "pulumi>=3.256.0-r3" pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
-  gh uv task bash-completion xdg-utils \
+  gh uv "task>=3.53.1-r4" bash-completion xdg-utils \
   && rm -f /etc/ssh/ssh_host_* \
   && rm -rf /var/cache/apk/ \
   && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
