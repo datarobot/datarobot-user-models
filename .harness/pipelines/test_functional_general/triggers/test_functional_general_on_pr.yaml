@@ -1,0 +1,34 @@
+trigger:
+  name: test functional general on PR
+  identifier: test_functional_general_on_pr
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: test_functional_general
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+            - key: targetBranch
+              operator: In
+              value: master, release/.*
+          headerConditions: []
+          jexlCondition: <+trigger.payload.pull_request.head.repo.fork> != true
+          repoName: datarobot-user-models
+          actions:
+            - Open
+            - Reopen
+            - Synchronize
+  pipelineBranchName: <+trigger.branch>
+  inputSetRefs:
+    - test_functional_general_default_pr_input

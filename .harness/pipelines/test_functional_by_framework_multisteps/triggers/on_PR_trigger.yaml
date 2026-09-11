@@ -1,0 +1,36 @@
+trigger:
+  name: on PR trigger
+  identifier: on_PR_trigger
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: Test_functional_by_framework_multisteps
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: true
+          payloadConditions:
+            - key: targetBranch
+              operator: In
+              value: master,release/.*,drum_release/.*
+            - key: <+trigger.payload.sender.login>
+              operator: NotEquals
+              value: datarobot-harness[bot]
+          headerConditions: []
+          repoName: datarobot-user-models
+          actions:
+            - Open
+            - Synchronize
+            - Reopen
+  pipelineBranchName: <+trigger.branch>
+  inputSetRefs:
+    - default_on_pr_input
