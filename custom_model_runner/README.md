@@ -383,3 +383,5 @@ and an API token to authenticate the requests.
 2. **Model Metadata** `push` also relies on a metadata file, which is parsed on DRUM to create
 the correct sort of model in DataRobot. This metadata file includes quite a few options. You can
 [read about those options](https://github.com/datarobot/datarobot-user-models/blob/master/MODEL-METADATA.md) or [see an example](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_sklearn/model-metadata.yaml).
+
+<!-- CFX-7556 mixed-diff validation: custom_model_runner file, do not merge -->
