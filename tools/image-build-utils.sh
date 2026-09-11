@@ -34,7 +34,7 @@ function build_dropin_env_dockerfile() {
   MOD_WHEEL_FILENAME=$(basename "$MOD_WHEEL_PATH")
   WITH_R=""
 
-  if [ "$DROPIN_ENV_DIRNAME" = "python39_streamlit" ] || [ "$DROPIN_ENV_DIRNAME" = "python312_apps" ]; then
+  if [ "$DROPIN_ENV_DIRNAME" = "python312_apps" ]; then
     return 0
   fi
 
