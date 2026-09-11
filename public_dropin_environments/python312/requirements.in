@@ -1,2 +1,2 @@
-datarobot-drum==1.18.0.dev1
+datarobot-drum
 urllib3>=2.7.0
