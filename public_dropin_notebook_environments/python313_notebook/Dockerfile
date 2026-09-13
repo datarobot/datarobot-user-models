@@ -28,7 +28,7 @@ ARG CACHE_BUSTER="${CACHE_BUSTER:-no-cache-buster}"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
 
 ARG UNAME
 ARG UID
