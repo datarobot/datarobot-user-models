@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.13, <3.14"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.29.34",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.29.40",
     "datarobot-mlops==11.1.28",
     # datarobot.core.config gives us getenv-based runtime parameter loading, plus the
     # DataRobotAppFrameworkBaseSettings and LLMConfig classes that agent/config.py and
@@ -246,11 +246,13 @@ exclude-dependencies = [
 # policy lacks. Contribute a needed entry to cve-sync policy/ instead. This note
 # sits ABOVE the begin marker on purpose, since everything inside is replaced.
 # cve-sync:begin
+# cve-sync:waived chromadb>1.5.9 NOT applied -- no-upstream-fix, expires 2026-12-09
 constraint-dependencies = [
     "aiohttp>=3.14.3",
     "authlib>=1.7.1",
     "banks>=2.4.5",
     "bleach>=6.4.0",
+    "crewai-tools>=1.15.21",
     "datasets>=5.0.1",
     "gitpython>=3.1.59",
     "h2>=4.4.1",
@@ -293,7 +295,7 @@ constraint-dependencies = [
 override-dependencies = [
     "aiofiles>=25.1,<26",
     "click>=8.3.3",
-    "crewai>=1.11.0",
+    "crewai>=1.15.21",
     "cryptography>=50.0.0",
     "json-repair>=0.60.1",
     "litellm>=1.91.1,<2.0.0",
