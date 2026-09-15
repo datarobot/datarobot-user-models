@@ -24,6 +24,8 @@
 /.harness/python3_mcp_on_pr.yaml                                  @datarobot/core-modeling
 /.harness/python3_mcp_on_push_master.yaml                         @datarobot/core-modeling
 /.harness/python3_mcp_publish_to_docker_pr_input.yaml             @datarobot/core-modeling
+/.harness/python3_mcp_trivy_scan_pr_input.yaml                    @datarobot/core-modeling
+/.harness/python3_mcp_update_env_version_pr_input.yaml            @datarobot/core-modeling
 /MODEL-METADATA.md                                                @datarobot/genai-systems @datarobot/core-modeling
 /README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling

@@ -10,19 +10,29 @@
 # python311_genai_agents: same base image and uv/lock toolchain, only the
 # `datarobot-genai[drmcp]` dependency line, and none of the Codespaces/Notebooks
 # runtime (no sshd, no Jupyter kernel gateway, no IPython extensions, no
-# monitoring agent, no DataRobot CLI). See DESIGN.md.
+# monitoring agent, no DataRobot CLI).
+#
+# The environment NAME is deliberately version-less ("[DataRobot] Python 3 MCP",
+# precedent: python3_genai_agents): the interpreter inside may move within the
+# Python 3 line (3.12 today) without renaming the environment or breaking the
+# consumers that reference it by name (af-component-datarobot-mcp defaults).
+#
+# This image ships NO start script of its own. The model bundle must provide
+# /opt/code/start_server.sh (af-component-datarobot-mcp's template ships the
+# reference implementation) -- that keeps the runtime `uv sync` of the USER'S
+# lock authoritative, so a bundle pinning a newer datarobot-genai than the one
+# baked here still runs its own version.
 #
 # Two deployment surfaces, and each constrains this file:
 #
-#   1. Custom model -- the platform runs /opt/code/start_server.sh, which creates
-#      the venv at ${VENV_DIR}, `uv sync`es the user's project into it, and execs
-#      `python -m app.main`.
+#   1. Custom model -- the platform runs the BUNDLE's /opt/code/start_server.sh,
+#      which finds the baked venv via ${VENV_DIR}, delta-`uv sync`s the user's
+#      project into it, and execs `python -m app.main`.
 #   2. Workload API (code-to-workload) -- this image is the BASE for a generated
-#      Dockerfile that sets its own entrypoint and readiness probe.
-#      start_server.sh is never invoked. That path is why the ENTRYPOINT is
-#      explicitly CLEARED and no CMD is set (an inherited entrypoint is prefixed
-#      to the generated one and fails immediately -- see the note at the bottom
-#      of this file), and why ${VENV_PATH}/bin is
+#      Dockerfile that sets its own entrypoint and readiness probe. That path is
+#      why the ENTRYPOINT is explicitly CLEARED and no CMD is set (an inherited
+#      entrypoint is prefixed to the generated one and fails immediately -- see
+#      the note at the bottom of this file), and why ${VENV_PATH}/bin is
 #      on PATH at image level so a bare `python`/`fastmcp` entrypoint resolves
 #      without sourcing an activate script.
 
@@ -125,21 +135,27 @@ RUN . ${VENV_PATH}/bin/activate && \
 
 USER root
 # Custom model deployments and workloads run as securityContext.runAsUser: 1000, which is
-# neither the build user nor root -- grant both the runtime venv target and the uv cache to
-# all users to avoid access errors.
-RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv
+# neither the build user nor root -- grant the uv cache (and /opt, where the bundle's
+# start script may fall back to a project-local venv) to all users to avoid access errors.
+# /opt/code is where the platform unpacks the custom-model bundle.
+RUN mkdir -p /opt/code && chmod a+rwx /opt /opt/code
 RUN chmod -R 777 "${UV_CACHE_DIR}"
 
-# This is required for custom models to work with this image
-COPY --chown=${UID}:${GID} ./start_server.sh /opt/code/start_server.sh
+# No start script is baked here on purpose: the bundle must ship its own
+# /opt/code/start_server.sh (see the header note), which the platform invokes for
+# custom models. A bundle without one fails at start with the platform's own error.
 
-
+# Last USER must be non-root. Platform runtimes still override this with
+# securityContext.runAsUser: 1000; this is the default for docker run and scanners.
 USER mcp
 
 WORKDIR /
 # PATH is deliberately not restated here -- `PATH="$VENV_PATH/bin:$PATH"` is set in the
 # base stage and inherited, and re-prepending it would only duplicate the entry.
-ENV VENV_DIR=/opt/venv \
+# VENV_DIR points at the venv BAKED at image build time: the bundle's start_server.sh
+# checks ${VENV_DIR}/bin/activate, so its `uv sync --frozen --active` becomes a fast
+# delta-sync of the user's lock into the warm venv instead of building a fresh one.
+ENV VENV_DIR=${VENV_PATH} \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \
     HOME=/opt \
