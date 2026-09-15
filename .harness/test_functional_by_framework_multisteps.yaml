@@ -90,10 +90,13 @@ pipeline:
                       # notebook EE (CFX-8186) - independent of the Reconcile stage's
                       # CHANGED_DIRS, which also gates the deployment-relevant image build
                       # above and must keep running unconditionally for that.
-                      git fetch origin <+pipeline.variables.target_branch>
-                      should_run_framework_tests=false
-                      if git diff --name-only origin/<+pipeline.variables.target_branch>...HEAD | grep -qvE "^public_dropin_notebook_environments/"; then
-                        should_run_framework_tests=true
+                      # A git failure here must fail this step loudly rather than silently
+                      # defaulting to "skip" - see PR #2397 review.
+                      git fetch origin <+pipeline.variables.target_branch> || { echo "git fetch failed"; exit 1; }
+                      changed_files=$(git diff --name-only origin/<+pipeline.variables.target_branch>...HEAD) || { echo "git diff failed"; exit 1; }
+                      should_run_framework_tests=true
+                      if [ -n "${changed_files}" ] && ! echo "${changed_files}" | grep -qvE "^public_dropin_notebook_environments/"; then
+                        should_run_framework_tests=false
                       fi
                       echo "should_run_framework_tests: ${should_run_framework_tests}"
 
