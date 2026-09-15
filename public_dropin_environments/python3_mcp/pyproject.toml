@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.12, <3.13"
 dependencies = [
-    "datarobot-genai[drmcp]>=0.29.23,<0.30.0",
+    "datarobot-genai[drmcp]>=0.29.41,<0.30.0",
 ]
 
 # Declares what this component is. Read by the core CLI for component discovery, and by
