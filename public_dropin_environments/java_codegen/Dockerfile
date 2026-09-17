@@ -9,7 +9,7 @@ USER root
 # Pin OpenJDK 11.0.30+ (Oracle CPU Jan 2026 / OpenJDK 11u) — addresses CVE-2026-21932, CVE-2026-21945 on the 11 train.
 # Wolfi epoch for 11.0.30 GA is typically r6; override at build if your mirror uses a different release suffix.
 # RAPTOR-19452: 11.0.32-r0 -> 11.0.32.1-r0 (JAVA_VERSION 11.0.32.1, 2026-08-18).
-ARG OPENJDK11_APK_VERSION=11.0.32.1-r0
+ARG OPENJDK11_APK_VERSION=11.0.32.1-r2
 RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
