@@ -174,6 +174,9 @@ RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
     && bash /tmp/opencode-install.sh --no-modify-path -v "$OPENCODE_VERSION" \
     && rm /tmp/opencode-install.sh
 
+# Pre-install datarobot skills for opencode
+RUN npx -y ai-agent-skills install datarobot-oss/datarobot-agent-skills --agent opencode
+
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
