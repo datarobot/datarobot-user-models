@@ -67,6 +67,10 @@ def main(flask_app: Flask = None, worker_ctx: WorkerCtx = None):
     This function initializes the runtime environment, sets up logging, handles
     signal interruptions, and starts the CMRunner for executing user-defined models.
 
+    config_logging() must be called here (not just in entry_point.py): gunicorn
+    workers run in a separate process tree (main_gunicorn() uses subprocess.Popen)
+    that doesn't inherit entry_point's logging config.
+
     Args:
         flask_app: Optional[Flask] Flask application instance, used when running using command line.
         worker_ctx: Optional gunicorn worker context (WorkerCtx), used for managing cleanup tasks in a

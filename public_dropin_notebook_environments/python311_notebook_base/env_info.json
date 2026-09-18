@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create Python 3.11 notebook environments.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6a88a4c1041d22076db805a3",
+  "environmentVersionId": "6aabe2e4719361076da42311",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -15,8 +15,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_notebook_environments/python311_notebook_base",
   "imageRepository": "env-notebook-python311-notebook-base",
   "tags": [
-    "v11.12.0-6a88a4c1041d22076db805a3",
-    "6a88a4c1041d22076db805a3",
-    "v11.12.0-latest"
+    "v11.13.0-6aabe2e4719361076da42311",
+    "6aabe2e4719361076da42311",
+    "v11.13.0-latest"
   ]
 }

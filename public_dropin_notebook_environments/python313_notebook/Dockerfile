@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.6.0
+ARG CLI_VERSION=v0.8.0
 ARG GITHELPER_VERSION=v0.0.31
 ARG OPENCODE_VERSION=1.18.30
 
@@ -173,6 +173,9 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
 RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
     && bash /tmp/opencode-install.sh --no-modify-path -v "$OPENCODE_VERSION" \
     && rm /tmp/opencode-install.sh
+
+# Pre-install datarobot skills for opencode
+RUN npx -y ai-agent-skills install datarobot-oss/datarobot-agent-skills --agent opencode
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh

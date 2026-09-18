@@ -85,10 +85,26 @@ pipeline:
                       cd /harness/<+pipeline.variables.target_repo>
                       echo "Show last 2 git commits: "
                       git log -2
+
+                      # Skip the per-framework test matrix when the diff is confined to the
+                      # notebook EE (CFX-8186) - independent of the Reconcile stage's
+                      # CHANGED_DIRS, which also gates the deployment-relevant image build
+                      # above and must keep running unconditionally for that.
+                      # A git failure here must fail this step loudly rather than silently
+                      # defaulting to "skip" - see PR #2397 review.
+                      git fetch origin <+pipeline.variables.target_branch> || { echo "git fetch failed"; exit 1; }
+                      changed_files=$(git diff --name-only origin/<+pipeline.variables.target_branch>...HEAD) || { echo "git diff failed"; exit 1; }
+                      should_run_framework_tests=true
+                      if [ -n "${changed_files}" ] && ! echo "${changed_files}" | grep -qvE "^public_dropin_notebook_environments/"; then
+                        should_run_framework_tests=false
+                      fi
+                      echo "should_run_framework_tests: ${should_run_framework_tests}"
+
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
                     outputVariables:
                       - name: matrix_values
+                      - name: should_run_framework_tests
           caching:
             enabled: true
             paths: []
@@ -216,6 +232,7 @@ pipeline:
             enabled: true
         when:
           pipelineStatus: Success
+          condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_framework_tests> == "true"
         strategy:
           matrix:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
