@@ -8,7 +8,7 @@ aiohappyeyeballs==2.6.1
 aiohttp==3.14.0
 aiosignal==1.4.0
 annotated-types==0.7.0
-anyio==4.11.0
+anyio==4.14.2
 argcomplete==3.6.3
 attrs==25.4.0
 azure-core==1.36.0
