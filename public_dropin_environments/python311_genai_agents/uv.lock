@@ -20,12 +20,12 @@ constraints = [
     { name = "bleach", specifier = ">=6.4.0" },
     { name = "crewai-tools", specifier = ">=1.15.21" },
     { name = "datasets", specifier = ">=5.0.1" },
-    { name = "gitpython", specifier = ">=3.1.59" },
+    { name = "gitpython", specifier = ">=3.1.60" },
     { name = "h2", specifier = ">=4.4.1" },
     { name = "hydra-core", specifier = ">=1.3.4" },
     { name = "idna", specifier = ">=3.15" },
     { name = "joserfc", specifier = ">=1.6.8" },
-    { name = "jupyter-server", specifier = ">=2.20.0" },
+    { name = "jupyter-server", specifier = ">=2.21.0" },
     { name = "jupyterlab", specifier = ">=4.5.10" },
     { name = "langchain", specifier = ">=1.3.9" },
     { name = "langchain-classic", specifier = ">=1.0.7" },
@@ -44,6 +44,7 @@ constraints = [
     { name = "pip", specifier = ">=26.2" },
     { name = "pyarrow", specifier = ">=23.0.1" },
     { name = "pyasn1", specifier = ">=0.6.4" },
+    { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "pygments", specifier = ">=2.20.0" },
     { name = "pymdown-extensions", specifier = ">=11.0.1" },
     { name = "pypdf", specifier = ">=6.16.1" },
@@ -51,7 +52,7 @@ constraints = [
     { name = "python-multipart", specifier = ">=0.0.31" },
     { name = "requests", specifier = ">=2.33.0" },
     { name = "setuptools", specifier = ">=83.0.0" },
-    { name = "soupsieve", specifier = ">=2.8.4" },
+    { name = "soupsieve", specifier = ">=2.9.0" },
     { name = "starlette", specifier = ">=1.3.1" },
     { name = "tornado", specifier = ">=6.5.8" },
     { name = "transformers", specifier = ">=5.10.0" },
@@ -1130,11 +1131,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.29.42"
+version = "0.29.45"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b5/70/ae8c15170467459f5c994b09eec75b453cb2ffcc9bd041c8213ec5db957e/datarobot_genai-0.29.42.tar.gz", hash = "sha256:7caeacaee25f39716affd655b01c9656eb4a2177accd70db7e367d6b1cbce287", size = 624953, upload-time = "2026-09-14T13:35:55.103Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/60/dd9a91c7d5b463f79a7fcd4bf9f6638ad1269ecafac0b099f176c56c429a/datarobot_genai-0.29.45.tar.gz", hash = "sha256:2cc3d781bcf4dbea712bea0ad25a5e7214b1fac41ba4685c5bbddbe1b1121f1a", size = 625174, upload-time = "2026-09-17T14:48:22.546Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/f9/b05cd5b5065d4261400fd236bf3d880e4f5734277e7037db84ccd960f0ca/datarobot_genai-0.29.42-py3-none-any.whl", hash = "sha256:7e116c2bf25395db756e14807cb025067d99c29bb0dfe7c6d5efc7ca0ab438ab", size = 880166, upload-time = "2026-09-14T13:35:52.591Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/19/fed0e9998aa963ab8afbc1e8207b397b94af07d8356f683d0c3c7a87f373/datarobot_genai-0.29.45-py3-none-any.whl", hash = "sha256:c5a36bb369b04c7dbda9b379887f5b73d3588b3189c4b3cf44ed2a2cf348d4a7", size = 880416, upload-time = "2026-09-17T14:48:20.285Z" },
 ]
 
 [package.optional-dependencies]
@@ -1548,7 +1549,7 @@ dev = [
 requires-dist = [
     { name = "ag-ui-protocol", specifier = "==0.1.15" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.18.0,<4.0.0" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.42" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.45" },
     { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
@@ -2760,7 +2761,7 @@ wheels = [
 
 [[package]]
 name = "jupyter-server"
-version = "2.20.0"
+version = "2.21.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
@@ -2783,9 +2784,9 @@ dependencies = [
     { name = "traitlets" },
     { name = "websocket-client" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/dc/db3a582633170186f8c8b31298d7eb26ad0eb031a1f53476c258b64eed05/jupyter_server-2.20.0.tar.gz", hash = "sha256:b5778ba337d8015a3dc2b80803ecdd5ac18d3797fddf61a50ea5fb472b4ebe14", size = 756523, upload-time = "2026-06-17T12:09:09.435Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/65/3d/3c9f8bce5d5448107bd285cd80185e76c9c871d076b580dfd90997e52904/jupyter_server-2.21.1.tar.gz", hash = "sha256:a8960aa29263f6041283e97d4756b099fb49b767baab6371891ecb1bd40a63df", size = 761651, upload-time = "2026-09-15T16:00:07.853Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f3/71/8c002223e873a870f5c41dc69b0a7c922301123e4a31d5d01ecb700aef77/jupyter_server-2.20.0-py3-none-any.whl", hash = "sha256:c3b67c93c471e947c18b5026f04f21614218adb706df8f48227d3ee8e0a7cdcc", size = 393143, upload-time = "2026-06-17T12:09:07.234Z" },
+    { url = "https://files.pythonhosted.org/packages/1d/39/91bc08650cc8e3efeb7a83c25e20ebddcc9b70d28b4eb6f51a4fb55da7a4/jupyter_server-2.21.1-py3-none-any.whl", hash = "sha256:2a6467606af7dbae2e7e31640030025969e15db6a649eae334af90415dc71dca", size = 394641, upload-time = "2026-09-15T16:00:05.526Z" },
 ]
 
 [[package]]
@@ -5863,11 +5864,11 @@ wheels = [
 
 [[package]]
 name = "soupsieve"
-version = "2.8.4"
+version = "2.9.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/47/2c/0a5f6f8ee0d5589e48c7640213ed5175d52cf540a06725b628cc1a45d6ce/soupsieve-2.8.4.tar.gz", hash = "sha256:e121fd02e975c695e4e9e8774a5ee35d74714b59307868dcc5319ad2d9e3328e", size = 121110, upload-time = "2026-05-24T13:55:57.154Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/69/99/a6ca3beb3ccacb41fb3321d8a60e5566f9e6467601ef8eba6a17e1b89778/soupsieve-2.9.2.tar.gz", hash = "sha256:4a55d8cf158a9c2e587fa4922f1bbb91d68ac829e2d6f25403a85747c71daf74", size = 122445, upload-time = "2026-08-07T00:57:24.801Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5e/f5/0c41cb68dcae6b7de4fac4188a3a9589e21fb31df21ea3a2e888db95e6c9/soupsieve-2.8.4-py3-none-any.whl", hash = "sha256:e7e6b0769c8f51ed59acab6e994b00621096cfb1c640a7509295987388fbaf65", size = 37304, upload-time = "2026-05-24T13:55:55.406Z" },
+    { url = "https://files.pythonhosted.org/packages/eb/dc/ad025c1ee131eba60c69f4dd5779b18fcf1e6b21a343e2162a84d5d133c7/soupsieve-2.9.2-py3-none-any.whl", hash = "sha256:8089a26fd974ca7a1f30276d3d8492ab266ab15af581642dfe8aa162e0c1c823", size = 37370, upload-time = "2026-08-07T00:57:23.524Z" },
 ]
 
 [[package]]
