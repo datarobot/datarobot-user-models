@@ -140,7 +140,7 @@ FROM base AS kernel
 ARG UNAME
 
 ARG WORKDIR
-
+ARG VENV_PATH
 ARG GIT_COMMIT
 ARG CACHE_BUSTER
 
@@ -176,6 +176,11 @@ RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
 
 # Pre-install datarobot skills for opencode
 RUN npx -y ai-agent-skills install datarobot-oss/datarobot-agent-skills --agent opencode
+
+# Removing pip, setuptools & other misc. leftovers to avoid security scan reports
+RUN find $VENV_PATH/lib/python3.*/site-packages -name "pip-*.dist-info" -type d -exec rm -rf {} + \
+  && find $VENV_PATH/lib/python3.*/site-packages -name "setuptools-*.dist-info" -type d -exec rm -rf {} + \
+  && find $VENV_PATH/lib/python3.*/site-packages/pip/_vendor -name "bom.cdx.json" -type f -exec rm -f {} +
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
