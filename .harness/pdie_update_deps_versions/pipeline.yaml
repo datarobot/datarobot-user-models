@@ -115,11 +115,10 @@ pipeline:
 
                       # Iterate over each changed environment
                       for env in ${CHANGED_ENVS[@]}; do
-                        # MIGRATION FILTER - only run on java_codegen for now. Delete once migrated.
-                        if [ "${env}" != 'java_codegen' ]; then
+                        if [ ! -f "${env}/requirements.in" ]; then
+                          printf 'Changed env %s does not have requirements.in. Skipping\n' "${env}"
                           continue
                         fi
-
                         printf 'Checking %s\n' "${env}"
                         cd "${env}"
                         # Update version id if user changed files but did not update this
