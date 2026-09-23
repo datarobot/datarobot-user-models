@@ -4,55 +4,6 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: Reconcile envVersionIds requirements
-        identifier: Reconcile_envVersionIds_requirements
-        template:
-          templateRef: org.Execution_Environments_Reconcile_Stage
-          versionLabel: v2
-          templateInputs:
-            type: CI
-            variables:
-              - name: target_repo
-                type: String
-                value: <+pipeline.variables.target_repo>
-              - name: target_repo_source_branch
-                type: String
-                value: <+pipeline.variables.source_branch>
-              - name: target_repo_target_branch
-                type: String
-                value: <+pipeline.variables.target_branch>
-              - name: envs_parent_folders
-                type: String
-                value: <+pipeline.variables.envs_parent_folders_to_include>
-              - name: force_requirements_upgrade
-                type: String
-                value: <+pipeline.variables.force_requirements_upgrade>
-    - stage:
-        name: Build changed images for changed environments
-        identifier: Build_changed_images
-        description: ""
-        type: Pipeline
-        spec:
-          org: Custom_Models
-          pipeline: Build_and_Publish_ExecEnv
-          project: execution_environment_installer
-          inputs:
-            identifier: Build_and_Publish_ExecEnv
-            variables:
-              - name: gitrepo
-                type: String
-                value: <+pipeline.variables.target_repo>
-              - name: srcref
-                type: String
-                value: <+pipeline.variables.source_branch>
-              - name: targetref
-                type: String
-                value: <+pipeline.variables.target_branch>
-        tags: {}
-        when:
-          pipelineStatus: Success
-          condition: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>!=""
-    - stage:
         name: Build list of envs to test
         identifier: build_list_of_envs_to_test
         description: ""
@@ -106,7 +57,7 @@ pipeline:
                       - name: matrix_values
                       - name: should_run_framework_tests
           caching:
-            enabled: true
+            enabled: false
             paths: []
           platform:
             os: Linux
@@ -115,7 +66,7 @@ pipeline:
             type: Cloud
             spec: {}
           buildIntelligence:
-            enabled: true
+            enabled: false
         when:
           pipelineStatus: Success
     - stage:
@@ -128,99 +79,73 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: GitClone
-                  name: Clone repo
-                  identifier: Clone_repo
-                  spec:
-                    connectorRef: account.svc_harness_git1
-                    repoName: <+pipeline.variables.target_repo>
-                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
-                    build:
-                      type: branch
-                      spec:
-                        branch: <+pipeline.variables.source_branch>
-                  description: Explicitly clone repo to pull a commit created during reconciliation
-              - step:
-                  type: Run
-                  name: report_status_to_github_start
-                  identifier: report_status_to_github_start
-                  spec:
-                    shell: Bash
-                    command: |-
-                      cd /harness/<+pipeline.variables.target_repo>
-                      git log -2
-                      latest_commit_sha=$(git log -1 --pretty=format:"%H")
-                      echo ${latest_commit_sha}
-                      pipeline_execution_github_status_key="Test framework - <+matrix.env.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
-
-                      echo "Update PR status"
-                      curl -i -X POST \
-                      -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
-                      -H "Accept: application/vnd.github.v3+json" \
-                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/${latest_commit_sha} \
-                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
-                    outputVariables:
-                      - name: pipeline_execution_github_status_key
-                        type: String
-                        value: pipeline_execution_github_status_key
-                      - name: latest_commit_sha
-                        type: String
-                        value: latest_commit_sha
-              - step:
                   type: Run
                   name: Run functional test in provided framework
                   identifier: Run_1
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
-                    shell: Sh
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
                     command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      REPO='<+pipeline.variables.target_repo>'
+                      SOURCE_REF='<+pipeline.variables.source_branch>'
+                      ENVDIR='<+matrix.env.env_folder>/<+matrix.env.framework>'
+                      set -x
+
+                      # Clone ourselves because harness clones strip creds and forcibly shallow clone
+                      # and we end up doing more work to fix it
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
+                      cd "${REPO}"
+                      git checkout "${SOURCE_REF}"
+
+                      # Simple wrapper around reporting status back to GitHub
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "Test framework - <+matrix.env.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      # Report back to the PR the status check state
+                      notify_exit() {
+                        local retval="${?}"
+                        local state='success'
+                        if [ "${retval}" -gt 0 ]; then
+                          state='failure'
+                        fi
+                        ghstatus.send "${state}" "Test ${state}"
+                      }
+
+                      trap notify_exit EXIT # Call notify_exit when the step finishes
+
+                      # Run tests
+                      ghstatus.send pending "Test is running"
                       cd /harness/<+pipeline.variables.target_repo>
-                      ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
-                        <+matrix.env.framework> <+matrix.env.env_folder>
+
+                      img="docker.io/datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>"
+
+                      # Wait for the image to show up because build is an async process
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
+                      /usr/local/bin/docker.wait-for-tag.sh "${img}" || exit $?
+
+                      # Run test on the image
+                      docker run -i --network=host \
+                        --volume "$(pwd):/harness" --workdir /harness \
+                        --entrypoint /bin/sh "${img}" -c \
+                        'harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
+                          <+matrix.env.framework> <+matrix.env.env_folder>'
                     resources:
                       limits:
                         memory: 3G
-                  when:
-                    stageStatus: Success
                 contextType: Pipeline
-              - step:
-                  type: Run
-                  name: report_status_to_github_end
-                  identifier: report_status_to_github_end
-                  spec:
-                    shell: Bash
-                    command: |-
-                      latest_commit_sha="<+execution.steps.report_status_to_github_start.output.outputVariables.latest_commit_sha>"
-                      github_status_key="<+execution.steps.report_status_to_github_start.output.outputVariables.pipeline_execution_github_status_key>"
-
-                      echo ${latest_commit_sha}
-                      echo ${github_status_key}
-
-                      status_0="<+execution.steps.Run_1.status>"
-
-                      echo "Update PR status"
-
-                      if [[ "$status_0" == "SUCCEEDED" ]]; then
-                        state="success"
-                        description="Passed"
-                      elif [[ "$status_0" == "PENDING" ]]; then
-                        state="pending"
-                        description="Pending"
-                      else
-                        state="failure"
-                        description="Failed"
-                      fi
-
-                      curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
-                      -X POST \
-                      -H "Accept: application/vnd.github.v3+json" \
-                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/${latest_commit_sha} \
-                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
-                  when:
-                    stageStatus: All
           caching:
-            enabled: true
+            enabled: false
             paths: []
           platform:
             os: Linux
@@ -229,7 +154,7 @@ pipeline:
             type: Cloud
             spec: {}
           buildIntelligence:
-            enabled: true
+            enabled: false
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_framework_tests> == "true"
