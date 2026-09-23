@@ -155,12 +155,13 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
-# Install DR CLI
+# Install DR CLI; the version check fails the build if the binary does not match CLI_VERSION
 RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
     && tar -xvzf dr_"$CLI_VERSION"_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
     && rm dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && chmod +x /home/notebooks/.local/bin/dr/dr \
+    && /home/notebooks/.local/bin/dr/dr --version | grep -F "DataRobot CLI version: $CLI_VERSION" \
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 
