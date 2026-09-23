@@ -239,6 +239,7 @@ exclude-dependencies = [
     # deepeval — CLI / reporting stack pulled in via datarobot-moderations[all]; not used at runtime
     "pyfiglet",                 # ASCII banner renderer for deepeval CLI; not used
     "wheel",                    # build-time packaging tool; not a runtime dependency
+    "pip",                      # nvidia-nat-core dep; vendors msgpack and setuptools
     "datarobot-early-access",   # randomly overlaps the core `datarobot`
 ]
 # Managed by cve-sync from policy/. Do not hand-edit between the markers below:
