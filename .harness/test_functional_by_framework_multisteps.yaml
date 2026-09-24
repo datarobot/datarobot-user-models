@@ -132,6 +132,7 @@ pipeline:
 
                       # Wait for the image to show up because build is an async process
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
+                      export MAXWAIT=1800 # 30 minutes because r-lang builds really slow
                       /usr/local/bin/docker.wait-for-tag.sh "${img}" || exit $?
 
                       # Run test on the image
