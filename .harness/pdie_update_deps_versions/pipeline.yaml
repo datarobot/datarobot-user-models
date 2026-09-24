@@ -53,17 +53,19 @@ pipeline:
                         reporoot="$(git rev-parse --show-toplevel)"
                         source /usr/local/bin/git.changed-files.sh "${target_ref}"
                         for i in "${FILES_A[@]}" "${FILES_M[@]}" "${FILES_R[@]}"; do
-                          # Ignore all changes outside of public_dropin_envs
-                          if [ "${i%%/*}" != 'public_dropin_environments' ]; then
+                          # Repo structure is <public_dropin*>/<env>/files
+                          # Since an exec env directory could be multiple directories deep, we have
+                          # to approach changed environment detection from the top down, not the
+                          # bottom up.
+                          toptwo="$(cut -d/ -f1,2 <<<"${i}")"
+                          # Skip all files not belonging to an execution environment
+                          if [ ! -f "${reporoot}/${toptwo}/env_info.json" ]; then
                             continue
                           fi
+
                           # If the parent directory is pdie, then a file outside of an env
                           # dir was modified, so skip that too.
-                          env="$(cut -d/ -f2 <<<"${i}")"
-                          if [ ! -f "${reporoot}/public_dropin_environments/${env}/env_info.json" ]; then
-                            continue
-                          fi
-                          printf '%s\n' "${env}"
+                          printf '%s\n' "${toptwo}"
                         done | sort | uniq
                       }
 
@@ -108,18 +110,19 @@ pipeline:
                       printf 'Current DataRobot release version: %s\n' "${DRVER}"
 
                       # Get list of changed environments
-                      cd public_dropin_environments
                       CHANGED_ENVS=("$(get_changed_envs "${TARGET_REF}")")
                       printf 'Changed Environments:\n'
                       printf '* %s\n' ${CHANGED_ENVS[@]}
 
+                      reporoot="$(git rev-parse --show-toplevel)"
                       # Iterate over each changed environment
                       for env in ${CHANGED_ENVS[@]}; do
+                        printf 'Checking %s\n' "${env}"
+
                         if [ ! -f "${env}/requirements.in" ]; then
                           printf 'Changed env %s does not have requirements.in. Skipping\n' "${env}"
                           continue
                         fi
-                        printf 'Checking %s\n' "${env}"
                         cd "${env}"
                         # Update version id if user changed files but did not update this
                         if ! git diff -U0 "${TARGET_REF}" HEAD -- env_info.json | grep -n 'environmentVersionId'; then
@@ -134,12 +137,16 @@ pipeline:
 
                         # Regen requirements with correct python version in case needed.
                         pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
+                        if [ -z "${pyver:-}" ]; then
+                          printf 'ERROR: Could not determine python version from Dockerfile for %s\n' "${env}" >&2
+                          exit 1
+                        fi
                         # Explicitly pull quietly to not blow up console logs
                         docker pull --quiet "datarobotdev/py-gen-requirements:${pyver}"
                         docker run -v "$(pwd):/work" "datarobotdev/py-gen-requirements:${pyver}"
 
                         git add env_info.json requirements.txt
-                        cd ..
+                        cd "${reporoot}"
                       done
                       # Failure on nothing to commit, so don't try to push or show changes
                       if git commit -m "${message}"; then
