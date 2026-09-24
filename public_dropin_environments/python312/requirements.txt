@@ -29,7 +29,7 @@ google-api-core==2.38.0
 google-auth==2.58.0
 google-cloud-core==2.7.0
 google-cloud-storage==2.19.0
-google-crc32c==1.8.0
+google-crc32c==1.9.0rc0
 google-resumable-media==2.10.2
 googleapis-common-protos==1.75.3
 greenlet==3.5.6
@@ -70,7 +70,7 @@ pydantic==2.13.5
 pydantic-core==2.46.5
 pyjwt[crypto]==2.15.0
 python-dateutil==2.9.0.post0
-pytz==2026.3.post1
+pytz==2026.4
 pyyaml==6.0.3
 requests==2.34.2
 requests-toolbelt==1.0.0
