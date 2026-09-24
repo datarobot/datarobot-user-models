@@ -72,17 +72,25 @@ marker so callers don't hang waiting for output.
 
 ## Published image
 
-Built and pushed by Harness on master push when files in this folder
-change. The published URI is:
+Consumers pull the mutable `_latest` tag, so there is no version to bump on the
+caller side — a merge here is what ships a dependency change:
 
 ```
 datarobotdev/datarobot-user-models:public_dropin_environments_dr_mcp_execute_sandbox_minimal_latest
 ```
 
-> The publish trigger is path-filtered to this folder, so the `_latest` tag is
-> (re)built only when files here change on master. Consumers pull the mutable
-> `_latest` tag, so a merge here is what ships a dependency change — there is
-> no version to bump on the caller side.
+> **This tag is published by hand, not by merging.** The intended automation —
+> the trigger YAMLs committed under `.harness/` for this folder — is not active:
+> Harness does not read trigger YAML from git, so those files were never
+> registered and no webhook has ever fired for this environment. Until they are
+> registered, **merging a change here does not rebuild `_latest`**; you must run
+> the `env_image_publish` pipeline yourself.
+>
+> The exact inputs, UI steps and a working `curl` are in
+> [`.harness/README.md`](../../.harness/README.md#publishing-this-image-by-hand).
+> Check the current state with `.harness/scripts/check_harness_entities.sh`;
+> once both triggers report `OK`, publishing becomes automatic and this note can
+> be deleted.
 
 ## Source of truth
 
