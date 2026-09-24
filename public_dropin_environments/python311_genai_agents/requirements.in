@@ -14,3 +14,4 @@ fastapi[All]>=0.122.0
 psutil>=7.0.0
 soupsieve>=2.9.0
 jupyter-server>=2.21.0
+anyio>=4.14.2
