@@ -15,6 +15,7 @@ supported-markers = [
 [manifest]
 constraints = [
     { name = "aiohttp", specifier = ">=3.14.3" },
+    { name = "anyio", specifier = ">=4.14.2" },
     { name = "authlib", specifier = ">=1.7.1" },
     { name = "banks", specifier = ">=2.4.5" },
     { name = "bleach", specifier = ">=6.4.0" },
@@ -91,7 +92,6 @@ excludes = [
     "llama-index-cli",
     "onnxruntime",
     "openpyxl",
-    "pip",
     "pyfiglet",
     "pymilvus",
     "python-docx",
@@ -354,16 +354,15 @@ vertex = [
 
 [[package]]
 name = "anyio"
-version = "4.11.0"
+version = "4.14.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
-    { name = "sniffio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c6/78/7d432127c41b50bccba979505f272c16cbcadcc33645d5fa3a738110ae75/anyio-4.11.0.tar.gz", hash = "sha256:82a8d0b81e318cc5ce71a5f1f8b5c4e63619620b63141ef8c995fa0db95a57c4", size = 219094, upload-time = "2025-09-23T09:19:12.58Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/cc/a381afa6efea9f496eff839d4a6a1aed3bfafc7b3ab4b0d1b243a12573dd/anyio-4.14.2.tar.gz", hash = "sha256:cfa139f3ed1a23ee8f88a145ddb5ac7605b8bbfd8592baacd7ce3d8bb4313c7f", size = 260176, upload-time = "2026-07-12T20:29:07.082Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/15/b3/9b1a8074496371342ec1e796a96f99c82c945a339cd81a8e73de28b4cf9e/anyio-4.11.0-py3-none-any.whl", hash = "sha256:0287e96f4d26d4149305414d4e3bc32f0dcd0862365a4bddea19d7a1ec38c4fc", size = 109097, upload-time = "2025-09-23T09:19:10.601Z" },
+    { url = "https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl", hash = "sha256:9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494", size = 125813, upload-time = "2026-07-12T20:29:05.763Z" },
 ]
 
 [[package]]
@@ -1133,11 +1132,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.29.46"
+version = "0.29.53"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/36/1d/4b1a2b7484e17543c366c09ec09cdeded6925d07b33950f5f366b072e748/datarobot_genai-0.29.46.tar.gz", hash = "sha256:782ee0eef1e4867fb2d8d5ff434b7baffd5d01aca97adbcfe98a062799e13f59", size = 626171, upload-time = "2026-09-18T11:39:25.303Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4a/04/b6b0b391985a83a0219d79d70cae062fea0c92a552452f6354216db66617/datarobot_genai-0.29.53.tar.gz", hash = "sha256:1e6c9f5ed8a883f179b69aa170ff17c4e26075f2cfda61a62ca2789856ca22cc", size = 632392, upload-time = "2026-09-24T15:53:15.124Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/f4/f728c865458363d42d187488bc87ae58541715ea630ea8d656c5d734e50c/datarobot_genai-0.29.46-py3-none-any.whl", hash = "sha256:01d3c4a36eb201bb499c83b206ed3ac6f0a13a00c74310db26ed4ef13fbf26f3", size = 881274, upload-time = "2026-09-18T11:39:22.847Z" },
+    { url = "https://files.pythonhosted.org/packages/82/b1/03d2168d620f80ec8fa4279d08e44c18f1a42805ce8dd2381944b320bbcb/datarobot_genai-0.29.53-py3-none-any.whl", hash = "sha256:d3ab4b7d3eddf285782e3ed6a2ca679b2a4e5aacf447f7b841464c72a7068fdc", size = 886847, upload-time = "2026-09-24T15:53:12.928Z" },
 ]
 
 [package.optional-dependencies]
@@ -1178,7 +1177,7 @@ crewai = [
 ]
 dragent = [
     { name = "ag-ui-protocol" },
-    { name = "anyio" },
+    { name = "cachetools" },
     { name = "colorama" },
     { name = "datarobot", extra = ["application-utils", "core"] },
     { name = "datarobot-moderations", extra = ["all"] },
@@ -1326,7 +1325,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-moderations"
-version = "11.3.6"
+version = "11.3.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1346,7 +1345,7 @@ dependencies = [
     { name = "tiktoken" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/31/31/4ff69bf7ac961cc3a51cff498c0057b24dd9bfb24b5e8366d558ca4007a7/datarobot_moderations-11.3.6-py3-none-any.whl", hash = "sha256:b1b97ebd724a64b6629a35a56f23055b212e6df561f9b3976770c6df046875c4", size = 183969, upload-time = "2026-09-09T16:07:15.348Z" },
+    { url = "https://files.pythonhosted.org/packages/14/c6/9fe7de3e3b0c5b64686d2e99b6715d3c94a371952bff21e0f295627d1adb/datarobot_moderations-11.3.7-py3-none-any.whl", hash = "sha256:7a296ad5d0bd1c5d8ba32964c7a9ec0ba0506a96ef94f13fcbd7493e71fcf087", size = 184001, upload-time = "2026-09-21T11:48:10.42Z" },
 ]
 
 [package.optional-dependencies]
@@ -1357,6 +1356,8 @@ all = [
     { name = "deepeval" },
     { name = "google-cloud-aiplatform" },
     { name = "langchain" },
+    { name = "langchain-classic" },
+    { name = "langchain-community" },
     { name = "langchain-core" },
     { name = "langchain-nvidia-ai-endpoints" },
     { name = "langchain-openai" },
@@ -1551,7 +1552,7 @@ dev = [
 requires-dist = [
     { name = "ag-ui-protocol", specifier = "==0.1.15" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.18.0,<4.0.0" },
-    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.46" },
+    { name = "datarobot-genai", extras = ["crewai", "dragent", "drmcp", "drtools", "langgraph", "llamaindex", "auth"], specifier = "==0.29.53" },
     { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "debugpy", marker = "extra == 'dev'", specifier = ">=1.8.20" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
@@ -3896,33 +3897,27 @@ wheels = [
 
 [[package]]
 name = "nemoguardrails"
-version = "0.21.0"
+version = "0.24.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "aiofiles" },
     { name = "aiohttp" },
     { name = "aiohttp-retry" },
-    { name = "fastapi" },
+    { name = "dataclasses-json" },
     { name = "httpx" },
     { name = "jinja2" },
-    { name = "langchain" },
-    { name = "langchain-community" },
-    { name = "langchain-core" },
+    { name = "jsonschema" },
     { name = "lark" },
     { name = "nest-asyncio" },
-    { name = "opentelemetry-api" },
-    { name = "pandas" },
+    { name = "numpy" },
     { name = "prompt-toolkit" },
     { name = "protobuf" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "rich" },
     { name = "simpleeval" },
-    { name = "starlette" },
-    { name = "uvicorn" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8d/f7/e11bdc5451b06706dd7f4e02035ad7f62aafc82eec974b4091a874ec51b3/nemoguardrails-0.21.0-py3-none-any.whl", hash = "sha256:b338453b371751f5b09637415702e2ee25f0885317b691cbb0d2f2f164eeea5d", size = 11349994, upload-time = "2026-03-12T14:17:23.709Z" },
+    { url = "https://files.pythonhosted.org/packages/59/5c/e44694350e4867436bc897365b8e0d6383b9e990fa18b56fb4bf9fe35939/nemoguardrails-0.24.1-py3-none-any.whl", hash = "sha256:4fcfc9d9456cdcbcc939fbd4ba884e9fc89b7f200bd9d8ed77836298bf31680f", size = 1060573, upload-time = "2026-09-16T17:17:10.794Z" },
 ]
 
 [[package]]
@@ -4057,6 +4052,7 @@ dependencies = [
     { name = "numpy" },
     { name = "nvidia-nat-atif" },
     { name = "pandas" },
+    { name = "pip" },
     { name = "pkce" },
     { name = "pkginfo" },
     { name = "platformdirs" },
@@ -4805,6 +4801,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/bf/20/22fe9384b7949e25fb1293bcfc84fb82590ff4ea6b37c95b24d26d793d86/pillow-12.3.0-pp311-pypy311_pp73-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:fbd139c8447d25dd750ab79ee274cc5e1fe80fc56340ab10b18a195e1b6eca3e", size = 5237776, upload-time = "2026-07-01T11:56:30.263Z" },
     { url = "https://files.pythonhosted.org/packages/08/14/f6ba68107680ffa74b39985f3f30884e41318fbc4250caa423c79b4788bb/pillow-12.3.0-pp311-pypy311_pp73-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:e7e480451b9fa137494bccd3a7d69adbe8ac65a87d97be61e11f1b1050a5bac3", size = 5860358, upload-time = "2026-07-01T11:56:32.68Z" },
     { url = "https://files.pythonhosted.org/packages/36/54/0169bc772ec491108b62f644f8ecf1fe5d8ae5ebafde2ee2142210166903/pillow-12.3.0-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:04f01d28a6aaff387bf842a13be313df23ba0597a44f1a976c9feb3c6ff4711a", size = 7231786, upload-time = "2026-07-01T11:56:35.046Z" },
+]
+
+[[package]]
+name = "pip"
+version = "26.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/15/4500e320e6b101ec3b719ae85b697d9940b6cda672bc555bd6016fc60c6f/pip-26.2.1.tar.gz", hash = "sha256:f6ad667e89a1fe78046c8f13232b247200f5258d7828f3f7883d660878e0813f", size = 1848877, upload-time = "2026-08-04T22:51:14.148Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl", hash = "sha256:71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e", size = 1816632, upload-time = "2026-08-04T22:51:12.472Z" },
 ]
 
 [[package]]
