@@ -132,7 +132,7 @@ pipeline:
                           env_info.json
 
                         if [ -f requirements.in ]; then
-                          printf 'Regenerating requirements.txt
+                          printf 'Regenerating requirements.txt\n'
                           # Regen requirements with correct python version in case needed.
                           pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
                           if [ -z "${pyver:-}" ]; then
