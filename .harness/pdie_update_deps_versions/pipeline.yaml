@@ -91,7 +91,8 @@ pipeline:
                       # Idempotence check. skip pipeline if any branch commits match our message,
                       # otherwise we'll end up in an infinite loop of self-triggering pushes.
                       if git log "^${TARGET_REF}" HEAD --pretty=%s | grep -q "${message//[/\\[}"; then
-                        exit 0
+                        # exit 0
+                        printf 'Already was autobump commit. Re-checking changes...\n'
                       fi
 
                       # Configure local git
