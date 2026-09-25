@@ -96,8 +96,6 @@ pipeline:
 
                       # Configure local git
                       /usr/local/bin/github.git-authorship.sh
-                      #git config --global url."https://${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
-                      #git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
                       # Sign in to Docker Hub for pulling internal images
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_PASS}"
@@ -118,12 +116,10 @@ pipeline:
                       # Iterate over each changed environment
                       for env in ${CHANGED_ENVS[@]}; do
                         printf 'Checking %s\n' "${env}"
-
-                        if [ ! -f "${env}/requirements.in" ]; then
-                          printf 'Changed env %s does not have requirements.in. Skipping\n' "${env}"
-                          continue
-                        fi
                         cd "${env}"
+
+                        # If an environment is in the changed_envs list, _something_ changed and its
+                        # env version id likely needs to be bumped for the rebuild.
                         # Update version id if user changed files but did not update this
                         if ! git diff -U0 "${TARGET_REF}" HEAD -- env_info.json | grep -n 'environmentVersionId'; then
                           /usr/local/bin/env_info.bump-version.sh
@@ -135,17 +131,22 @@ pipeline:
                           -e "s/v[0-9\.]\+-${envverid}/v${DRVER}-${envverid}/g" \
                           env_info.json
 
-                        # Regen requirements with correct python version in case needed.
-                        pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
-                        if [ -z "${pyver:-}" ]; then
-                          printf 'ERROR: Could not determine python version from Dockerfile for %s\n' "${env}" >&2
-                          exit 1
+                        if [ -f requirements.in ]; then
+                          printf 'Regenerating requirements.txt
+                          # Regen requirements with correct python version in case needed.
+                          pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
+                          if [ -z "${pyver:-}" ]; then
+                            printf 'ERROR: Could not determine python version from Dockerfile for %s\n' "${env}" >&2
+                            exit 1
+                          fi
+                          # Explicitly pull quietly to not blow up console logs
+                          docker pull --quiet "datarobotdev/py-gen-requirements:${pyver}"
+                          docker run -v "$(pwd):/work" "datarobotdev/py-gen-requirements:${pyver}"
+                        else
+                          printf 'Changed env %s does not have requirements.in. Skipping\n' "${env}"
                         fi
-                        # Explicitly pull quietly to not blow up console logs
-                        docker pull --quiet "datarobotdev/py-gen-requirements:${pyver}"
-                        docker run -v "$(pwd):/work" "datarobotdev/py-gen-requirements:${pyver}"
 
-                        git add env_info.json requirements.txt
+                        git add -u
                         cd "${reporoot}"
                       done
                       # Failure on nothing to commit, so don't try to push or show changes
