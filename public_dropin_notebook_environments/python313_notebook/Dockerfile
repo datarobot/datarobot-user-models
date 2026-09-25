@@ -33,6 +33,7 @@ FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
 ARG UNAME
 ARG UID
 ARG GID
+
 ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
