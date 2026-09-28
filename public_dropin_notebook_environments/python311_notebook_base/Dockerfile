@@ -6,6 +6,7 @@
 # The copyright notice above does not evidence any actual or intended
 # publication of such source code.
 
+ARG PYTHON_VERSION=3.11
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
@@ -16,7 +17,7 @@ ARG GID=10101
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
@@ -25,13 +26,14 @@ ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
 ARG GIT_COMMIT
+ARG PYTHON_VERSION
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN echo "[Python3.11] GIT_COMMIT: $GIT_COMMIT" && \
+RUN echo "[Python${PYTHON_VERSION}] GIT_COMMIT: $GIT_COMMIT" && \
   apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server gzip zip unzip wget curl openjdk-11 vim nano \
   && rm -rf /var/cache/apk/

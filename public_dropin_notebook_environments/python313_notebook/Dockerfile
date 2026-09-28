@@ -9,6 +9,7 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
+ARG PYTHON_VERSION=3.13
 
 ARG UNAME=notebooks
 ARG UID=10101
@@ -28,7 +29,7 @@ ARG CACHE_BUSTER="${CACHE_BUSTER:-no-cache-buster}"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
@@ -40,13 +41,14 @@ ARG VENV_PATH
 ARG CACHE_BUSTER
 
 ARG GITHELPER_VERSION
+ARG PYTHON_VERSION
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
+RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \

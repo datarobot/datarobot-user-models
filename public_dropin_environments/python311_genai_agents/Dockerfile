@@ -6,6 +6,7 @@
 # The copyright notice above does not evidence any actual or intended
 # publication of such source code.
 
+ARG PYTHON_VERSION=3.11
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
@@ -15,7 +16,7 @@ ARG GID=10101
 # Writable at build and runtime (custom model / uv); override with --build-arg if needed.
 ARG UV_CACHE_DIR=/tmp/uv-cache
 
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
@@ -132,10 +133,11 @@ COPY ./uv.lock ${WORKDIR}/uv.lock
 WORKDIR ${WORKDIR}
 USER $UNAME
 
+ARG PYTHON_VERSION
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    rm -rf ${VENV_PATH}/lib/python3.11/site-packages/.vscode ${VENV_PATH}/lib/python3.11/site-packages/vscode_extension ${VENV_PATH}/lib/python3.11/site-packages/.venv && \
+    rm -rf ${VENV_PATH}/lib/python${PYTHON_VERSION}/site-packages/.vscode ${VENV_PATH}/lib/python${PYTHON_VERSION}/site-packages/vscode_extension ${VENV_PATH}/lib/python${PYTHON_VERSION}/site-packages/.venv && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 
