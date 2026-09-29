@@ -45,6 +45,7 @@
 /public_dropin_environments/python311_pipelines                  @datarobot/compute-services
 /public_dropin_environments/python312_pipelines                  @datarobot/compute-services
 /public_dropin_environments/python313_pipelines                  @datarobot/compute-services
+/public_dropin_environments/python314_pipelines                  @datarobot/compute-services
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_mcp                           @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
