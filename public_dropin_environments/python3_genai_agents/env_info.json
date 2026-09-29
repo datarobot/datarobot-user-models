@@ -4,7 +4,7 @@
   "description": "This environment runs GenAI agents built with the DataRobot agent templates. It ships no agent framework: the agent brings its own dependencies in pyproject.toml and uv.lock and they are installed when the agent starts. You can also use this environment in codespaces.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6ab54b2e66211f974d79de77",
+  "environmentVersionId": "6abb9193002cae16c3001296",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -15,8 +15,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_genai_agents",
   "imageRepository": "env-python-3-genai-agents",
   "tags": [
-    "v11.13.0-6ab54b2e66211f974d79de77",
-    "6ab54b2e66211f974d79de77",
+    "v11.13.0-6abb9193002cae16c3001296",
+    "6abb9193002cae16c3001296",
     "v11.13.0-latest"
   ]
 }
