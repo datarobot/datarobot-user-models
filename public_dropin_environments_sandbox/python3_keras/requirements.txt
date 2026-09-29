@@ -59,7 +59,7 @@ msal==1.31.1
 msal-extensions==1.2.0
 mypy-extensions==1.0.0
 numpy==1.23.5
-oauthlib==3.2.2
+oauthlib==4.0.0
 opt-einsum==3.4.0
 orjson==3.10.15
 packaging==24.2
