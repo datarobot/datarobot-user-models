@@ -27,7 +27,7 @@ RUN cd ${INSTALLROOT}/bin && git clone https://github.com/cloudpipe/cloudpickle.
 RUN ${INSTALLROOT}/bin/pip freeze --exclude-editable \
     | grep -viE '^(datarobot|covalent)' > ${INSTALLROOT}/constraints.txt
 # Shared libraries the production base lacks: git's, OpenMP for numeric wheels,
-# and libcrypt for /bin/sh (dropped from the 3.14+ production base).
+# and libcrypt for /bin/sh (dropped from the 3.13+ production base).
 RUN mkdir -p /tmp/git-libs /tmp/openmp-libs /tmp/sh-libs && \
     cp -L /usr/lib/libpcre2-8.so.0 /usr/lib/libz.so.1 /usr/lib/libcurl.so.4 /usr/lib/libzstd.so.1 /tmp/git-libs/ && \
     cp -L /usr/lib/libgomp.so.1 /tmp/openmp-libs/ && \
