@@ -90,3 +90,6 @@ RUN rm -rf ${INSTALLROOT}/include ${INSTALLROOT}/lib/python3.*/site-packages/pip
     find ${INSTALLROOT} -name '*.a' -type f -delete || true
 WORKDIR /home/covalent
 USER 65532
+# Contract check as the runtime user: a dependency bump that breaks what
+# pipelines-api layers onto this image fails the image build here.
+RUN python /opt/pipelines-env/smoke_test.py
