@@ -32,29 +32,11 @@ USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache uv graphviz openblas openssh-server \
-    gzip zip unzip curl git \
-    openjdk-11 vim nano procps tzdata \
-    && rm -f /etc/ssh/ssh_host_* \
-    && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
-
-# Assert the uv version floor. Wolfi carries only the newest uv, so the `apk add` above
-# cannot be pinned and the version floats with the apk index. pyproject.toml declares
-# exclude-dependencies, which needs uv >= 0.10.0. An older uv rejects that unknown key,
-# which fails parsing of the entire [tool.uv] table and takes its own required-version
-# guard down with it. uv then only warns, exits 0, and resolves with the exclusions
-# silently absent, quietly restoring the packages we dropped for CVE reasons. Fail the
-# build here instead. Compared with bash builtins so this needs no awk or sort -V.
-RUN v="$(uv --version)" && v="${v#uv }" && v="${v%% *}" \
-    && IFS=. read -r maj min _ <<< "$v" \
-    && if [ "$maj" -eq 0 ] && [ "$min" -lt 10 ]; then \
-         echo "ERROR: uv $v is below the 0.10.0 floor required by exclude-dependencies" >&2; \
-         exit 1; \
-       fi \
-    && echo "uv $v satisfies the >=0.10.0 exclude-dependencies floor"
+RUN apk add --no-cache uv openssh-server \
+    && rm -f /etc/ssh/ssh_host_*
 
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache rust sqlite
+RUN apk add --no-cache rust
 
 # linux-pam (an openssh-server dependency) installs unix_chkpwd setgid-shadow so PAM
 # can read /etc/shadow. Nothing here reaches pam_unix auth: sshd is pubkey-only and runs
@@ -70,10 +52,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
-    DEEPEVAL_TELEMETRY_OPT_OUT="YES" \
-    JAVA_HOME=/usr/lib/jvm/default-jvm
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
-ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
+ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN uv venv ${VENV_PATH}
@@ -139,14 +120,9 @@ USER $UNAME
 
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
-    # Cleanup after nemoguardrails (.vscode, vscode_extension, .venv installed)..
-    # Globbed on the minor version so a Python bump cannot silently turn this into a no-op.
-    rm -rf ${VENV_PATH}/lib/python3.*/site-packages/.vscode ${VENV_PATH}/lib/python3.*/site-packages/vscode_extension ${VENV_PATH}/lib/python3.*/site-packages/.venv && \
+    uv cache clean && mkdir -p "${UV_CACHE_DIR}" && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
-
-# Copy agent runtime into work directory
-COPY ./run_agent.py ${WORKDIR}/
 
 RUN rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json && chmod a+x ${WORKDIR}/start_server.sh
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
@@ -168,13 +144,12 @@ LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
 
 USER root
-RUN mkdir -p /opt/venv && chmod a+rwx /opt/venv
-# custom model deployments and workloads use (securityContext.runAsUser: 1000) -- grant access to uv cache to all users to avoid any access errors
-RUN chmod -R 777 "${UV_CACHE_DIR}"
+# Custom model deployments run as uid 1000 and bootstrap the agent venv at runtime,
+# so the code dir, the venv dir and the uv cache must be writable by everyone.
+RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv /opt/code "${UV_CACHE_DIR}"
 USER $UNAME
 
-# This is required for custom models to work with this image
-COPY ./start_server_custom_model.sh /opt/code/start_server.sh
+# start_server.sh is not baked in: the agent ships its own into /opt/code.
 ENV VENV_DIR=/opt/venv \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \

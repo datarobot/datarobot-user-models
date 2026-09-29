@@ -29,17 +29,11 @@ cp -L /var/run/notebooks/ssh/authorized_keys/notebooks /etc/authorized_keys/ && 
 mkdir /etc/ssh/keys && cp -L /var/run/notebooks/ssh/keys/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
 nohup /usr/sbin/sshd -D &
 
-# no trailing slash in the working dir path
-git config --global --add safe.directory "${WORKING_DIR%/}"
-
 # setup the working directory for the kernel
 cd "$WORKING_DIR" || exit
 
 # setup ipython extensions
 cp -r /etc/ipython/ /home/notebooks/.ipython/
-
-# Copy agent runtime from work directory to executable directory
-cp /etc/system/kernel/run_agent.py /home/notebooks/storage/run_agent.py
 
 # clear out kubernetes_specific env vars before starting kernel gateway as it will inherit them
 prefix="KUBERNETES_"; for var in $(printenv | cut -d= -f1); do [[ "$var" == "$prefix"* ]] && unset "$var"; done
