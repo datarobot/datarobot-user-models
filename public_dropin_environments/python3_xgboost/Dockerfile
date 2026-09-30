@@ -1,11 +1,12 @@
+ARG PYTHON_VERSION=3.12
+
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-guard image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev
-FROM ${BASE_ROOT_IMAGE} AS build
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS build
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
 
 USER root
 
@@ -30,7 +31,8 @@ COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
-COPY --from=build /usr/lib/python3.12/site-packages/pip /usr/lib/python3.12/site-packages/pip
+ARG PYTHON_VERSION
+COPY --from=build /usr/lib/python${PYTHON_VERSION}/site-packages/pip /usr/lib/python${PYTHON_VERSION}/site-packages/pip
 
 # Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
 COPY --from=build /usr/bin/rm /usr/bin/rm
@@ -62,7 +64,8 @@ ENV WITH_ERROR_SERVER=0 \
 
 # Both system python and venv python should look at both venv and system site
 # packages.
-ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-packages
+ARG PYTHON_VERSION
+ENV PYTHONPATH=/opt/venv/lib/python${PYTHON_VERSION}/site-packages:/usr/lib/python${PYTHON_VERSION}/site-packages
 
 # OMP_NUM_THREADS is an environment variable that controls the maximum number of threads used by programs that rely on OpenMP for parallel processing.
 # In libraries like XGBoost, it limits the number of CPU threads used for computation, helping to prevent resource contention and hangs in multi-worker environments.

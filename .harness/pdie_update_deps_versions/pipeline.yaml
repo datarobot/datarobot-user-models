@@ -115,6 +115,10 @@ pipeline:
                       reporoot="$(git rev-parse --show-toplevel)"
                       # Iterate over each changed environment
                       for env in ${CHANGED_ENVS[@]}; do
+                        if [ "${env:0:7}" != 'public_' ]; then
+                          printf 'Skipping non public dropin environment %s\n' "${env}"
+                          continue
+                        fi
                         printf 'Checking %s\n' "${env}"
                         cd "${env}"
 
@@ -131,21 +135,7 @@ pipeline:
                           -e "s/v[0-9\.]\+-${envverid}/v${DRVER}-${envverid}/g" \
                           env_info.json
 
-                        if [ -f requirements.in ]; then
-                          printf 'Regenerating requirements.txt\n'
-                          # Regen requirements with correct python version in case needed.
-                          pyver="$(sed -n 's/^FROM.*python-fips:\([0-9.]\+\).*/\1/p' Dockerfile | head -n1)"
-                          if [ -z "${pyver:-}" ]; then
-                            printf 'ERROR: Could not determine python version from Dockerfile for %s\n' "${env}" >&2
-                            exit 1
-                          fi
-                          # Explicitly pull quietly to not blow up console logs
-                          docker pull --quiet "datarobotdev/py-gen-requirements:${pyver}"
-                          docker run -v "$(pwd):/work" "datarobotdev/py-gen-requirements:${pyver}"
-                        else
-                          printf 'Changed env %s does not have requirements.in. Skipping\n' "${env}"
-                        fi
-
+                        make update-deps
                         git add -u
                         cd "${reporoot}"
                       done

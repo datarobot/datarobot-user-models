@@ -1,7 +1,8 @@
+ARG PYTHON_VERSION=3.13
+
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-guard image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev
-FROM ${BASE_ROOT_IMAGE} AS build
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS build
 
 USER root
 
@@ -17,7 +18,7 @@ RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
 # RAPTOR-19887: rebuild for CVE-2026-63073 - libcrypto3/libssl3 3.6.3-r5 -> 3.6.4-r1.
 # Both ship from this rolling base and are not pinned here, so bumping
 # environmentVersionId in env_info.json is the whole fix.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
 
 USER root
 
@@ -47,7 +48,8 @@ COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
-COPY --from=build /usr/lib/python3.13/site-packages/pip /usr/lib/python3.13/site-packages/pip
+ARG PYTHON_VERSION
+COPY --from=build /usr/lib/python${PYTHON_VERSION}/site-packages/pip /usr/lib/python${PYTHON_VERSION}/site-packages/pip
 
 # Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
 COPY --from=build /usr/bin/rm /usr/bin/rm
@@ -80,7 +82,8 @@ ENV WITH_ERROR_SERVER=0 \
 
 # Both system python and venv python should look at both venv and system site
 # packages.
-ENV PYTHONPATH=/opt/venv/lib/python3.13/site-packages:/usr/lib/python3.13/site-packages
+ARG PYTHON_VERSION
+ENV PYTHONPATH=/opt/venv/lib/python${PYTHON_VERSION}/site-packages:/usr/lib/python${PYTHON_VERSION}/site-packages
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'

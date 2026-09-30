@@ -36,6 +36,7 @@
 #      on PATH at image level so a bare `python`/`fastmcp` entrypoint resolves
 #      without sourcing an activate script.
 
+ARG PYTHON_VERSION=3.12
 ARG WORKDIR=/etc/system/mcp
 ARG VENV_PATH=${WORKDIR}/.venv
 ARG UNAME=mcp
@@ -46,7 +47,7 @@ ARG UV_CACHE_DIR=/tmp/uv-cache
 
 # Must stay the `-dev` variant rather than the slim runtime: start_server.sh runs
 # `uv sync` at container start, so uv has to be present in the shipped image.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.12-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
