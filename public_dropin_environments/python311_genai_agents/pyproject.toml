@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.29.53",
+    "datarobot-genai[crewai, dragent, drmcp, drtools, langgraph, llamaindex, auth]==0.29.54",
     "datarobot-mlops==11.1.28",
     # datarobot.core.config gives us getenv-based runtime parameter loading, plus the
     # DataRobotAppFrameworkBaseSettings and LLMConfig classes that agent/config.py and
@@ -271,6 +271,7 @@ constraint-dependencies = [
     "langchain>=1.3.9",
     "langchain-classic>=1.0.7",
     "langchain-core>=1.3.3",
+    "langchain-nvidia-ai-endpoints>=1.4.2",
     "langchain-openai>=1.1.14",
     "langchain-text-splitters>=1.1.2",
     "langgraph-checkpoint>=4.1.1",
