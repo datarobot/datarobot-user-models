@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [Unreleased]
 ##### Changed
-- `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`, which disables HTTP keep-alive for async (`gevent`) gunicorn workers. Prevents pooled idle connections (e.g. from the KEDA HTTP interceptor) from pinning workers.
+- Gunicorn keep-alive is now disabled by default (`keepalive=0`) for async (`gevent`) workers, so pooled idle connections (e.g. from the KEDA HTTP interceptor) no longer pin workers. `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`; set it to a positive value to re-enable keep-alive.
 
 #### [1.18.0] - 2026-09-11
 ##### Changed

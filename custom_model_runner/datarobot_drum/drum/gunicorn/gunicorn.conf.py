@@ -56,6 +56,8 @@ if RuntimeParameters.has("DRUM_GUNICORN_GRACEFUL_TIMEOUT"):
     if 1 <= temp_graceful_timeout <= 3600:
         graceful_timeout = temp_graceful_timeout
 
+# Keep-alive off by default: pooled idle connections (e.g. KEDA HTTP interceptor) otherwise pin gevent workers
+keepalive = 0
 if RuntimeParameters.has("DRUM_GUNICORN_KEEP_ALIVE"):
     temp_keepalive = int(RuntimeParameters.get("DRUM_GUNICORN_KEEP_ALIVE"))
     if 0 <= temp_keepalive <= 3600:

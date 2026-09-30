@@ -28,15 +28,15 @@ def load_conf(monkeypatch, keepalive=None):
     return runpy.run_path(str(GUNICORN_CONF))
 
 
-def test_keepalive_left_to_gunicorn_default_when_param_not_set(monkeypatch):
-    assert "keepalive" not in load_conf(monkeypatch)
+def test_keepalive_disabled_by_default(monkeypatch):
+    assert load_conf(monkeypatch)["keepalive"] == 0
 
 
 @pytest.mark.parametrize("value", [0, 1, 3600])
-def test_keepalive_accepts_values_in_range_including_zero_to_disable(monkeypatch, value):
+def test_keepalive_accepts_values_in_range(monkeypatch, value):
     assert load_conf(monkeypatch, value)["keepalive"] == value
 
 
 @pytest.mark.parametrize("value", [-1, 3601])
-def test_keepalive_ignores_out_of_range_values(monkeypatch, value):
-    assert "keepalive" not in load_conf(monkeypatch, value)
+def test_keepalive_falls_back_to_disabled_on_out_of_range_values(monkeypatch, value):
+    assert load_conf(monkeypatch, value)["keepalive"] == 0
