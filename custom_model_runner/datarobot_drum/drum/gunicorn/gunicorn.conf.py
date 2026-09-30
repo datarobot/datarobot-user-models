@@ -58,7 +58,7 @@ if RuntimeParameters.has("DRUM_GUNICORN_GRACEFUL_TIMEOUT"):
 
 if RuntimeParameters.has("DRUM_GUNICORN_KEEP_ALIVE"):
     temp_keepalive = int(RuntimeParameters.get("DRUM_GUNICORN_KEEP_ALIVE"))
-    if 1 <= temp_keepalive <= 3600:
+    if 0 <= temp_keepalive <= 3600:
         keepalive = temp_keepalive
 
 loglevel = "info"

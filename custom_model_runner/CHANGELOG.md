@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [Unreleased]
+##### Changed
+- `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`, which disables HTTP keep-alive for async (`gevent`) gunicorn workers. Prevents pooled idle connections (e.g. from the KEDA HTTP interceptor) from pinning workers.
+
 #### [1.18.0] - 2026-09-11
 ##### Changed
 - `drum server` in `gunicorn` mode now `exec`s into gunicorn so its master runs as PID 1, receiving container signals and owning the exit status directly (removes the drum-side signal forwarder).

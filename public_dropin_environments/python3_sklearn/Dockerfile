@@ -74,6 +74,8 @@ ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-p
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
 ENV MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS='{"type": "numeric", "payload": 1}'
+# Disable keep-alive: pooled idle connections (e.g. KEDA HTTP interceptor) otherwise pin gevent workers
+ENV MLOPS_RUNTIME_PARAM_DRUM_GUNICORN_KEEP_ALIVE='{"type": "numeric", "payload": 0}'
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
