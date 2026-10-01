@@ -49,6 +49,8 @@ if RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
     temp_worker_class = str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS")).lower()
     if temp_worker_class in {"sync", "gevent"}:
         worker_class = temp_worker_class
+if worker_class == "gevent":
+    worker_class = "datarobot_drum.drum.gunicorn.workers.DrumGeventWorker"
 
 graceful_timeout = 299
 if RuntimeParameters.has("DRUM_GUNICORN_GRACEFUL_TIMEOUT"):
@@ -63,6 +65,12 @@ if RuntimeParameters.has("DRUM_GUNICORN_KEEP_ALIVE"):
     if 0 <= temp_keepalive <= 3600:
         keepalive = temp_keepalive
 
+first_byte_timeout = 2
+if RuntimeParameters.has("DRUM_GUNICORN_FIRST_BYTE_TIMEOUT"):
+    temp_first_byte_timeout = int(RuntimeParameters.get("DRUM_GUNICORN_FIRST_BYTE_TIMEOUT"))
+    if 0 <= temp_first_byte_timeout <= 3600:
+        first_byte_timeout = temp_first_byte_timeout
+
 loglevel = "info"
 if RuntimeParameters.has("DRUM_GUNICORN_LOG_LEVEL"):
     temp_loglevel = str(RuntimeParameters.get("DRUM_GUNICORN_LOG_LEVEL")).lower()
@@ -73,6 +81,10 @@ bind = os.environ["ADDRESS"]
 # loglevel = "info"
 accesslog = "-"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+
+
+def post_fork(server, worker):
+    worker.first_byte_timeout = first_byte_timeout
 
 
 def post_worker_init(worker):
