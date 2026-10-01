@@ -4,7 +4,7 @@
   "description": "This environment is the Python 3.13 Execution Environment that is present in DR Codespaces/Notebooks. It can also be used as a template to expand upon and create custom Python 3.13 notebook environments.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6abd11540029686004004f86",
+  "environmentVersionId": "6abec1a8007a670c35002a7a",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -15,8 +15,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_notebook_environments/python313_notebook",
   "imageRepository": "env-notebook-python313-notebook",
   "tags": [
-    "v11.13.0-6abd11540029686004004f86",
-    "6abd11540029686004004f86",
-    "v11.13.0-latest"
+    "v11.14.0-6abec1a8007a670c35002a7a",
+    "6abec1a8007a670c35002a7a",
+    "v11.14.0-latest"
   ]
 }
