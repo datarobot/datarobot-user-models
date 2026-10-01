@@ -1,0 +1,80 @@
+pipeline:
+  name: PDIE Update and Rebuild All
+  identifier: PDIE_Update_And_Rebuild_All
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  description: Pipeline to regenerate all public dropin environments requirements, followed by submitting a PR with image rebuild.
+  tags: {}
+  stages:
+    - stage:
+        name: Run
+        identifier: Run
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    connectorRef: org.genai_systems_dockerhub_rw_hhi
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      #!/usr/bin/env bash
+                      set -euo pipefail
+                      export IFS=$'\n'
+
+                      # All occurences of harness jexl interpolation should occur here, converting
+                      # to shell for native code throughout the rest of the script.
+                      export GH_TOKEN='<+secrets.getValue("account.githubpatsvcharnessgit2")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_PASS='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      declare -a makefiles # List of public dropin env Makefiles
+
+                      # Harness clones strip creds and forcibly shallow clones (bug) so we end up
+                      # doing more work so just clone ourselves.
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/datarobot-user-models.git"
+                      cd datarobot-user-models
+                      # Do not support release branches as 11.1 is EOL very soon.
+                      git checkout master
+
+                      # Login to Docker Hub so we can pull any images the process requires
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_PASS}"
+
+                      # Retrieve current DataRobot version for updating env_info
+                      DRVER="$(/usr/local/bin/github.getfile.sh datarobot/DataRobot config/RELEASE_VERSION master)"
+                      printf 'Current DataRobot release version: %s\n' "${DRVER}"
+
+                      mapfile -t makefiles < <(find public_* -name Makefile)
+                      for m in "${makefiles[@]}"; do
+                        if ! grep -q '^update-deps:' "${m}"; then
+                          printf 'Makefile %s has no update-deps target\n' "${m}" >&2
+                          continue
+                        fi
+                        (
+                          printf 'Updating dependencies with %s\n' "${m}"
+                          cd "$(dirname "${m}")"
+                          make update-deps
+                          /usr/local/bin/env_info.bump-version.sh
+
+                          envverid="$(jq -r .environmentVersionId < env_info.json)"
+                          sed -i \
+                            -e "s/v[0-9\.]\+-latest/v${DRVER}-latest/g" \
+                            -e "s/v[0-9\.]\+-${envverid}/v${DRVER}-${envverid}/g" \
+                            env_info.json
+                        )
+                      done
+
+                      /usr/local/bin/github.git-authorship.sh
+                      git add -u
+                      /usr/local/bin/github.create-pr.sh '[auto] Regen dependencies for all dropin envs'
