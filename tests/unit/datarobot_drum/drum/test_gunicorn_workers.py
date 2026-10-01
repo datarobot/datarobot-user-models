@@ -39,15 +39,23 @@ def wait_until_listening(port, deadline=15):
 
 @pytest.fixture
 def gunicorn_server(tmp_path):
-    (tmp_path / "hello_app.py").write_text(textwrap.dedent("""
+    (tmp_path / "hello_app.py").write_text(
+        textwrap.dedent(
+            """
             def app(environ, start_response):
                 start_response("200 OK", [("Content-Type", "text/plain")])
                 return [b"ok"]
-            """))
-    (tmp_path / "conf.py").write_text(textwrap.dedent(f"""
+            """
+        )
+    )
+    (tmp_path / "conf.py").write_text(
+        textwrap.dedent(
+            f"""
             def post_fork(server, worker):
                 worker.first_byte_timeout = {FIRST_BYTE_TIMEOUT}
-            """))
+            """
+        )
+    )
     port = free_port()
     proc = subprocess.Popen(
         [
