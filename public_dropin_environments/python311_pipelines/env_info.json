@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python311_pipelines",
   "imageRepository": "env-python311-pipelines",
   "tags": [
-    "v11.13.0-6abc0971f84012a76e364335",
+    "v11.14.0-6abc0971f84012a76e364335",
     "6abc0971f84012a76e364335",
-    "v11.13.0-latest"
+    "v11.14.0-latest"
   ]
 }
