@@ -32,7 +32,9 @@ def main() -> int:
         ["git", "-C", clone, "rev-parse", "HEAD"], capture_output=True, text=True
     ).stdout.strip()
     for tag in ("v2.2.1", "v3.1.2"):
-        proc = subprocess.run(["git", "-C", clone, "checkout", "--force", tag], capture_output=True, text=True)
+        proc = subprocess.run(
+            ["git", "-C", clone, "checkout", "--force", tag], capture_output=True, text=True
+        )
         if proc.returncode != 0:
             failures.append(f"git checkout {tag}: {proc.stderr.strip()[:200]}")
     if head:
