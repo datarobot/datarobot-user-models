@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.18.1] - 2026-09-30
 ##### Changed
-- Gunicorn keep-alive is now disabled by default (`keepalive=0`) for async (`gevent`) workers, so pooled idle connections (e.g. from the KEDA HTTP interceptor) no longer pin workers. `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`; set it to a positive value to re-enable keep-alive.
+- Gunicorn keep-alive is now disabled by default (`keepalive=0`), so pooled idle connections (e.g. from the KEDA HTTP interceptor) no longer pin workers. `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`; set it to a positive value to re-enable keep-alive. Applies to `gevent` workers only (`DRUM_GUNICORN_WORKER_CLASS=gevent`); no effect on the default `sync` worker, which already closes the connection after every response.
 - `gevent` workers now close connections that send no data within `DRUM_GUNICORN_FIRST_BYTE_TIMEOUT` seconds (default `2`, `0` disables). With keep-alive disabled, gunicorn otherwise waits indefinitely for the first request, so an unused pooled connection (e.g. one the KEDA HTTP interceptor dialed for a cancelled request) can hold a worker connection slot for up to 90s.
 
 #### [1.18.0] - 2026-09-11
