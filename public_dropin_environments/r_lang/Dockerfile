@@ -17,7 +17,6 @@ RUN apk update && apk add --no-cache \
     pkgconf \
     fontconfig fontconfig-dev \
     libsodium-dev \
-    openssl-dev \
     libxml2-dev \
     freetype-dev \
     harfbuzz-dev \
