@@ -16,3 +16,6 @@ image:
 	  --label=com.datarobot.repo-name=$(LABEL_REPONAME) \
 	  -t $(ENV_REPONAME):$(ENV_VERSIONID) \
 	  -t datarobotdev/$(ENV_REPONAME):$(ENV_VERSIONID)
+
+image-push:
+	docker push datarobotdev/$(ENV_REPONAME):$(ENV_VERSIONID)
