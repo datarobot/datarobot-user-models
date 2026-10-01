@@ -4,12 +4,10 @@
 #
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-guard image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev
-# This is a private production chain-guard image that is stored in DataRobot's private registry.
-ARG BASE_PROD_IMAGE=datarobot/mirror_chainguard_datarobot.com_python-fips:3.13
+ARG PYTHON_VERSION=3.13
 ARG INSTALLROOT=/var/lib/covalent
 
-FROM ${BASE_ROOT_IMAGE} AS build
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS build
 ARG INSTALLROOT
 USER root
 WORKDIR /build
@@ -33,7 +31,8 @@ RUN mkdir -p /tmp/git-libs /tmp/openmp-libs /tmp/sh-libs && \
     cp -L /usr/lib/libgomp.so.1 /tmp/openmp-libs/ && \
     cp -L /usr/lib/libcrypt.so.1 /tmp/sh-libs/
 
-FROM ${BASE_PROD_IMAGE}
+# This is a private production chain-guard image that is stored in DataRobot's private registry.
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
 ARG INSTALLROOT
 ENV PYTHONHASHSEED=random \
     PYTHONUNBUFFERED=1 \

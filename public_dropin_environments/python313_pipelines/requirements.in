@@ -1,5 +1,7 @@
 # Runtime set for pipelines-api task, prep and schedule-trigger pods (mirrors pipelines-api runtime_image/env.yml).
 covalent-cloud>=1.4.4
+# covalent-cloud 1.4.4 needs this pre-release; named here so only it may be one.
+covalent>=0.241.0rc0,<1
 datarobot
 datarobot-early-access[pipelines]
 psutil>=5.9.0
