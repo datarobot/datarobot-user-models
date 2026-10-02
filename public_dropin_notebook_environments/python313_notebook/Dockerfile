@@ -9,12 +9,13 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
+ARG PYTHON_VERSION=3.13
 
 ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.8.0
+ARG CLI_VERSION=v0.9.0
 ARG GITHELPER_VERSION=v0.0.31
 ARG OPENCODE_VERSION=1.18.30
 
@@ -28,7 +29,7 @@ ARG CACHE_BUSTER="${CACHE_BUSTER:-no-cache-buster}"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.13-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
 ARG UNAME
 ARG UID
@@ -40,13 +41,14 @@ ARG VENV_PATH
 ARG CACHE_BUSTER
 
 ARG GITHELPER_VERSION
+ARG PYTHON_VERSION
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN echo "[Python3.13] ${CACHE_BUSTER}" && \
+RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
@@ -155,12 +157,13 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
-# Install DR CLI
+# Install DR CLI; the version check fails the build if the binary does not match CLI_VERSION
 RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
     && tar -xvzf dr_"$CLI_VERSION"_Linux_x86_64.tar.gz -C /home/notebooks/.local/bin/dr \
     && rm dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && chmod +x /home/notebooks/.local/bin/dr/dr \
+    && /home/notebooks/.local/bin/dr/dr --version | grep -F "DataRobot CLI version: $CLI_VERSION" \
     && mkdir -p /home/notebooks/.local/share/bash-completion/completions \
     && /home/notebooks/.local/bin/dr/dr self completion bash > /home/notebooks/.local/share/bash-completion/completions/dr
 

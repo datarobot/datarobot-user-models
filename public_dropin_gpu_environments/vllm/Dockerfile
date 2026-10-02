@@ -1,9 +1,13 @@
+ARG PYTHON_VERSION=3.12
+
 FROM vllm/vllm-openai:v0.11.0
 USER root
+
+ARG PYTHON_VERSION
 RUN apt-get update && apt-get install -y \
-    python3.12 \
-    python3.12-dev \
-    python3.12-venv \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
   && rm -rf /var/lib/apt/lists/*
 
 # Don't send any telemetry data (vLLM or HuggingFace libraries)
@@ -24,7 +28,8 @@ COPY --chown=1000:0 .gitkeep ${CODE_DIR}/.placeholder
 COPY --chown=1000:0 .gitkeep ${DATAROBOT_VENV_PATH}/.placeholder
 RUN chmod -R g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
 
-RUN python3.12 -m venv $DATAROBOT_VENV_PATH && ${DATAROBOT_VENV_PATH}/bin/pip install -U pip
+ARG PYTHON_VERSION
+RUN python${PYTHON_VERSION} -m venv $DATAROBOT_VENV_PATH && ${DATAROBOT_VENV_PATH}/bin/pip install -U pip
 ENV PATH=${DATAROBOT_VENV_PATH}/bin:$PATH
 # This variable has to be populated as of the current commit's DRUM version, as vllm predictor in DRUM
 # uses it to craft a correct PATH to launch vllm from a system python.
