@@ -29,7 +29,7 @@ constraints = [
     { name = "opentelemetry-sdk", specifier = ">=1.43.0" },
     { name = "pyarrow", specifier = ">=23.0.1" },
     { name = "pygments", specifier = ">=2.20.0" },
-    { name = "pyjwt", specifier = ">=2.13.0" },
+    { name = "pyjwt", specifier = ">=2.15.0" },
     { name = "pypdf", specifier = ">=6.14.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "python-multipart", specifier = ">=0.0.31" },
@@ -407,11 +407,11 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.29.55"
+version = "0.29.60"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d5/1a/35dae3bb915079fbe7c47b70df966ed8cc7199eec6092c735ebc5524b584/datarobot_genai-0.29.55.tar.gz", hash = "sha256:bc375ae939412abccadc6314a871bc67cbb0cc1ee186359c3eaf0f5a37b02052", size = 632882, upload-time = "2026-09-29T23:14:22.209Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e6/14/f0cae182c581b0feded4f461ad23318d8e1ec6e619c84b688916fabcdb32/datarobot_genai-0.29.60.tar.gz", hash = "sha256:eb5c836c7aca27797b74d1940ac1e7930bb69403c20a4385db0759519441c533", size = 632645, upload-time = "2026-10-02T14:52:44.397Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/59/1982f82848edaafee6a44e830cf7338a47f8f0d7638056e3c9d9d29f8ffc/datarobot_genai-0.29.55-py3-none-any.whl", hash = "sha256:1457bc309c1aaf26d0ca6e603e11af289d3bb9bba0d790e5f9a30e3c221475f9", size = 887185, upload-time = "2026-09-29T23:14:19.928Z" },
+    { url = "https://files.pythonhosted.org/packages/42/33/da00b0fb0c95a21adacb213ce4d72bd5c5f0f8cb7afa744adbf4160581c7/datarobot_genai-0.29.60-py3-none-any.whl", hash = "sha256:dcc49aa7bcb33be84a4498fb220415a44854c633484a2b0546f486a1b474c729", size = 887197, upload-time = "2026-10-02T14:52:41.687Z" },
 ]
 
 [package.optional-dependencies]
@@ -494,7 +494,7 @@ dependencies = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "datarobot-genai", extras = ["drmcp"], specifier = ">=0.29.50,<0.30.0" }]
+requires-dist = [{ name = "datarobot-genai", extras = ["drmcp"], specifier = ">=0.29.60,<0.30.0" }]
 
 [package.metadata.requires-dev]
 extras = []
