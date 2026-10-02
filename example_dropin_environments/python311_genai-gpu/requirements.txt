@@ -6,7 +6,7 @@ langchain==0.3.12
 optimum==1.19.2
 onnxruntime==1.17.3
 onnx==1.22.0
-sentence-transformers==3.0.0
+sentence-transformers==5.6.0
 faiss-cpu==1.8.0
 numpy==1.25.1
 pandas<=2.0.3
