@@ -70,8 +70,9 @@ RUN apk add --no-cache uv git curl
 # guard down with it. uv then only warns, exits 0, and resolves with the exclusions
 # silently absent, quietly restoring the packages we dropped for CVE reasons. Fail the
 # build here instead. Compared with bash builtins so this needs no awk or sort -V.
-RUN v="$(uv --version)" && v="${v#uv }" && v="${v%% *}" \
-    && IFS=. read -r maj min _ <<< "$v" \
+# No `${var#pat}` and no `<<<`: Semgrep treats `#` as a comment and stops parsing,
+# so it never reaches the non-root USER and reports this image as still root.
+RUN set -- $(uv --version) && v="$2" && oifs=$IFS && IFS=. && set -- $v && maj="$1" && min="$2" && IFS=$oifs \
     && if [ "$maj" -eq 0 ] && [ "$min" -lt 10 ]; then \
          echo "ERROR: uv $v is below the 0.10.0 floor required by exclude-dependencies" >&2; \
          exit 1; \
