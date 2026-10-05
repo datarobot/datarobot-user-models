@@ -48,12 +48,14 @@ ARG PYTHON_VERSION
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
+# libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
 RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
   "pulumi>=3.256.0-r3" pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
   gh uv "task>=3.53.1-r4" bash-completion xdg-utils \
+  libcrypto3 \
   && rm -f /etc/ssh/ssh_host_* \
   && rm -rf /var/cache/apk/ \
   && ln -sfn /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/default-jvm # Exposing the JDK via the conventional default-jvm symlink
@@ -121,6 +123,20 @@ RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
     && rm ${WORKDIR}/requirements-agent.txt \
     && rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json \
     && chmod a+x ${WORKDIR}/start_server.sh
+
+# The base image's Python is built against OpenSSL 4, which removed the
+# version-specific TLS methods, so the `ssl` module no longer has
+# PROTOCOL_TLSv1_2 (only PROTOCOL_TLS, PROTOCOL_TLS_CLIENT, PROTOCOL_TLS_SERVER).
+# jupyter_kernel_gateway 3.0.1 (latest release) reads ssl.PROTOCOL_TLSv1_2 in
+# a class body, so the gateway crashes on import with AttributeError.
+# Swap it for PROTOCOL_TLS_SERVER, which negotiates the highest version both
+# sides support (the FIPS config still enforces TLS 1.2 as the minimum). The
+# value is only used when the gateway itself serves TLS, which we don't.
+# If upstream fixes this, sed becomes a no-op and this step can be removed;
+# the import check fails the build if the gateway still can't be imported.
+RUN sed -i 's/ssl\.PROTOCOL_TLSv1_2\b/ssl.PROTOCOL_TLS_SERVER/' \
+      ${VENV_PATH}/lib/python3.*/site-packages/kernel_gateway/gatewayapp.py \
+    && python3 -c "import kernel_gateway"
 
 # Monitoring agent port
 EXPOSE 8889
