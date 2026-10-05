@@ -51,11 +51,20 @@ pipeline:
                       fi
                       echo "should_run_framework_tests: ${should_run_framework_tests}"
 
+                      # Smoke-test the python313 notebook image only when the PR touches it
+                      # (or the smoke test itself).
+                      should_run_notebook_smoke=false
+                      if echo "${changed_files}" | grep -qE "^(public_dropin_notebook_environments/python313_notebook/|harness_scripts/notebook_smoke_test/)"; then
+                        should_run_notebook_smoke=true
+                      fi
+                      echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
+
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
                     outputVariables:
                       - name: matrix_values
                       - name: should_run_framework_tests
+                      - name: should_run_notebook_smoke
           caching:
             enabled: false
             paths: []
@@ -163,6 +172,86 @@ pipeline:
           matrix:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
             nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
+    - stage:
+        name: Smoke test python313 notebook env
+        identifier: smoke_test_python313_notebook
+        description: Start the notebook image via start_server.sh and check the gateway, kernels, drgithelper and sshd
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Smoke test notebook image
+                  identifier: smoke_test_notebook_image
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      REPO='<+pipeline.variables.target_repo>'
+                      SOURCE_REF='<+pipeline.variables.source_branch>'
+                      ENVDIR='public_dropin_notebook_environments/python313_notebook'
+                      set -x
+
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
+                      cd "${REPO}"
+                      git checkout "${SOURCE_REF}"
+
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "Smoke test - ${ENVDIR}" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      notify_exit() {
+                        local retval="${?}"
+                        local state='success'
+                        if [ "${retval}" -gt 0 ]; then
+                          state='failure'
+                        fi
+                        ghstatus.send "${state}" "Smoke test ${state}"
+                      }
+
+                      trap notify_exit EXIT
+
+                      ghstatus.send pending "Smoke test is running"
+
+                      repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
+                      tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
+                      img="docker.io/datarobotdev/${repo}:${tag}"
+
+                      # Wait for the image to show up because build is an async process
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
+                      export MAXWAIT=1800
+                      /usr/local/bin/docker.wait-for-tag.sh "${img}" || exit $?
+
+                      harness_scripts/notebook_smoke_test/smoke_test.sh "${ENVDIR}" "${img}"
+                    resources:
+                      limits:
+                        memory: 4G
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: false
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_notebook_smoke> == "true"
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
