@@ -71,7 +71,7 @@ pydantic==2.13.5
 pydantic-core==2.46.5
 pyjwt==2.15.1
 python-dateutil==2.9.0.post0
-pytz==2026.4
+pytz==2026.5
 pyyaml==6.0.3
 requests==2.34.2
 requests-toolbelt==1.0.0
@@ -87,7 +87,7 @@ threadpoolctl==3.7.0
 trafaret==2.1.1
 typing-extensions==4.16.0
 typing-inspection==0.4.4
-tzdata==2026.4
+tzdata==2026.5
 urllib3==2.8.0
 werkzeug==3.1.9
 wrapt==2.5.0
