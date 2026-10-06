@@ -7,7 +7,7 @@
 # publication of such source code.
 #
 # Serving-only execution environment for MCP servers. A deliberate narrowing of
-# python3_genai_agents: same base image and uv/lock toolchain, only the
+# python311_genai_agents: same base image and uv/lock toolchain, only the
 # `datarobot-genai[drmcp]` dependency line, and none of the Codespaces/Notebooks
 # runtime (no sshd, no Jupyter kernel gateway, no IPython extensions, no
 # monitoring agent, no DataRobot CLI).
@@ -175,7 +175,7 @@ EXPOSE 8080
 # Both other MCP images in the fleet do the same for the same reason:
 # ../dr_mcp_execute_sandbox_minimal/Dockerfile resets it to the venv interpreter, and
 # af-component-datarobot-mcp's template Dockerfile carries a bare `ENTRYPOINT []`.
-# python3_genai_agents does NOT do this; that path is untested because the MCP
+# python311_genai_agents does NOT do this; that path is untested because the MCP
 # template defaults to a provided Dockerfile rather than a generated one.
 ENTRYPOINT []
 

@@ -21,9 +21,9 @@ type = "mcp"
 # image build asserts the uv version as well. Keep both.
 required-version = ">=0.10.0"
 # Runtime-unnecessary packages. A judgement about this project rather than org CVE
-# policy, hence outside the cve-sync markers. Empty: the crewai / llama-index /
-# nemoguardrails / deepeval / ipykernel stacks that would need excluding are not pulled
-# by `datarobot-genai[drmcp]`.
+# policy, hence outside the cve-sync markers. Empty: every entry python311_genai_agents
+# carries targets the crewai / llama-index / nemoguardrails / deepeval / ipykernel
+# stacks, none of which `datarobot-genai[drmcp]` pulls.
 exclude-dependencies = []
 # Managed by cve-sync from policy/. Do not hand-edit between the markers: `cve-sync
 # sync` regenerates both keys wholesale and drops anything policy lacks. Contribute
