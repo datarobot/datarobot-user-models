@@ -51,12 +51,15 @@ pipeline:
                       fi
                       echo "should_run_framework_tests: ${should_run_framework_tests}"
 
-                      # Smoke-test the python313 notebook image only when the PR touches it
-                      # (or the smoke test itself).
+                      # Smoke-test notebook images only when the PR touches them.
                       should_run_notebook_smoke=false
-                      if echo "${changed_files}" | grep -qE "^(public_dropin_notebook_environments/python313_notebook/|harness_scripts/notebook_smoke_test/)"; then
+                      if echo "${changed_files}" | grep -q "^public_dropin_notebook_environments/python313_notebook/"; then
                         should_run_notebook_smoke=true
                       fi
+                      # To smoke-test another notebook env, add a condition like:
+                      # if echo "${changed_files}" | grep -q "^public_dropin_notebook_environments/<env_name>/"; then
+                      #   should_run_notebook_smoke=true
+                      # fi
                       echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
 
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
