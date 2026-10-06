@@ -4,7 +4,7 @@ A serving-only execution environment for MCP (Model Context Protocol) servers bu
 with [FastMCP](https://gofastmcp.com/) and the DataRobot MCP toolkit
 (`datarobot-genai[drmcp]`).
 
-It is a deliberate narrowing of [`python311_genai_agents`](../python311_genai_agents):
+It is a deliberate narrowing of [`python3_genai_agents`](../python3_genai_agents):
 same base image, same uv/lock toolchain — but only the MCP dependency line, and none of
 the Codespaces/Notebooks runtime. There is no sshd, no Jupyter kernel gateway, no
 IPython extensions, no monitoring agent and no DataRobot CLI, and the only port exposed
