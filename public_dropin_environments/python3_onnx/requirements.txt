@@ -15,7 +15,7 @@ click==8.5.0
 cloudpickle==3.1.2
 cryptography==50.0.2
 datarobot==3.19.0
-datarobot-drum==1.18.0
+datarobot-drum==1.18.1
 datarobot-mlops==11.2.62
 datarobot-storage==2.2.0
 docker==7.2.0
