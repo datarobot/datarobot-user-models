@@ -51,16 +51,25 @@ pipeline:
                       fi
                       echo "should_run_framework_tests: ${should_run_framework_tests}"
 
-                      # Smoke-test notebook images only when the PR touches them.
+                      # Notebook envs covered by the smoke test; only the ones the PR changes
+                      # go to the Notebook Smoke Test matrix. To cover a new env, add its folder
+                      # on a new line.
+                      notebook_smoke_envs="
+                      public_dropin_notebook_environments/python313_notebook
+                      "
+                      notebook_smoke_items=""
+                      for env_dir in ${notebook_smoke_envs}; do
+                        if echo "${changed_files}" | grep -q "^${env_dir}/"; then
+                          notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_folder\":\"${env_dir%/*}\",\"framework\":\"${env_dir##*/}\"}"
+                        fi
+                      done
+                      notebook_smoke_matrix_values="{\"environments\":[${notebook_smoke_items}]}"
                       should_run_notebook_smoke=false
-                      if echo "${changed_files}" | grep -q "^public_dropin_notebook_environments/python313_notebook/"; then
+                      if [ -n "${notebook_smoke_items}" ]; then
                         should_run_notebook_smoke=true
                       fi
-                      # To smoke-test another notebook env, add a condition like:
-                      # if echo "${changed_files}" | grep -q "^public_dropin_notebook_environments/<env_name>/"; then
-                      #   should_run_notebook_smoke=true
-                      # fi
                       echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
+                      echo "notebook_smoke_matrix_values: ${notebook_smoke_matrix_values}"
 
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
@@ -68,6 +77,7 @@ pipeline:
                       - name: matrix_values
                       - name: should_run_framework_tests
                       - name: should_run_notebook_smoke
+                      - name: notebook_smoke_matrix_values
           caching:
             enabled: false
             paths: []
@@ -176,8 +186,8 @@ pipeline:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
             nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
     - stage:
-        name: Smoke test python313 notebook env
-        identifier: smoke_test_python313_notebook
+        name: Notebook Smoke Test
+        identifier: notebook_smoke_test
         description: Start the notebook image via start_server.sh and check the gateway, kernels, drgithelper and sshd
         type: CI
         spec:
@@ -186,8 +196,8 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Smoke test notebook image
-                  identifier: smoke_test_notebook_image
+                  name: Notebook Smoke Test
+                  identifier: notebook_smoke_test
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/genai-ci-tools:latest-docker
@@ -198,7 +208,7 @@ pipeline:
                       export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
                       REPO='<+pipeline.variables.target_repo>'
                       SOURCE_REF='<+pipeline.variables.source_branch>'
-                      ENVDIR='public_dropin_notebook_environments/python313_notebook'
+                      ENVDIR='<+matrix.env.env_folder>/<+matrix.env.framework>'
                       set -x
 
                       git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
@@ -211,7 +221,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "Smoke test - ${ENVDIR}" \
+                          "Notebook Smoke Test - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -221,12 +231,12 @@ pipeline:
                         if [ "${retval}" -gt 0 ]; then
                           state='failure'
                         fi
-                        ghstatus.send "${state}" "Smoke test ${state}"
+                        ghstatus.send "${state}" "Notebook Smoke Test ${state}"
                       }
 
                       trap notify_exit EXIT
 
-                      ghstatus.send pending "Smoke test is running"
+                      ghstatus.send pending "Notebook Smoke Test is running"
 
                       repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
                       tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
@@ -255,6 +265,10 @@ pipeline:
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_notebook_smoke> == "true"
+        strategy:
+          matrix:
+            env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.notebook_smoke_matrix_values>)>
+            nodeName: <+matrix.env.env_folder>/<+matrix.env.framework>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
