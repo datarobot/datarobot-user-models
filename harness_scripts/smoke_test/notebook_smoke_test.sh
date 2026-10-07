@@ -12,7 +12,7 @@
 # Only needs docker on the host: all HTTP calls run inside the container, and
 # the SSH keys live in a docker volume, so it also works with docker-in-docker.
 #
-# Usage: smoke_test.sh <env_dir> [image]
+# Usage: notebook_smoke_test.sh <env_dir> [image]
 #   env_dir  environment folder containing env_info.json,
 #            e.g. public_dropin_notebook_environments/python313_notebook
 #   image    image to test; defaults to
@@ -26,7 +26,7 @@
 
 set -euo pipefail
 
-ENV_DIR="${1:?Usage: smoke_test.sh <env_dir> [image]}"
+ENV_DIR="${1:?Usage: notebook_smoke_test.sh <env_dir> [image]}"
 IMAGE="${2:-}"
 STARTUP_TIMEOUT="${STARTUP_TIMEOUT:-300}"
 SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC:-0}"

@@ -107,9 +107,9 @@ pipeline:
         when:
           pipelineStatus: Success
     - stage:
-        name: New image existence
-        identifier: new_image_existence
-        description: Wait for the new image of every changed env to be published and pull it
+        name: Image existence
+        identifier: image_existence
+        description: Wait for the image of every changed env to be published and pull it
         type: CI
         spec:
           cloneCodebase: false
@@ -117,8 +117,8 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Pull new image
-                  identifier: pull_new_image
+                  name: Image Smoke Test
+                  identifier: image_smoke_test
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/genai-ci-tools:latest-docker
@@ -142,7 +142,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "New image existence - ${ENVDIR}" \
+                          "Image existence - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -152,23 +152,17 @@ pipeline:
                         if [ "${retval}" -gt 0 ]; then
                           state='failure'
                         fi
-                        ghstatus.send "${state}" "New image existence ${state}"
+                        ghstatus.send "${state}" "Image existence ${state}"
                       }
 
                       trap notify_exit EXIT
 
-                      ghstatus.send pending "Waiting for the new image"
+                      ghstatus.send pending "Waiting for the image"
 
-                      repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
-                      tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
-                      img="docker.io/datarobotdev/${repo}:${tag}"
-
-                      # Wait for the image to show up because build is an async process
+                      # Waits for the image to show up because build is an async process
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
                       export MAXWAIT=1800 # 30 minutes because r-lang builds really slow
-                      /usr/local/bin/docker.wait-for-tag.sh "${img}" || exit $?
-
-                      docker pull "${img}"
+                      harness_scripts/smoke_test/image_smoke_test.sh "${ENVDIR}"
           caching:
             enabled: false
             paths: []
@@ -244,9 +238,9 @@ pipeline:
                       tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
                       img="docker.io/datarobotdev/${repo}:${tag}"
 
-                      # The New image existence stage has already waited for the image.
+                      # The Image existence stage has already waited for the image.
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
-                      harness_scripts/notebook_smoke_test/smoke_test.sh "${ENVDIR}" "${img}"
+                      harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
                     resources:
                       limits:
                         memory: 4G
