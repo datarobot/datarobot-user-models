@@ -1,0 +1,33 @@
+trigger:
+  name: PDIE Smoke tests on pr
+  identifier: pdie_smoke_tests_on_pr
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: pdie_smoke_tests
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: PullRequest
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: targetBranch
+              operator: Equals
+              value: master
+          headerConditions: []
+          repoName: datarobot-user-models
+          actions:
+            - Open
+            - Reopen
+            - Synchronize
+  pipelineBranchName: <+trigger.branch>
+  inputSetRefs:
+    - default_on_pr_input
