@@ -56,11 +56,12 @@ pipeline:
                       # on a new line.
                       notebook_smoke_envs="
                       public_dropin_notebook_environments/python313_notebook
+                      public_dropin_notebook_environments/python311_notebook_base
                       "
                       notebook_smoke_items=""
                       for env_dir in ${notebook_smoke_envs}; do
                         if echo "${changed_files}" | grep -q "^${env_dir}/"; then
-                          notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_folder\":\"${env_dir%/*}\",\"framework\":\"${env_dir##*/}\"}"
+                          notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
                         fi
                       done
                       notebook_smoke_matrix_values="{\"environments\":[${notebook_smoke_items}]}"
@@ -208,7 +209,7 @@ pipeline:
                       export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
                       REPO='<+pipeline.variables.target_repo>'
                       SOURCE_REF='<+pipeline.variables.source_branch>'
-                      ENVDIR='<+matrix.env.env_folder>/<+matrix.env.framework>'
+                      ENVDIR='<+matrix.env.env_path>/<+matrix.env.env_folder>'
                       set -x
 
                       git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
@@ -268,7 +269,7 @@ pipeline:
         strategy:
           matrix:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.notebook_smoke_matrix_values>)>
-            nodeName: <+matrix.env.env_folder>/<+matrix.env.framework>
+            nodeName: <+matrix.env.env_path>/<+matrix.env.env_folder>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.

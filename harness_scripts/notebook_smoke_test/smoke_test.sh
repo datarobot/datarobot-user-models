@@ -35,20 +35,33 @@ KERNEL_DIR=/etc/system/kernel
 KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
 
 # Code run in every kernel. Each check prints its own line, so the log shows
-# which import or call failed. dask hashes with MD5, so tokenize also catches a
-# base image that blocks non-FIPS digests.
+# which import or call failed. Required modules ship in every notebook image;
+# optional ones are checked only when the image has them, since base images
+# ship fewer packages. hashlib.md5 and dask tokenize (MD5) catch a base image
+# that blocks non-FIPS digests.
 SMOKE_CODE='
-import importlib, ssl, sys
+import hashlib, importlib, importlib.util, ssl, sys
 print(f"python {sys.version.split()[0]}, {ssl.OPENSSL_VERSION}")
-for name in ["numpy", "pandas", "sklearn", "xgboost", "shap", "datarobot"]:
+required = ["numpy", "pandas"]
+optional = ["sklearn", "xgboost", "shap", "datarobot"]
+for name in required + optional:
+    if name in optional and importlib.util.find_spec(name) is None:
+        print(f"import {name} ... SKIP: not installed")
+        continue
     print(f"import {name} ...", end=" ")
     module = importlib.import_module(name)
     print("OK", getattr(module, "__version__", ""))
-print("dask tokenize (MD5) ...", end=" ")
-import pandas
-from dask.base import tokenize
-tokenize(pandas.DataFrame({"a": [1]}))
+print("hashlib.md5 ...", end=" ")
+hashlib.md5(b"smoke")
 print("OK")
+if importlib.util.find_spec("dask") is None:
+    print("dask tokenize (MD5) ... SKIP: not installed")
+else:
+    print("dask tokenize (MD5) ...", end=" ")
+    import pandas
+    from dask.base import tokenize
+    tokenize(pandas.DataFrame({"a": [1]}))
+    print("OK")
 print("ssl.create_default_context() ...", end=" ")
 ssl.create_default_context()
 print("OK")
