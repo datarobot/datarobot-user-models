@@ -1,0 +1,872 @@
+pipeline:
+  name: CVE Remediation
+  identifier: CVE_Remediation
+  projectIdentifier: Global_Models
+  orgIdentifier: Custom_Models
+  tags: {}
+  variables:
+    - name: mode
+      type: String
+      description: remedy-agent mode. shadow denies every remote mutation; keep it there until several reports have been read.
+      required: false
+      value: <+input>.allowedValues(shadow,dry-run,hitl,auto).default(shadow)
+    # Default 10, not 2. No prompt caching survives the LLM Gateway, so the ~17.5k-token
+    # system prompt is re-sent every turn: at roughly $0.08/turn, $2 buys about 26 turns.
+    # Runs 15, 16 and 17 died at 30, 26 and 24 turns respectively, every one of them
+    # mid-analysis with the budget as the cause. An input so a cheap probe run is still
+    # one field away.
+    - name: max_budget_usd
+      type: String
+      description: Per-run model spend cap; remedy-agent stops when it is reached. 2 is a probe, not a run.
+      required: false
+      value: <+input>.default(10)
+    - name: model
+      type: String
+      description: Model name as mapped in remedy-agent's deploy/llm-gateway-shim.yaml.
+      required: false
+      value: <+input>.default(claude-sonnet-4-6)
+    - name: remedy_ref
+      type: String
+      description: Branch/tag of datarobot/remedy-agent to run. Leave at main unless testing an unmerged pack.
+      required: false
+      value: <+input>.default(main)
+    # An input, not a constant, because the endpoint and the token below MUST AGREE and
+    # troubleshooting the route means trying the other pair. Defaults to prod: that is
+    # the only pair verified end to end (remedy-agent deploy/README.md, 2026-08-25,
+    # streaming included). Against staging the first model call sat 58 minutes and then
+    # timed out with cost=$0.00 -- nothing was ever billed, so it never reached a model.
+    - name: datarobot_endpoint
+      type: String
+      description: DataRobot API base URL. Must match the environment that issued dr_token.
+      required: false
+      value: <+input>.allowedValues(https://app.datarobot.com/api/v2,https://staging.datarobot.com/api/v2).default(https://app.datarobot.com/api/v2)
+    - name: repo_ref
+      type: String
+      description: Branch/tag of datarobot-user-models to triage and scan. Must contain .harness/cve_remediation/.
+      required: false
+      value: <+input>.default(master)
+    # Same shape as repo_ref and remedy_ref, so a past run can name all three.
+    - name: genai_tools_ref
+      type: String
+      description: Branch/tag of genai-tools to run the CVE scripts from.
+      required: false
+      value: <+input>.default(main)
+    # This repo already has automation for the mechanical half: PDIE regenerates
+    # requirements and bumps environmentVersionId, and the app-charts bump follows it.
+    # A ticket raised today is very likely already in hand, so the agent is given only
+    # what is STILL open once that automation has had its run. Days, not a judgement.
+    - name: grace_days
+      type: String
+      description: Tickets younger than this are left to the repo's own automation and deferred.
+      required: false
+      value: <+input>.default(3)
+    # This repo's image scope, declared ONCE. It narrows three things that have to
+    # agree: which tickets build_inventory.py keeps, which VITA scan rows the agent is
+    # shown, and therefore what the agent believes it owns. Listing it per consumer is
+    # how they drift apart.
+    - name: scope_images
+      type: String
+      description: Comma-separated image names this repo owns. Scopes both the ticket inventory and the agent's scan rows.
+      required: false
+      value: <+input>.default(env-python,env-r-lang,env-java-codegen)
+    # On by default here, unlike remedy-agent's own default: this is CI, where the log
+    # is the only view of a run, and the agent prints nothing between turns. A turn
+    # against a large prompt ran five minutes silent on the first live run, which is
+    # indistinguishable from a hang.
+    - name: progress
+      type: String
+      description: Stream partial model output so a long turn is visibly working. true or false.
+      required: false
+      value: <+input>.allowedValues(true,false).default(true)
+    - name: github_token
+      type: Secret
+      description: GitHub PAT used to clone genai-tools and remedy-agent, and to open remediation PRs.
+      required: false
+      value: account.githubpatsvcharnessgit2
+    # No Docker Hub credentials here any more: they existed for grype's `docker login`,
+    # and grype moved to the verify pipeline, which scans the REBUILT tag. The org
+    # secrets (genai-systems-dockerhub-login/-token) are untouched; that pipeline
+    # declares them itself.
+    - name: jira_email
+      type: Secret
+      description: Atlassian account email for Jira REST basic auth. Create at org scope in Custom_Models.
+      required: false
+      value: org.genai_cve_jira_email
+    - name: jira_token
+      type: Secret
+      description: Atlassian API token. Create at org scope in Custom_Models.
+      required: false
+      value: org.genai_cve_jira_token
+    # Pair with datarobot_endpoint above: a prod endpoint against a staging token fails
+    # as an auth error that reads like a bad token. Both prod and staging canary keys
+    # already exist at org scope, so switching routes needs no new secret.
+    - name: dr_token
+      type: Secret
+      description: DataRobot API token; bills model spend via the LLM Gateway. Must match datarobot_endpoint.
+      required: false
+      value: <+input>.default(org.US_PRODUCTION_cm_canary_user_api_key)
+  stages:
+    # remedy-agent keys its state on the team, never the branch, so two runs overwrite
+    # each other. Its own stage because Queue is not a CI step type.
+    - stage:
+        name: Serialise on the agent state
+        identifier: Serialise
+        type: Custom
+        timeout: 24h
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: Queue
+                  name: Wait for the raptor agent state
+                  identifier: Queue_raptor_state
+                  # Anything else running the raptor agent queues behind this by reusing the key.
+                  spec:
+                    key: remedy-agent-state-raptor
+                    scope: Pipeline
+                  # A run takes minutes: a day waiting means the holder is stuck, so fail
+                  # rather than wait on, which is what reaches the notifications.
+                  timeout: 24h
+    - stage:
+        name: CVE Triage
+        identifier: CVE_Triage
+        description: Triage this repo's open CVE tickets, then run the agent on them.
+        type: CI
+        # Stage-level, and it has to exceed the agent step's own 90m: the CI
+        # default is 1h, which would kill the stage mid-run and take the
+        # RunReport with it -- the 58-minute run that died on the staging
+        # gateway sat right on that boundary.
+        timeout: 2h
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Triage open CVE tickets for this repo
+                  identifier: Triage
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest
+                    shell: Bash
+                    envVariables:
+                      GITHUB_TOKEN: <+pipeline.variables.github_token>
+                      JIRA_EMAIL: <+pipeline.variables.jira_email>
+                      ATLASSIAN_API_TOKEN: <+pipeline.variables.jira_token>
+                      REPO_REF: <+pipeline.variables.repo_ref>
+                      GENAI_TOOLS_REF: <+pipeline.variables.genai_tools_ref>
+                      SCOPE_IMAGES: <+pipeline.variables.scope_images>
+                      GRACE_DAYS: <+pipeline.variables.grace_days>
+                    command: |-
+                      set -euo pipefail
+                      mkdir -p /harness/cve
+
+                      # Written once here and sourced by the later steps. Triage always runs first and
+                      # /harness is the only path shared between steps, which is already how scan.json
+                      # and the gate marker travel. Two copies of this drifted apart once already.
+                      cat > /harness/lib.sh <<'SH'
+                      # clone_ref <url> <ref> <dir>
+                      # `clone --branch` takes a branch or a tag and not a commit, and every ref here is an
+                      # input a human may paste a SHA into. fetch + detached checkout takes all three.
+                      # GIT_LFS_SKIP_SMUDGE applies at CHECKOUT, not fetch -- that is what keeps
+                      # datarobot-user-models' large test fixtures as pointer stubs.
+                      clone_ref() {
+                        git init -q "$3"
+                        git -C "$3" remote add origin "$1"
+                        if ! git -C "$3" fetch -q --depth 1 origin "$2"; then
+                          echo "FATAL: ref '$2' is not a branch, tag or commit in $1." >&2
+                          exit 78
+                        fi
+                        GIT_LFS_SKIP_SMUDGE=1 git -C "$3" checkout -q --detach FETCH_HEAD
+                        # No remote-tracking ref exists after `git init` + fetch, so `origin/<ref>` does not
+                        # resolve. The PR step diffs against this instead.
+                        git -C "$3" update-ref refs/pipeline/base FETCH_HEAD
+                        echo "clone: $1 @ $2 -> $(git -C "$3" rev-parse HEAD)"
+                      }
+
+                      # gate_stop_or_exit: Triage decided there is nothing to work on. Harness cannot skip a
+                      # later step from an earlier one, so each step stops itself -- the container starts, no
+                      # model is called, nothing is billed.
+                      gate_stop_or_exit() {
+                        if [ -f /harness/cve/gate-stop.txt ]; then
+                          echo "Gate: $(cat /harness/cve/gate-stop.txt)"
+                          exit 0
+                        fi
+                      }
+                      SH
+                      . /harness/lib.sh
+
+                      # Cloned by hand, LFS skipped: the built-in checkout smudges ~3 GB
+                      # of model weights nothing here reads. See README.
+                      clone_ref "https://x-access-token:${GITHUB_TOKEN}@github.com/datarobot/datarobot-user-models" \
+                        "$REPO_REF" /harness/repo
+
+                      # Wrong repo_ref is the likeliest misconfiguration; say so here. Checked
+                      # against what this pipeline actually reads, NOT against its own file: the
+                      # definition is loaded from pipelineBranchName, and requiring it on the
+                      # scanned ref too would mean backporting it onto frozen release branches
+                      # for no gain. Harness never reads it from here.
+                      if [ ! -d /harness/repo/public_dropin_environments ]; then
+                        echo "FATAL: no public_dropin_environments/ on '$REPO_REF'." >&2
+                        echo "Set the repo_ref input to a datarobot-user-models branch." >&2
+                        exit 78
+                      fi
+
+                      # cve_skills/ is not in the image (sibling of its build context).
+                      # Cloned once; later steps reach it via GENAI_TOOLS_DIR.
+                      clone_ref "https://x-access-token:${GITHUB_TOKEN}@github.com/datarobot/genai-tools" \
+                        "$GENAI_TOOLS_REF" /harness/genai-tools
+
+                      # One fetch, two shapes: remedy-agent's inventory rows and the raw
+                      # shape cve-parse/cve-verify take. Narrowed to this repo's images,
+                      # which is what scopes the agent run. See README.
+                      IMAGE_FLAGS=()
+                      IFS=', ' read -r -a _imgs <<< "$SCOPE_IMAGES"
+                      for i in "${_imgs[@]}"; do
+                        [ -n "$i" ] && IMAGE_FLAGS+=(--image "$i")
+                      done
+                      if [ ${#IMAGE_FLAGS[@]} -eq 0 ]; then
+                        echo "FATAL: scope_images is empty; nothing would be in scope." >&2
+                        exit 78
+                      fi
+                      # Scan first, inventory second: the inventory is branch-blind (it scopes by
+                      # image, and no ticket names a branch) while the scan is branch-specific, so
+                      # --scan is what tells the two apart. See RAPTOR-19960.
+                      # The scan evidence the agent reasons over, fetched once here and narrowed to
+                      # this repo's images. Without it the agent fetches VITA's fleet-wide scan
+                      # itself and spends the run's budget reading other repos' rows.
+                      #
+                      # Branch matters: remediating release/11.1 against the master scan would be
+                      # the wrong evidence. VITA names the directories master, release-11-1,
+                      # release-11-12, so repo_ref maps by replacing '.' and '/' with '-'.
+                      case "$REPO_REF" in
+                        main|master) SCAN_DIR=master ;;
+                        *)           SCAN_DIR="$(printf '%s' "$REPO_REF" | tr './' '--')" ;;
+                      esac
+                      SCAN_URL="repos/datarobot/VITA/contents/CVE-scan/${SCAN_DIR}/final_merged_scan.json?ref=automation-results"
+                      if ! gh api "$SCAN_URL" -H "Accept: application/vnd.github.raw" \
+                           > /harness/cve/scan-full.json 2>/harness/cve/scan-err.txt; then
+                        echo "FATAL: no VITA scan at CVE-scan/$SCAN_DIR (from repo_ref '$REPO_REF')." >&2
+                        case "$REPO_REF" in [0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]*)
+                          echo "repo_ref looks like a commit. It must be a branch or tag: the scan directory" >&2
+                          echo "and the PR base are both derived from it. See README, 'Three refs'." >&2 ;;
+                        esac
+                        sed -n '1,5p' /harness/cve/scan-err.txt >&2
+                        exit 78
+                      fi
+                      # Substring match, same rule build_inventory.py's in_scope() applies to a
+                      # ticket's artifacts. It is why the scope needs only three entries here:
+                      # env-python also matches env-python-sklearn, -pytorch, -xgboost and the rest.
+                      jq --argjson imgs "$(printf '%s\n' "${_imgs[@]}" | jq -R . | jq -cs 'map(select(length > 0))')" \
+                         '[ .[] | . as $r | select(any($imgs[]; . as $i | ($r.ArtifactName // "") | contains($i))) ]' \
+                         /harness/cve/scan-full.json > /harness/cve/scan.json
+                      echo "scan: $(jq 'length' /harness/cve/scan.json) of $(jq 'length' /harness/cve/scan-full.json)" \
+                           "rows in CVE-scan/$SCAN_DIR match $SCOPE_IMAGES -> /harness/cve/scan.json"
+                      rm -f /harness/cve/scan-full.json /harness/cve/scan-err.txt
+
+                      # --scan is what narrows the branch-blind inventory, and it arrives with
+                      # genai-tools#60. Say which repo is behind rather than letting argparse reject
+                      # an unknown flag; and do NOT silently drop --scan, which would hand the agent
+                      # the unnarrowed inventory and fail the coverage check instead.
+                      BI=/harness/genai-tools/cve_skills/scripts/build_inventory.py
+                      if ! python3 "$BI" --help 2>/dev/null | grep -q -- '--scan'; then
+                        echo "FATAL: genai-tools at '$GENAI_TOOLS_REF' has no --scan in build_inventory.py." >&2
+                        echo "Merge genai-tools#60, or set genai_tools_ref to a ref that carries it." >&2
+                        exit 78
+                      fi
+                      python3 "$BI" \
+                        "${IMAGE_FLAGS[@]}" \
+                        --scan /harness/cve/scan.json \
+                        --out /harness/cve/inventory.json \
+                        --raw-out /harness/cve/cve-issues.json \
+                        --other-out /harness/cve/other-security.json
+
+                      # Split the inventory by age. PDIE and the app-charts bump close the
+                      # mechanical cases on their own; running the agent at the same time races
+                      # work already in progress. What is left after the window is what the
+                      # automation did not close -- a justification, or a fix it cannot make.
+                      # Age comes from the raw payload, which carries `created`; the inventory
+                      # row does not. An unparseable date counts as AGED: a ticket is never
+                      # hidden because its timestamp was odd.
+                      inv_before="$(jq 'length' /harness/cve/inventory.json)"
+                      python3 - "$GRACE_DAYS" <<'PYGRACE'
+                      import datetime, json, sys
+                      grace = int(sys.argv[1])
+                      inv = json.load(open("/harness/cve/inventory.json"))
+                      raw = json.load(open("/harness/cve/cve-issues.json"))
+                      nodes = raw.get("issues", {}).get("nodes", []) if isinstance(raw, dict) else raw
+                      born = {str(i.get("key")): str((i.get("fields") or {}).get("created") or "")
+                              for i in nodes}
+                      now = datetime.datetime.now(datetime.timezone.utc)
+                      aged, deferred = [], []
+                      for row in inv:
+                          try:
+                              ts = datetime.datetime.fromisoformat(
+                                  born.get(str(row.get("key")), "").replace("Z", "+00:00"))
+                              age = (now - ts).days
+                          except ValueError:
+                              age = None
+                          row = dict(row, age_days=age)
+                          (deferred if age is not None and age < grace else aged).append(row)
+                      json.dump(aged, open("/harness/cve/inventory.json", "w"))
+                      print(f"grace: {len(aged)} ticket(s) past {grace}d for the agent, "
+                            f"{len(deferred)} still with the repo's automation")
+                      for r in deferred:
+                          print(f"  deferred {r.get('key')} ({r.get('age_days')}d) {str(r.get('summary'))[:58]}")
+                      PYGRACE
+                      # The deferred rows exist only in the log above: nothing downstream reads
+                      # them, and a file under /harness/cve dies with the stage unseen.
+                      deferred_n=$(( inv_before - $(jq 'length' /harness/cve/inventory.json) ))
+
+                      # Open PRs already touching the dropin envs on this ref. The grace window
+                      # only says the automation HAD its run -- it does not say the result landed.
+                      # The regen PRs are opened by svc-harness-git2 ("[auto] Regen dependencies
+                      # for all dropin envs") and by nullspoon ("[RAPTOR-...] Regen requirements"),
+                      # and they are not reliably merged: #2466 and #2468 were closed unmerged and
+                      # #2477 sat open for days. A ticket whose fix is in one of those is still
+                      # open in Jira, so it reaches the agent looking untouched. --json files is
+                      # the point: a title does not name the env a PR regenerates.
+                      if gh pr list --repo datarobot/datarobot-user-models --state open \
+                           --base "$REPO_REF" --limit 100 \
+                           --json number,title,headRefName,author,files,isDraft,updatedAt,url \
+                           > /harness/cve/open-prs-all.json 2>/harness/cve/open-prs-err.txt; then
+                        jq '[.[] | select([.files[].path] | any(startswith("public_dropin_environments/")))]' \
+                          /harness/cve/open-prs-all.json > /harness/cve/open-prs.json
+                        echo "open PRs on $REPO_REF touching dropin envs: $(jq 'length' /harness/cve/open-prs.json)"
+                        jq -r '.[] | "  #\(.number) \(.author.login) \(.title[0:60])"' /harness/cve/open-prs.json
+                      else
+                        # Never fatal: not knowing about other PRs costs a collision, which review
+                        # catches. Failing here would cost the whole triage.
+                        echo "open PRs: unavailable ($(head -1 /harness/cve/open-prs-err.txt))" >&2
+                        printf '[]' > /harness/cve/open-prs.json
+                      fi
+
+                      # Stop rather than pay an agent to discover there is nothing to do. The three
+                      # reasons are named separately: a green run must not be ambiguous about which.
+                      scan_rows="$(jq 'length' /harness/cve/scan.json)"
+                      tickets="$(jq 'length' /harness/cve/inventory.json)"
+                      STOP=""
+                      if [ "$scan_rows" -eq 0 ]; then
+                        STOP="nothing to scan: no findings for $SCOPE_IMAGES in CVE-scan/$SCAN_DIR"
+                      elif [ "$tickets" -eq 0 ] && [ "$deferred_n" -gt 0 ]; then
+                        STOP="nothing past the grace window: all $deferred_n open ticket(s) are younger than ${GRACE_DAYS}d and still with the repo's automation"
+                      elif [ "$tickets" -eq 0 ]; then
+                        STOP="nothing fixable here: no open ticket for $SCOPE_IMAGES has a finding in CVE-scan/$SCAN_DIR"
+                      fi
+                      if [ -n "$STOP" ]; then
+                        echo "$STOP" | tee /harness/cve/gate-stop.txt
+                        echo "Skipping the agent and PR steps. This is a quiet day, not a failure."
+                      fi
+
+                      # Images for the scan stage, discovered by pattern so a new exec env
+                      # needs no edit. Repo-derived, not ticket-derived: tickets carry the
+                      # image name without a tag and grype needs one. See README.
+                      images=()
+                      for d in /harness/repo/public_dropin_environments/*/; do
+                        [ -f "${d}env_info.json" ] || continue
+                        env="$(basename "$d")"
+                        # The directory name is not the image name here (python3_pytorch ->
+                        # env-python-pytorch), so take imageRepository rather than basename.
+                        name="$(jq -r '.imageRepository // empty' "${d}env_info.json")"
+                        tag="$(jq -r '.environmentVersionId // empty' "${d}env_info.json")"
+                        [ -n "$name" ] && [ -n "$tag" ] || {
+                          echo "skipping $env: no imageRepository/environmentVersionId" >&2; continue; }
+                        images+=("datarobotdev/${name}:${tag}")
+                        # An env with no requirements.in gets no PDIE regen even on master, so it
+                        # behaves like the release-branch case. Named here rather than discovered
+                        # as a silent skip later.
+                        [ -f "${d}requirements.in" ] || echo "note: $env has no requirements.in - no PDIE regen on any branch"
+                      done
+
+                      # Written to a file AND logged. The agent needs these: they are the only
+                      # description of what this repo currently BUILDS. Its other input, the VITA
+                      # scan, describes what is DEPLOYED -- the tag the chart pins. Without both it
+                      # cannot tell a fix that is missing from one that is built and not yet pinned.
+                      #
+                      # The grype scan that read these as output
+                      # variables now belongs to the verify pipeline, which scans the
+                      # REBUILT tag after a fix lands -- a tag that does not exist at this
+                      # point in the run. Kept in the log because "what this repo builds,
+                      # at which tags" is the first context a reader of a run wants.
+                      payload="$(printf '%s\n' "${images[@]}" | jq -R . | jq -c --slurp '{images: .}')"
+                      echo "images: $payload"
+                      printf '%s' "$payload" > /harness/cve/built-tags.json
+
+                      # The scan describes the DEPLOYED image -- VITA scans what the chart pins, and it
+                      # refreshes several times a day, so it is current rather than stale. The tags above
+                      # describe what this repo BUILDS. They diverge the moment a fix is built and not yet
+                      # pinned, and only a chart bump closes it.
+                      #
+                      # After the gate marker, and it outranks it: divergence can be why the inventory
+                      # narrowed to nothing, and a quiet day caused by the wrong picture is the worst
+                      # of the outcomes.
+                      scanned="$(jq -r '[.[].ArtifactName // empty] | unique | .[]' /harness/cve/scan.json)"
+                      diverged=""
+                      for img in "${images[@]}"; do
+                        name="${img%:*}"
+                        want="${img##*:}"
+                        have="$(printf '%s\n' "$scanned" | sed -n "s|^${name}:||p" | sort -u | tr '\n' ' ')"
+                        # Absent from the scan is not divergence -- the image may be new or out of
+                        # scope. Only a DIFFERENT tag means the two describe different images.
+                        [ -n "$have" ] || continue
+                        case " $have " in
+                          *" $want "*) ;;
+                          *) diverged="${diverged}  $name: repo builds '$want', scan has '${have% }'"$'\n' ;;
+                        esac
+                      done
+                      if [ -n "$diverged" ]; then
+                        rm -f /harness/cve/gate-stop.txt
+                        echo "FATAL: this scan does not describe the images this repo currently builds." >&2
+                        printf '%s' "$diverged" >&2
+                        echo "" >&2
+                        echo "Stopping rather than reasoning from it: the deployed picture proposes" >&2
+                        echo "rebuilds for fixes the built image already carries." >&2
+                        echo "" >&2
+                        echo "Most likely the fixes are built and published and the outstanding work is a" >&2
+                        echo "chart bump in datarobot-app-charts. Check what it pins against the tags above." >&2
+                        exit 1
+                      fi
+                      echo "deployed matches built - the scan describes the tags this repo builds"
+
+                      # Gates the scan stage. Triage is the entrypoint, so if it found
+                      # nothing in scope for this repo there is nothing worth scanning --
+                      # and an empty matrix axis has nothing to expand.
+                      ticket_count="$(jq 'length' /harness/cve/inventory.json)"
+                      echo "ticket_count: $ticket_count"
+              - step:
+                  type: Run
+                  name: Grouped triage report and local fix status
+                  identifier: Triage_report
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest
+                    shell: Bash
+                    command: |-
+                      # Reports print IN FULL. They also go to files so Publish can attach
+                      # them, but the log is the primary place these get read.
+                      set -uo pipefail
+                      export GENAI_TOOLS_DIR=/harness/genai-tools
+                      S="$GENAI_TOOLS_DIR/cve_skills/scripts"
+
+                      python3 "$S/cve-parse.py" /harness/cve/cve-issues.json \
+                        > /harness/cve/triage-report.txt 2>&1 || true
+                      python3 "$S/cve-verify.py" /harness/cve/cve-issues.json \
+                        --workspace /harness/repo \
+                        > /harness/cve/fix-status.txt 2>&1 || true
+
+                      # What breaks the log view is column alignment, not length:
+                      # cve-verify.py pads its status column by character count, but its
+                      # markers are East-Asian-Wide and render as two columns, so every
+                      # status row sits one column off (92 of 93 lines on a 14-ticket
+                      # fixture). Any wide character becomes two ASCII columns here, which
+                      # makes the script's own padding correct. The files keep the original
+                      # glyphs; only the log view is normalised.
+                      #
+                      # Written by codepoint in Python, with NO non-ASCII literal in this
+                      # YAML, deliberately. The first attempt used sed with the glyphs
+                      # inline and died with "no previous regular expression": U+1F528 is
+                      # outside the BMP and did not survive the round-trip through
+                      # Harness, leaving sed an empty pattern. Anything non-BMP written
+                      # here is liable to the same thing.
+                      cat > /tmp/align.py <<'PY'
+                      import sys, unicodedata
+                      MARK = {0x274C: "!!", 0x1F528: ">>"}   # cross-mark, hammer
+                      for line in sys.stdin:
+                          out = []
+                          for ch in line:
+                              if ord(ch) in MARK:
+                                  out.append(MARK[ord(ch)])
+                              elif unicodedata.east_asian_width(ch) in ("W", "F"):
+                                  out.append("  ")   # unknown wide glyph: keep the width
+                              else:
+                                  out.append(ch)
+                          sys.stdout.write("".join(out))
+                      PY
+
+                      for f in triage-report.txt fix-status.txt; do
+                        p="/harness/cve/$f"
+                        [ -s "$p" ] || { echo "$f: empty"; continue; }
+                        echo "---- $f ($(wc -l < "$p") lines) ----"
+                        python3 /tmp/align.py < "$p" || cat "$p"
+                      done
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: Ignore
+              - step:
+                  type: Run
+                  name: Run remedy-agent
+                  identifier: Run_remedy_agent
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest-dev
+                    shell: Bash
+                    envVariables:
+                      TEAM: raptor
+                      MODE: <+pipeline.variables.mode>
+                      REMEDY_REF: <+pipeline.variables.remedy_ref>
+                      PLAYBOOK: packs/raptor/playbooks/datarobot-user-models.md
+                      MAX_BUDGET_USD: <+pipeline.variables.max_budget_usd>
+                      MODEL: <+pipeline.variables.model>
+                      GATE: "false"
+                      JIRA_EMAIL: <+pipeline.variables.jira_email>
+                      JIRA_BASE_URL: https://datarobot.atlassian.net
+                      GITHUB_TOKEN: <+pipeline.variables.github_token>
+                      ATLASSIAN_API_TOKEN: <+pipeline.variables.jira_token>
+                      DATAROBOT_API_TOKEN: <+pipeline.variables.dr_token>
+                      DATAROBOT_ENDPOINT: <+pipeline.variables.datarobot_endpoint>
+                      # Scopes the SCAN, the companion to INVENTORY_FILE scoping the
+                      # tickets. Without it the scan stays team-wide: measured on the
+                      # first live run, scope.images ["env","lrs_drain"] matched 891 of
+                      # 7851 VITA rows where 95 were this repo's, and the rest rode
+                      # along in a prompt re-billed every turn.
+                      SCAN_IMAGES: <+pipeline.variables.scope_images>
+                      # Written by the Triage step, already narrowed to SCAN_IMAGES.
+                      # The flow playbook tells the agent to read this instead of VITA.
+                      SCAN_FILE: /harness/cve/scan.json
+                      # What this repo BUILDS, as opposed to SCAN_FILE's DEPLOYED. Two different
+                      # images whenever a fix is built and not yet pinned, which is the common
+                      # state here -- without both the agent cannot tell a missing fix from an
+                      # unpinned one, and proposes a rebuild for something already built.
+                      BUILT_TAGS_FILE: /harness/cve/built-tags.json
+                      # Open PRs already regenerating a dropin env on this ref. Read by the
+                      # playbook before the agent edits an env, so it does not duplicate a
+                      # regen PR that is open but not yet merged.
+                      OPEN_PRS_FILE: /harness/cve/open-prs.json
+                      PROGRESS: <+pipeline.variables.progress>
+                      # The writable checkout the agent edits. Read by the RAPTOR flow
+                      # playbook; see the clone below for why this exact path.
+                      REPO_WORKDIR: /root/workspace/datarobot-user-models
+                      REPO_REF: <+pipeline.variables.repo_ref>
+                    command: |-
+                      set -euo pipefail
+                      # Written by Triage; see there for what these do.
+                      . /harness/lib.sh || { echo "FATAL: /harness/lib.sh missing - did Triage run?" >&2; exit 78; }
+                      gate_stop_or_exit
+
+                      # node and uv come from the image now. Fail loudly if a future
+                      # rebuild drops them rather than letting run.sh die deeper in.
+                      command -v node >/dev/null && command -v uv >/dev/null || {
+                        echo "FATAL: genai-ci-tools:latest-dev is missing node or uv." >&2
+                        exit 78
+                      }
+                      echo "node $(node --version) | uv $(uv --version)"
+
+
+                      # Both clones on REMEDY_REF: this one to reach run.sh, and run.sh's
+                      # own for the engine and packs. They must agree -- run.sh uses the same
+                      # fetch form, so a SHA works through both.
+                      clone_ref "https://x-access-token:${GITHUB_TOKEN}@github.com/datarobot/remedy-agent" \
+                        "$REMEDY_REF" /tmp/remedy-agent
+
+                      # Absolute: run.sh cds into its own clone before reading this.
+                      export INVENTORY_FILE=/harness/cve/inventory.json
+
+                      # A checkout the agent is ALLOWED to edit, in a path that SURVIVES
+                      # this step. Two constraints have to be satisfied at once:
+                      #
+                      #   hooks.py in shadow/dry-run permits Write/Edit only under out_dir
+                      #   or workspace_dir, and workspace_dir defaults to $HOME/workspace
+                      #   -- /root/workspace here, since nothing configures it. Editing
+                      #   /harness/repo would come back "DENIED (dry-run mode): writes are
+                      #   only allowed under ...".
+                      #
+                      #   /root/workspace is per-container, so anything written there is
+                      #   gone when this step ends. Only /harness is shared between steps,
+                      #   and the PR step needs to see the diff.
+                      #
+                      # The symlink satisfies both: hooks.py resolve()s the write path and
+                      # workspace_dir, so both land on /harness/workspace and the write is
+                      # allowed, while the files persist for the next step.
+                      mkdir -p /harness/workspace
+                      ln -sfn /harness/workspace /root/workspace
+                      clone_ref "https://x-access-token:${GITHUB_TOKEN}@github.com/datarobot/datarobot-user-models" \
+                        "$REPO_REF" /harness/workspace/datarobot-user-models
+                      git -C /harness/workspace/datarobot-user-models config user.email "petro.zdeb@datarobot.com"
+                      git -C /harness/workspace/datarobot-user-models config user.name "remedy-agent (RAPTOR)"
+
+                      # Copy the RunReport to /harness: only that path is shared between
+                      # steps. In a trap so a FAILED run still leaves its report.
+                      mkdir -p /harness/cve
+                      save_report() {
+                        cp -f "${TMPDIR:-/tmp}"/remedy-agent-src/out/report-* \
+                          /harness/cve/ 2>/dev/null || true
+                      }
+                      trap save_report EXIT
+
+                      # Do not let a non-zero exit hide a run that produced findings.
+                      # remedy-agent exits 1 on a DEGENERATE run and 2 on budget/turn
+                      # exhaustion, and both can carry real analysis: run 19 exited 1
+                      # having identified setuptools, msgpack, torch and clipr root causes
+                      # with nine honest not_verified entries, and the stage failed anyway,
+                      # which also skipped the scan.
+                      set +e
+                      bash /tmp/remedy-agent/deploy/run.sh
+                      rc=$?
+                      set -e
+                      save_report
+
+                      # "Results" means the report names something, not merely that a file
+                      # exists -- a degenerate run always writes one. Empty on all three
+                      # counts is a failure however it exited.
+                      report="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
+                      findings=0
+                      degenerate=""
+                      if [ -n "$report" ]; then
+                        findings="$(jq '[(.root_causes//[]),(.fix_actions//[]),(.ticket_actions//[])]
+                                        | map(length) | add' "$report" 2>/dev/null || echo 0)"
+                        # remedy-agent writes "DEGENERATE RUN: <why>" into report.blocked when its
+                        # coverage check fails. Read the field, not the log line.
+                        degenerate="$(jq -r '[(.blocked//[])[]
+                                        | select(startswith("DEGENERATE RUN"))] | first // empty' \
+                                     "$report" 2>/dev/null || true)"
+                      fi
+                      echo "[agent] exit=$rc report=${report:-none} findings=$findings"
+
+                      # Checked before the findings test below, which it deliberately overrides:
+                      # a run that accounted for none of its own tickets has not done its job,
+                      # whatever else it recorded.
+                      if [ -n "$degenerate" ]; then
+                        echo "[agent] $degenerate" >&2
+                        echo "[agent] failing the stage despite $findings recorded item(s)." >&2
+                        exit 1
+                      fi
+
+                      if [ "$rc" -ne 0 ] && [ "${findings:-0}" -gt 0 ]; then
+                        echo "[agent] exited $rc but produced $findings recorded item(s);" \
+                             "not failing the stage. Read the RunReport below --" \
+                             "a DEGENERATE or budget-exhausted run is still a partial run."
+                        exit 0
+                      fi
+                      exit "$rc"
+                  timeout: 90m
+              # ------------------------------------------------------------- the PR
+              - step:
+                  type: Run
+                  name: Open the remediation PR
+                  identifier: Open_remediation_PR
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest
+                    shell: Bash
+                    envVariables:
+                      GH_TOKEN: <+pipeline.variables.github_token>
+                      GITHUB_TOKEN: <+pipeline.variables.github_token>
+                      MODE: <+pipeline.variables.mode>
+                      REPO_REF: <+pipeline.variables.repo_ref>
+                    command: |-
+                      set -uo pipefail
+                      # Written by Triage; see there for what these do.
+                      . /harness/lib.sh || { echo "FATAL: /harness/lib.sh missing - did Triage run?" >&2; exit 78; }
+                      gate_stop_or_exit
+
+                      W=/harness/workspace/datarobot-user-models
+
+                      # shadow is observation only. The hooks let the agent write under
+                      # the workspace in shadow as well as dry-run, so without this the
+                      # pipeline would publish a PR from a mode whose whole promise is
+                      # that nothing leaves the run. The pipeline is not bound by the
+                      # agent's hooks -- this gate is ours to enforce.
+                      if [ "$MODE" = "shadow" ]; then
+                        echo "mode=shadow: not opening a PR. Re-run in dry-run to publish."
+                        exit 0
+                      fi
+                      [ -d "$W/.git" ] || { echo "no agent checkout at $W; nothing to open."; exit 0; }
+
+                      cd "$W"
+
+                      # Two ways a diff can arrive, because the mode decides which. In
+                      # dry-run the agent edits and leaves the changes uncommitted (the
+                      # flow playbook says so); in hitl it may commit on its own branch.
+                      # Handle both rather than reporting "no changes" at a tree the agent
+                      # already committed -- run 20 is exactly why this needs saying: the
+                      # step was truthful and still unhelpful.
+                      # Written by clone_ref at checkout time: the exact commit the agent's
+                      # workspace started from. `origin/$REPO_REF` no longer exists -- the
+                      # workspace is fetched, not cloned, so it has no remote-tracking refs.
+                      BASE_REF=refs/pipeline/base
+                      git rev-parse --verify -q "$BASE_REF" >/dev/null || {
+                        echo "FATAL: no $BASE_REF in $W; the workspace was not made by clone_ref." >&2
+                        exit 78
+                      }
+                      if [ -n "$(git status --porcelain)" ]; then
+                        SOURCE="uncommitted edits"
+                      elif [ -n "$(git log --oneline "$BASE_REF"..HEAD 2>/dev/null)" ]; then
+                        SOURCE="commits the agent made"
+                      else
+                        echo "The agent proposed no code changes this run - nothing to open."
+                        echo "That is a legitimate outcome: a board of standing blockers"
+                        echo "with no available upstream fix produces verdicts, not diffs."
+                        echo
+                        echo "In dry-run the core playbook tells the agent to observe and"
+                        echo "propose only, so it records FixActions instead of editing."
+                        echo "Read them in the RunReport in the next step."
+                        exit 0
+                      fi
+                      echo "Diff source: $SOURCE"
+
+                      # hooks.py lets the agent open its own PR in hitl and auto, and only there. So
+                      # in a write mode this step must not create a second one for the same fix.
+                      CUR_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+                      if [ "$CUR_BRANCH" != "HEAD" ]; then
+                        EXISTING="$(gh pr list --repo datarobot/datarobot-user-models --state open \
+                          --head "$CUR_BRANCH" --json url --jq '.[0].url // empty' 2>/dev/null || true)"
+                        if [ -n "$EXISTING" ]; then
+                          echo "The agent already opened a PR for this work: $EXISTING"
+                          echo "Not opening a second one. Review and merge that PR; the RunReport in"
+                          echo "the next step carries the reasoning behind it."
+                          exit 0
+                        fi
+                      fi
+
+                      # Range has to follow the source. A bare `git diff` reads the
+                      # working tree, which is clean precisely when the agent committed
+                      # -- printing an empty diff under a header promising one.
+                      #
+                      # Staged first in the uncommitted case, then read back with
+                      # --cached, because `git diff` ignores untracked paths while
+                      # `git add -A` below commits them: a run whose only change is a
+                      # NEW file would otherwise log an empty diff and still open a PR
+                      # carrying that file. $SOURCE is set from `git status --porcelain`,
+                      # which does see untracked files, so this case is reachable.
+                      echo "==== the agent's diff ===="
+                      if [ "$SOURCE" = "uncommitted edits" ]; then
+                        git add -A
+                        git --no-pager diff --cached --stat
+                        git --no-pager diff --cached > /harness/cve/proposed.diff
+                      else
+                        git --no-pager diff --stat "$BASE_REF"..HEAD
+                        git --no-pager diff "$BASE_REF"..HEAD > /harness/cve/proposed.diff
+                      fi
+                      head -200 /harness/cve/proposed.diff
+
+                      # A run has left a literal placeholder in a proposed change before -- a
+                      # <new-24hex-id> where a generated id belongs. In dry-run that only reaches the
+                      # report; from here it becomes a PR whose manifest merges and fixes nothing,
+                      # which is the half-bump the flow playbook warns about.
+                      #
+                      # ADDED lines only: context lines can legitimately contain anything. The pattern
+                      # is deliberately narrow -- lowercase-hyphenated tokens in angle brackets, which
+                      # is the shape these take -- so it does not fire on heredocs (<<EOF) or Harness
+                      # expressions (<+pipeline...>). Offending lines are printed, so a false positive
+                      # is obvious rather than mysterious.
+                      placeholders="$(grep '^+' /harness/cve/proposed.diff | grep -v '^+++' \
+                        | grep -nE '<[a-z][a-z0-9._-]*>|TODO|FIXME|XXX' || true)"
+                      if [ -n "$placeholders" ]; then
+                        echo "FATAL: the proposed change contains unresolved placeholders." >&2
+                        printf '%s\n' "$placeholders" >&2
+                        echo "" >&2
+                        echo "Not opening a PR from it. A placeholder that reaches a manifest produces a" >&2
+                        echo "change that merges cleanly and fixes nothing. The diff is above and in the" >&2
+                        echo "RunReport; if these are legitimate, narrow the pattern in this step." >&2
+                        exit 1
+                      fi
+
+                      # A GitHub PR base must be a branch. repo_ref accepts a tag or a SHA so a past
+                      # run can be replayed, and a replay that then tries to open a PR would fail
+                      # inside `gh` with a confusing error -- say which input is wrong instead.
+                      if ! git ls-remote --exit-code --heads origin "$REPO_REF" >/dev/null 2>&1; then
+                        echo "repo_ref '$REPO_REF' is not a branch, so there is no PR base." >&2
+                        echo "The diff is in this step's log and the RunReport; re-run with repo_ref" >&2
+                        echo "set to a branch to open a PR." >&2
+                        exit 0
+                      fi
+
+                      BR="raptor/cve-remediation-<+pipeline.sequenceId>"
+                      git checkout -b "$BR" 2>/dev/null || git checkout "$BR"
+                      if [ "$SOURCE" = "uncommitted edits" ]; then
+                        git add -A
+                        git commit -q -m "[RAPTOR] CVE remediation proposed by remedy-agent
+
+                      Prepared by remedy-agent in $MODE mode, pipeline run
+                      <+pipeline.sequenceId>. The RunReport for this run is in the
+                      Publish run artifacts step of the same execution.
+
+                      Review the diff on its own merits: the agent proposed it from the
+                      ticket inventory and the VITA scan, and a merged bump is not
+                      evidence of a fix until a scan of the rebuilt tag says so."
+                      fi
+                      git push -q -u origin "$BR"
+
+                      # --draft deliberately: the diff is a proposal, and the fix it
+                      # describes is unverified by construction -- a rebuilt tag does not
+                      # exist until this merges and a build publishes one. Draft says
+                      # "read this" without asking anyone to approve a fix claim.
+                      gh pr create --draft --repo datarobot/datarobot-user-models \
+                        --base "$REPO_REF" --head "$BR" \
+                        --title "[RAPTOR] CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
+                        --body "Opened by the CVE Remediation pipeline, run <+pipeline.sequenceId>, mode \`$MODE\`.
+
+                      The diff was prepared by remedy-agent from this repo's ticket inventory and the VITA scan. **Not verified as a fix** - per the team playbook, a version bump is only proven by a clean grype scan of the rebuilt tag, which cannot happen until this merges and a build publishes it.
+
+                      Review the change on its own merits and read the RunReport in the pipeline execution for the reasoning behind it." \
+                        || { echo "PR creation failed; the branch is pushed as $BR." >&2; exit 1; }
+                  # Never fail the stage on this: the RunReport is the deliverable and the
+                  # next step prints it. A PR that could not be opened is worth knowing
+                  # about, not worth losing the report over.
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: Ignore
+              - step:
+                  type: Run
+                  name: Publish run artifacts
+                  identifier: Publish_artifacts
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest
+                    shell: Bash
+                    command: |-
+                      set -uo pipefail
+                      # The RunReport is the deliverable of a shadow run.
+                      for f in /harness/cve/inventory.json; do
+                        echo "=== $f ($(jq 'length' "$f" 2>/dev/null || echo '?') rows) ==="
+                      done
+                      report="$(ls -t /harness/cve/report-*.md 2>/dev/null | head -1 || true)"
+                      if [ -n "$report" ]; then
+                        echo "================ RunReport: $report ================"
+                        cat "$report"
+                      else
+                        echo "no RunReport under /harness/cve - the agent step prints its own"
+                        echo "report on exit too, so check that step's log."
+                      fi
+                  when:
+                    stageStatus: All
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  notificationRules:
+    - name: cve_remediation_failed
+      identifier: cve_remediation_failed
+      pipelineEvents:
+        - type: PipelineFailed
+      notificationMethod:
+        type: Email
+        spec:
+          userGroups: []
+          recipients:
+            - petro.zdeb@datarobot.com
+      enabled: true
+    # One inbox is not a report. A stopped run needs someone to
+    # decide whether the outstanding work is a chart bump -- that belongs where the
+    # team sees it, not only where one person does. Same webhook secret Build_All
+    # already uses in this project.
+    - name: cve_remediation_failed_slack
+      identifier: cve_remediation_failed_slack
+      pipelineEvents:
+        - type: PipelineFailed
+      notificationMethod:
+        type: Slack
+        spec:
+          userGroups: []
+          webhookUrl: <+secrets.getValue("project.slack_genai_systems_alerts")>
+      enabled: true
