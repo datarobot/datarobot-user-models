@@ -18,7 +18,7 @@
 # Default owners for everything in the repo.
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
-/                                                                 @datarobot/genai-systems
+/                                                                 @datarobot/inference-platform
 /.harness/python3_mcp_image_build_default_pr_input.yaml           @datarobot/core-modeling
 /.harness/python3_mcp_image_build_pr_input.yaml                   @datarobot/core-modeling
 /.harness/python3_mcp_on_pr.yaml                                  @datarobot/core-modeling
@@ -26,37 +26,36 @@
 /.harness/python3_mcp_publish_to_docker_pr_input.yaml             @datarobot/core-modeling
 /.harness/python3_mcp_trivy_scan_pr_input.yaml                    @datarobot/core-modeling
 /.harness/python3_mcp_update_env_version_pr_input.yaml            @datarobot/core-modeling
-/MODEL-METADATA.md                                                @datarobot/genai-systems @datarobot/core-modeling
-/README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
+/MODEL-METADATA.md                                                @datarobot/inference-platform @datarobot/core-modeling
+/README.md                                                        @datarobot/inference-platform @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
-/custom_model_runner                                              @datarobot/genai-systems @datarobot/core-modeling
-/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/genai-systems
+/custom_model_runner                                              @datarobot/inference-platform @datarobot/core-modeling
+/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/inference-platform
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
-/model_templates/gpu_nim_textgen                                  @datarobot/genai-systems
-/model_templates/gpu_vllm_textgen                                 @datarobot/genai-systems
-/model_templates/proxy_model_azureml                              @datarobot/genai-systems
-/model_templates/proxy_model_datarobot                            @datarobot/genai-systems
-/model_templates/triton_onnx_unstructured                         @datarobot/genai-systems
+/model_templates/gpu_nim_textgen                                  @datarobot/inference-platform
+/model_templates/gpu_vllm_textgen                                 @datarobot/inference-platform
+/model_templates/proxy_model_azureml                              @datarobot/inference-platform
+/model_templates/proxy_model_datarobot                            @datarobot/inference-platform
+/model_templates/triton_onnx_unstructured                         @datarobot/inference-platform
 /public_dropin_environments/dr_mcp_execute_sandbox_minimal        @datarobot/mcp
 /public_dropin_environments/java_codegen                          @datarobot/predictions
-/public_dropin_environments/python311_genai_agents                @datarobot/buzok
 /public_dropin_environments/python3_genai_agents                  @datarobot/buzok
-/public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_keras                         @datarobot/inference-platform @datarobot/core-modeling
 /public_dropin_environments/python3_mcp                           @datarobot/core-modeling
-/public_dropin_environments/python3_onnx                          @datarobot/genai-systems
-/public_dropin_environments/python3_pytorch                       @datarobot/genai-systems @datarobot/core-modeling
-/public_dropin_environments/python3_sklearn                       @datarobot/genai-systems @datarobot/core-modeling
-/public_dropin_environments/python3_xgboost                       @datarobot/genai-systems @datarobot/core-modeling
-/public_dropin_environments/r_lang                                @datarobot/genai-systems @datarobot/core-modeling
-/public_dropin_environments_sandbox                               @datarobot/genai-systems
-/public_dropin_gpu_environments                                   @datarobot/genai-systems
+/public_dropin_environments/python3_onnx                          @datarobot/inference-platform
+/public_dropin_environments/python3_pytorch                       @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_sklearn                       @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_xgboost                       @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/r_lang                                @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments_sandbox                               @datarobot/inference-platform
+/public_dropin_gpu_environments                                   @datarobot/inference-platform
 /public_dropin_notebook_environments                              @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling
-/tests/e2e/test_drop_in_environments.py                           @datarobot/genai-systems @datarobot/core-modeling
-/tests/e2e/test_drum_push.py                                      @datarobot/genai-systems @datarobot/core-modeling
-/tests/fixtures/nim_embedqa                                       @datarobot/genai-systems
-/tests/fixtures/nim_jailbreak                                     @datarobot/genai-systems
-/tests/functional                                                 @datarobot/genai-systems @datarobot/core-modeling
-/tests/functional/test_inference_gpu_predictors.py                @datarobot/genai-systems
+/tests/e2e/test_drop_in_environments.py                           @datarobot/inference-platform @datarobot/core-modeling
+/tests/e2e/test_drum_push.py                                      @datarobot/inference-platform @datarobot/core-modeling
+/tests/fixtures/nim_embedqa                                       @datarobot/inference-platform
+/tests/fixtures/nim_jailbreak                                     @datarobot/inference-platform
+/tests/functional                                                 @datarobot/inference-platform @datarobot/core-modeling
+/tests/functional/test_inference_gpu_predictors.py                @datarobot/inference-platform
