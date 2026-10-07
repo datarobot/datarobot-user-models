@@ -36,36 +36,21 @@ def load_conf(monkeypatch, **runtime_params):
     return runpy.run_path(str(GUNICORN_CONF))
 
 
-def test_keepalive_disabled_by_default(monkeypatch):
-    assert load_conf(monkeypatch)["keepalive"] == 0
-
-
-@pytest.mark.parametrize("value", [0, 1, 3600])
-def test_keepalive_accepts_values_in_range(monkeypatch, value):
-    conf = load_conf(monkeypatch, DRUM_GUNICORN_KEEP_ALIVE=("numeric", value))
-    assert conf["keepalive"] == value
-
-
-@pytest.mark.parametrize("value", [-1, 3601])
-def test_keepalive_falls_back_to_disabled_on_out_of_range_values(monkeypatch, value):
-    conf = load_conf(monkeypatch, DRUM_GUNICORN_KEEP_ALIVE=("numeric", value))
-    assert conf["keepalive"] == 0
-
-
-def test_first_byte_timeout_defaults_to_two_seconds(monkeypatch):
-    assert load_conf(monkeypatch)["first_byte_timeout"] == 2
-
-
-@pytest.mark.parametrize("value", [0, 1, 3600])
-def test_first_byte_timeout_accepts_values_in_range(monkeypatch, value):
-    conf = load_conf(monkeypatch, DRUM_GUNICORN_FIRST_BYTE_TIMEOUT=("numeric", value))
-    assert conf["first_byte_timeout"] == value
-
-
-@pytest.mark.parametrize("value", [-1, 3601])
-def test_first_byte_timeout_falls_back_to_default_on_out_of_range_values(monkeypatch, value):
-    conf = load_conf(monkeypatch, DRUM_GUNICORN_FIRST_BYTE_TIMEOUT=("numeric", value))
-    assert conf["first_byte_timeout"] == 2
+@pytest.mark.parametrize(
+    "param, key, default",
+    [
+        ("DRUM_GUNICORN_KEEP_ALIVE", "keepalive", 0),
+        ("DRUM_GUNICORN_FIRST_BYTE_TIMEOUT", "first_byte_timeout", 2),
+    ],
+)
+@pytest.mark.parametrize(
+    "value, expected", [(None, None), (0, 0), (1, 1), (3600, 3600), (-1, None), (3601, None)]
+)
+def test_numeric_param_falls_back_to_default_when_unset_or_out_of_range(
+    monkeypatch, param, key, default, value, expected
+):
+    conf = load_conf(monkeypatch, **({} if value is None else {param: ("numeric", value)}))
+    assert conf[key] == (default if expected is None else expected)
 
 
 def test_post_fork_passes_first_byte_timeout_to_worker(monkeypatch):

@@ -12,9 +12,6 @@ import textwrap
 import time
 
 import pytest
-from gunicorn.util import load_class
-
-from datarobot_drum.drum.gunicorn.workers import DrumGeventWorker
 
 WORKER_CLASS = "datarobot_drum.drum.gunicorn.workers.DrumGeventWorker"
 FIRST_BYTE_TIMEOUT = 1
@@ -97,18 +94,10 @@ def connect(port):
     return socket.create_connection(("127.0.0.1", port), timeout=FIRST_BYTE_TIMEOUT + 5)
 
 
-def test_worker_class_path_resolves_to_drum_gevent_worker():
-    assert load_class(WORKER_CLASS) is DrumGeventWorker
-
-
-def test_silent_connection_does_not_block_next_request(gunicorn_server):
-    with connect(gunicorn_server), connect(gunicorn_server) as client:
+def test_silent_connection_does_not_block_next_request_and_is_closed(gunicorn_server):
+    with connect(gunicorn_server) as silent, connect(gunicorn_server) as client:
         client.sendall(REQUEST)
         assert client.recv(4096).startswith(b"HTTP/1.1 200 OK")
-
-
-def test_silent_connection_is_closed_after_first_byte_timeout(gunicorn_server):
-    with connect(gunicorn_server) as silent:
         assert silent.recv(1) == b""
 
 

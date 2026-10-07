@@ -12,10 +12,10 @@ from gunicorn.workers.ggevent import GeventWorker
 
 
 class DrumGeventWorker(GeventWorker):
-    """Gevent worker that drops connections which never send a request.
+    """Gevent worker that drops connections which send no data.
 
     With keepalive=0 gunicorn reads the first request without any timeout, so a
-    connection that is opened but never used (e.g. one Go's http.Transport dialed
+    connection that is opened but sends no data (e.g. one Go's http.Transport dialed
     for a request that was cancelled meanwhile, then parked in its idle pool for
     up to 90s) holds one of the worker_connections slots until the client closes it.
     """
