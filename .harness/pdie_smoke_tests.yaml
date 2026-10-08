@@ -50,10 +50,11 @@ pipeline:
                       ghstatus.send() {
                         local state="${1:?GitHub status state is required (pending, success, failure, error)}"
                         local desc="${2:?Description is required}"
+                        local context="${3:-PDIE Smoke tests - Build list of envs to test}"
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "PDIE Smoke tests - Build list of envs to test" \
+                          "${context}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -94,12 +95,15 @@ pipeline:
                       fi
 
                       # Changed envs: <parent>/<env> folders with an env_info.json that the PR touches.
+                      # Later stages report only when they start, so post their pending statuses
+                      # here; until then the PR would look all green.
                       changed_envs_items=""
                       changed_envs_count=0
                       for env_dir in $(echo "${changed_files}" | grep -E "^(${env_parents_regex})/[^/]+/" | cut -d/ -f1-2 | sort -u); do
                         if [ -f "${env_dir}/env_info.json" ]; then
                           changed_envs_count=$((changed_envs_count + 1))
                           changed_envs_items="${changed_envs_items:+${changed_envs_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
+                          ghstatus.send pending "Waiting for the image build" "PDIE Smoke tests - Image existence - ${env_dir}"
                         fi
                       done
                       changed_envs_matrix_values="{\"environments\":[${changed_envs_items}]}"
@@ -120,6 +124,7 @@ pipeline:
                         if echo "${changed_files}" | grep -q "^${env_dir}/"; then
                           notebook_smoke_count=$((notebook_smoke_count + 1))
                           notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
+                          ghstatus.send pending "Waiting for Image existence" "PDIE Smoke tests - Notebook Smoke Test - ${env_dir}"
                         fi
                       done
                       notebook_smoke_matrix_values="{\"environments\":[${notebook_smoke_items}]}"
