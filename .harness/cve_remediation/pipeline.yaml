@@ -408,9 +408,24 @@ pipeline:
                       jq -n --arg q "$osv_cves" '{_queried: ($q | split("\n") | map(select(. != "")))}' \
                         > /harness/cve/osv.json
                       osv_found=0
+                      osv_failed=""
                       for cve in $osv_cves; do
-                        entry="$(curl -sS -f --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null || true)"
-                        [ -n "$entry" ] || continue
+                        # HTTP code, not just success/failure: 404 is OSV answering "no entry",
+                        # while a timeout or 5xx is no answer at all. Collapsing the two put a
+                        # failed lookup in _queried with no record, which reads as a confirmed
+                        # miss -- the false no-advisory verdict this whole block exists to stop.
+                        code="$(curl -sS -o /harness/cve/osv-entry.json -w '%{http_code}' \
+                                  --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null || true)"
+                        code="${code:-000}"
+                        case "$code" in
+                          200) : ;;
+                          404) continue ;;
+                          *)   osv_failed="$osv_failed $cve"
+                               echo "osv: lookup failed for $cve (HTTP $code)" >&2
+                               continue ;;
+                        esac
+                        entry="$(cat /harness/cve/osv-entry.json 2>/dev/null || true)"
+                        [ -n "$entry" ] || { osv_failed="$osv_failed $cve"; continue; }
                         printf '%s' "$entry" | jq -e 'has("withdrawn") | not' >/dev/null 2>&1 || continue
                         # On stdin, not --argjson: a single argument is capped near 128 KB on Linux
                         # and some OSV entries are close to it.
@@ -425,10 +440,17 @@ pipeline:
                           osv_found=$((osv_found + 1))
                         else
                           rm -f /harness/cve/osv.tmp
+                          osv_failed="$osv_failed $cve"
                           echo "osv: could not record $cve" >&2
                         fi
                       done
+                      rm -f /harness/cve/osv-entry.json
+                      # A CVE here was asked about and never answered. Absent from both _failed and
+                      # the entries means OSV said it has none.
+                      jq --arg f "$osv_failed" '. + {_failed: ($f | split(" ") | map(select(. != "")))}' \
+                        /harness/cve/osv.json > /harness/cve/osv.tmp && mv /harness/cve/osv.tmp /harness/cve/osv.json
                       echo "osv: $osv_found of $(printf '%s\n' $osv_cves | grep -c . || echo 0) queried CVEs have an entry (of $osv_all in scope)"
+                      [ -n "$osv_failed" ] && echo "osv: lookup never completed for:$osv_failed" >&2
 
                       # Stop rather than pay an agent to discover there is nothing to do. The three
                       # reasons are named separately: a green run must not be ambiguous about which.
