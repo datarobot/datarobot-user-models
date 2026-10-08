@@ -338,12 +338,3 @@ pipeline:
         E.g. if changes are in: parent1/env1, parent2/env2; and parent2 is provided, only parent2/env2 is included
       required: false
       value: <+input>
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.svc_harness_git1
-        repoName: <+pipeline.variables.target_repo>
-        build:
-          type: branch
-          spec:
-            branch: <+pipeline.variables.source_branch>
