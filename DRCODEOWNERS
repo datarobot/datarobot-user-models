@@ -19,6 +19,7 @@
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
 /                                                                 @datarobot/inference-platform
+/.harness/cve_remediation                                         @datarobot/inference-platform
 /.harness/python3_mcp_image_build_default_pr_input.yaml           @datarobot/core-modeling
 /.harness/python3_mcp_image_build_pr_input.yaml                   @datarobot/core-modeling
 /.harness/python3_mcp_on_pr.yaml                                  @datarobot/core-modeling
