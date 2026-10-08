@@ -33,9 +33,11 @@ ARG PYTHON_VERSION
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
+# libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
 RUN echo "[Python${PYTHON_VERSION}] GIT_COMMIT: $GIT_COMMIT" && \
   apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server gzip zip unzip wget curl openjdk-11 vim nano \
+  libcrypto3 \
   && rm -rf /var/cache/apk/
 
 ENV PYTHONUNBUFFERED=1 \
