@@ -37,7 +37,7 @@ http = AsyncHTTPClient()
 
 
 def log(msg):
-    print(f"[smoke]   {msg}", flush=True)
+    print(f"[notebook-smoke]   {msg}", flush=True)
 
 
 def fail(msg):

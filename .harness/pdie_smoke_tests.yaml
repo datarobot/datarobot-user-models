@@ -288,7 +288,7 @@ pipeline:
 
                       # The Image existence stage has already waited for the image.
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
-                      harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
+                      COMMIT_SHA="${COMMIT_SHA}" harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
                     resources:
                       limits:
                         memory: 4G
