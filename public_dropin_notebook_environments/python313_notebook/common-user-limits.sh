@@ -15,10 +15,9 @@ else
     nproc_limit=$NOTEBOOKS_NPROC_LIMIT
 fi
 
-# Deliberately in the image layer: the nbx-operator chart shadows it with a read-only
-# ConfigMap when notebookSession.userLimits is enabled, and relies on this write failing so
-# the chart's version wins (CFX-6369). The write also fails at any non-build-time uid, where
-# nothing sets the limits at all - so say which case it is instead of failing silently.
+# Deliberately in the image layer: the nbx-operator chart shadows it with a read-only ConfigMap
+# and relies on this write failing so the chart's version wins (CFX-6369), while at any other
+# uid it fails with nothing providing limits, so say which case it is rather than fail silently.
 NBX_LIMITS_FILE=/etc/profile.d/bash-profile-load.sh
 echo "Generating common bash profile..."
 # One simple command with one redirection: bash does not propagate a failed redirection on a

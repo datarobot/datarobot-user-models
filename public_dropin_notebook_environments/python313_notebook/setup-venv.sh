@@ -67,14 +67,9 @@ if [[ $IS_CODESPACE == true && $IS_PYTHON_KERNEL == true && -z "${NOTEBOOKS_NO_P
 
   export PYTHONPATH="$USER_PACKAGES:$KERNEL_PACKAGES:$PYTHONPATH"
 elif [[ $IS_PYTHON_KERNEL == true ]]; then
-  # FLEET-8918: these sessions install into the kernel venv, an image layer writable only by
-  # the uid the image was built with, so `pip install` from a cell fails at any other id.
-  # Give those sessions the same thin user venv codespaces get, bridged via PYTHONPATH above.
-  #
-  # Narrower than the nbx-kernels change this is ported from (nbx-kernels#390), which builds
-  # the user venv unconditionally. These images are templates customers extend, so the venv is
-  # built only once the kernel venv is proven unwritable: a default install keeps using the
-  # kernel venv exactly as before, and nothing shadows packages a customer layered in.
+  # FLEET-8918: the kernel venv is writable only at the image's own uid, so give these sessions
+  # the same thin user venv codespaces get, built only once that venv is proven unwritable so a
+  # default install and anything a customer layered in stay untouched (narrower than nbx-kernels#390).
   # shellcheck disable=SC1091
   source "$VENV_PATH/bin/activate"
   KERNEL_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")

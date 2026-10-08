@@ -9,15 +9,11 @@
 #   - drgithelper runs, sshd and the monitoring agent are up
 #   - the container log has no Go panics or Python tracebacks
 #
-# Those checks run twice, against two containers:
-#   1. default    the image's own user, no extra mounts. What every install gets.
-#   2. hardened   a uid the image was not built with, plus writable volumes over the
-#                 paths start_server.sh has to write to. What a cluster with a
-#                 restrictive PodSecurity/Gatekeeper policy gets, and what
-#                 nbx-operator produces when notebookSession.writableVolumes is
-#                 enabled. The image layers and $HOME are read-only there, so a
-#                 session that only ever ran as the build-time uid comes up subtly
-#                 broken while the container still looks healthy (FLEET-8918).
+# Those checks run twice: once as the image's own user with no extra mounts, which is what
+# every install gets, and once at a uid the image was not built with plus writable volumes
+# over the paths start_server.sh writes to, which is what nbx-operator produces when
+# notebookSession.writableVolumes is enabled and where an image built for one uid comes up
+# broken while the container still looks healthy (FLEET-8918).
 #
 # Only needs docker on the host: all HTTP calls run inside the container, and
 # the SSH keys live in a docker volume, so it also works with docker-in-docker.
@@ -34,9 +30,8 @@
 #   SKIP_KERNEL_EXEC set to 1 to only check that the prespawned kernel exists,
 #                    without running code; ipykernel never answers under amd64
 #                    emulation (Rosetta) on Apple Silicon, so use it there
-#   SESSION_UID      uid for the hardened pass (default 1500). Any value the image
-#                    was not built with will do; it must not be in /etc/passwd,
-#                    which is the situation a cluster-assigned uid is in.
+#   SESSION_UID      uid for the hardened pass (default 1500), any value the image was not
+#                    built with and absent from /etc/passwd, as a cluster-assigned uid is
 #   SKIP_HARDENED    set to 1 to run the default pass only
 
 set -euo pipefail
@@ -108,8 +103,8 @@ fi
 
 RUN_ID="notebook-smoke-$$-${RANDOM}"
 SSH_VOLUME="${RUN_ID}-ssh"
-# NAME is the container of the pass currently running, which is the one cleanup
-# dumps diagnostics for; CONTAINERS is every container to remove on the way out.
+# NAME is the pass currently running, the one cleanup dumps diagnostics for, and CONTAINERS
+# is every container to remove on the way out.
 NAME=""
 CONTAINERS=()
 
@@ -191,9 +186,8 @@ docker run --rm --user root --volume "${SSH_VOLUME}:/ssh" --entrypoint /bin/sh "
 ' || fail "cannot generate SSH keys with ssh-keygen from the image"
 
 # run_session <pass label> [extra docker run args...]
-# Starts the image the way the platform does and runs every per-session check
-# against it. Check names are prefixed with the pass so the summary says which
-# of the two containers a failure came from.
+# Starts the image the way the platform does and runs every per-session check against it,
+# prefixing check names with the pass so the summary says which container failed.
 run_session() {
   local pass="${1}"
   shift
@@ -215,13 +209,9 @@ run_session() {
   log "  running as: $(docker exec "${NAME}" id 2>/dev/null || echo 'could not read id')"
 
   check "[${pass}] kernel gateway answers and kernels run code"
-  # The gateway check runs inside the container with the kernel venv, which ships
-  # tornado; both Python files are streamed in, so nothing is mounted. It prints
-  # its own sub-checks; the last "CHECK:" line before a failure is the one that failed.
-  #
-  # This is also what proves the kernel can still import its packages in the hardened
-  # pass, where the kernel venv is read-only and setup-venv.sh has put a second venv
-  # in front of it on PYTHONPATH.
+  # Runs inside the container with the kernel venv, which ships tornado, printing sub-checks
+  # whose last "CHECK:" line before a failure is the one that failed, and in the hardened pass
+  # it is also what proves the kernel still imports its packages with that venv read-only.
   docker exec -i \
     -e STARTUP_TIMEOUT="${STARTUP_TIMEOUT}" \
     -e SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC}" \
@@ -236,9 +226,8 @@ run_session() {
 
   processes=$(docker exec "${NAME}" ps -eo args)
   check "[${pass}] sshd is running"
-  # sshd only reaches this state if start_server.sh managed to put a host key in
-  # /etc/ssh/keys. With a volume mounted over that path a plain mkdir fails and the
-  # copy never runs, and sshd then dies while the container still looks healthy.
+  # sshd only reaches this state if start_server.sh got a host key into /etc/ssh/keys, which
+  # a plain mkdir over a mounted volume would have silently prevented.
   grep "sshd -D" <<<"${processes}" | sed 's/^/[notebook-smoke]   /' || fail "no 'sshd -D' process"
 
   check "[${pass}] monitoring agent (uvicorn agent:app) is running"
@@ -250,9 +239,8 @@ run_session() {
   fi
 
   finish_check
-  # Freed as soon as the pass is green so two sessions never run at once; the step
-  # has a memory limit and a notebook kernel is not small. A pass that failed exits
-  # before this, leaving its container for cleanup to dump.
+  # Freed once the pass is green so two kernels never run at once against the step's memory
+  # limit, while a failed pass exits before this and leaves its container for cleanup to dump.
   docker rm -f "${NAME}" >/dev/null 2>&1 || true
   NAME=""
 }
@@ -264,13 +252,9 @@ if [ "${SKIP_HARDENED}" = "1" ]; then
   WARNINGS+=("${warning}")
   log "WARNING: ${warning}"
 else
-  # The hardened pass reproduces what nbx-operator builds when
-  # notebookSession.writableVolumes is enabled: a uid the image was not built with,
-  # and an emptyDir over each path start_server.sh writes to. tmpfs is the local
-  # stand-in for an emptyDir, mode 1777 for the ownership kubelet gives one.
-  #
-  # Group 0 rather than the image's own group: that is what a cluster-assigned uid
-  # gets, and it keeps the pass honest about files the image group-owns.
+  # Reproduces what nbx-operator builds when notebookSession.writableVolumes is enabled: a
+  # foreign uid in group 0 as a cluster assigns, and a tmpfs at mode 1777 standing in for the
+  # emptyDir kubelet mounts over each path start_server.sh writes to.
   run_session "hardened uid ${SESSION_UID}" \
     --user "${SESSION_UID}:0" \
     --tmpfs /home/notebooks/.nbx-rw:rw,mode=1777 \
