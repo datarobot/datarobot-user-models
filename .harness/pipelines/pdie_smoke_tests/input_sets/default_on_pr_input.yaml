@@ -1,0 +1,24 @@
+inputSet:
+  name: default_on_pr_input
+  tags: {}
+  identifier: default_on_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: pdie_smoke_tests
+    variables:
+      - name: target_repo
+        type: String
+        value: datarobot-user-models
+      - name: target_branch
+        type: String
+        value: <+trigger.targetBranch>
+      - name: source_branch
+        type: String
+        value: <+trigger.sourceBranch>
+      - name: source_commit_sha
+        type: String
+        value: <+trigger.commitSha>
+      - name: envs_parent_folders_to_include
+        type: String
+        value: public_dropin_environments,public_dropin_apps_environments,public_dropin_gpu_environments,public_dropin_notebook_environments

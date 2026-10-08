@@ -1,0 +1,349 @@
+pipeline:
+  name: PDIE Smoke tests
+  identifier: pdie_smoke_tests
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  description: |-
+    Smoke tests for execution environment images changed in a PR.
+    Waits for the new image of every changed env to be published, then runs env-specific smoke test stages.
+    To smoke-test another kind of env, add its own stage with a matrix built in the first stage.
+  stages:
+    - stage:
+        name: Build list of envs to test
+        identifier: build_list_of_envs_to_test
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: GitClone
+                  name: Clone repo
+                  identifier: Clone_repo
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: <+pipeline.variables.target_repo>
+                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+pipeline.variables.source_branch>
+                  description: Explicitly clone repo to pull a commit created during reconciliation
+              - step:
+                  type: Run
+                  name: build_list_of_environments_to_test_on
+                  identifier: build_list_of_environments_to_test_on
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
+                      cd /harness/<+pipeline.variables.target_repo>
+                      # The repo was cloned by the GitClone step, possibly as another user
+                      git config --global --add safe.directory "$(pwd)"
+
+                      # Report this stage under a fixed context, so a failed env detection shows up
+                      # on the PR instead of looking like "no env changed".
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "PDIE Smoke tests - Build list of envs to test" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      result_desc=""
+                      notify_exit() {
+                        local retval="${?}"
+                        if [ "${retval}" -gt 0 ]; then
+                          ghstatus.send failure "Failed to build the list of envs to test"
+                        else
+                          ghstatus.send success "${result_desc}"
+                        fi
+                      }
+
+                      trap notify_exit EXIT
+
+                      # Pin the run to one commit: the trigger commit when given, the branch head
+                      # otherwise. Later stages check out commit_sha, so every stage tests the same
+                      # commit even if the [auto] Update versions commit lands during the run.
+                      source_commit_sha="<+pipeline.variables.source_commit_sha>"
+                      if [ -n "${source_commit_sha}" ] && [ "${source_commit_sha}" != "null" ]; then
+                        git fetch origin "${source_commit_sha}" || { echo "git fetch ${source_commit_sha} failed"; exit 1; }
+                        git checkout --detach "${source_commit_sha}" || { echo "git checkout ${source_commit_sha} failed"; exit 1; }
+                      fi
+                      commit_sha=$(git rev-parse HEAD)
+                      ghstatus.send pending "Building the list of envs to test"
+
+                      echo "Show last 2 git commits: "
+                      git log -2
+
+                      # A git failure must fail this step rather than silently skip the tests.
+                      git fetch origin <+pipeline.variables.target_branch> || { echo "git fetch failed"; exit 1; }
+                      changed_files=$(git diff --name-only origin/<+pipeline.variables.target_branch>...HEAD) || { echo "git diff failed"; exit 1; }
+
+                      # Env parent folders to look for changes in; any top-level folder if empty.
+                      env_parents_regex=$(echo "<+pipeline.variables.envs_parent_folders_to_include>" | tr -d ' ' | tr ',' '|')
+                      if [ -z "${env_parents_regex}" ] || [ "${env_parents_regex}" = "null" ]; then
+                        env_parents_regex='[^/]+'
+                      fi
+
+                      # Changed envs: <parent>/<env> folders with an env_info.json that the PR touches.
+                      changed_envs_items=""
+                      changed_envs_count=0
+                      for env_dir in $(echo "${changed_files}" | grep -E "^(${env_parents_regex})/[^/]+/" | cut -d/ -f1-2 | sort -u); do
+                        if [ -f "${env_dir}/env_info.json" ]; then
+                          changed_envs_count=$((changed_envs_count + 1))
+                          changed_envs_items="${changed_envs_items:+${changed_envs_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
+                        fi
+                      done
+                      changed_envs_matrix_values="{\"environments\":[${changed_envs_items}]}"
+                      should_run_image_check=false
+                      if [ -n "${changed_envs_items}" ]; then
+                        should_run_image_check=true
+                      fi
+
+                      # Notebook envs covered by the Notebook Smoke Test; only the ones the PR
+                      # changes go to its matrix. To cover a new env, add its folder on a new line.
+                      notebook_smoke_envs="
+                      public_dropin_notebook_environments/python313_notebook
+                      public_dropin_notebook_environments/python311_notebook_base
+                      "
+                      notebook_smoke_items=""
+                      notebook_smoke_count=0
+                      for env_dir in ${notebook_smoke_envs}; do
+                        if echo "${changed_files}" | grep -q "^${env_dir}/"; then
+                          notebook_smoke_count=$((notebook_smoke_count + 1))
+                          notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
+                        fi
+                      done
+                      notebook_smoke_matrix_values="{\"environments\":[${notebook_smoke_items}]}"
+                      should_run_notebook_smoke=false
+                      if [ -n "${notebook_smoke_items}" ]; then
+                        should_run_notebook_smoke=true
+                      fi
+
+                      echo "commit_sha: ${commit_sha}"
+                      echo "should_run_image_check: ${should_run_image_check}"
+                      echo "changed_envs_matrix_values: ${changed_envs_matrix_values}"
+                      echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
+                      echo "notebook_smoke_matrix_values: ${notebook_smoke_matrix_values}"
+                      result_desc="Changed envs: ${changed_envs_count}, for Notebook Smoke Test: ${notebook_smoke_count}"
+                    outputVariables:
+                      - name: commit_sha
+                      - name: should_run_image_check
+                      - name: changed_envs_matrix_values
+                      - name: should_run_notebook_smoke
+                      - name: notebook_smoke_matrix_values
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: false
+        when:
+          pipelineStatus: Success
+    - stage:
+        name: Image existence
+        identifier: image_existence
+        description: Wait for the image of every changed env to be built for the commit and pull it
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Image Smoke Test
+                  identifier: image_smoke_test
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      REPO='<+pipeline.variables.target_repo>'
+                      COMMIT_SHA='<+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.commit_sha>'
+                      ENVDIR='<+matrix.env.env_path>/<+matrix.env.env_folder>'
+                      set -x
+
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
+                      cd "${REPO}"
+                      git checkout "${COMMIT_SHA}"
+
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "Image existence - ${ENVDIR}" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      notify_exit() {
+                        local retval="${?}"
+                        local state='success'
+                        if [ "${retval}" -gt 0 ]; then
+                          state='failure'
+                        fi
+                        ghstatus.send "${state}" "Image existence ${state}"
+                      }
+
+                      trap notify_exit EXIT
+
+                      ghstatus.send pending "Waiting for the image build"
+
+                      # Waits for the image build status on this commit, because the build is
+                      # async and the image tag stays the same across PR commits
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
+                      export MAXWAIT=1800 # 30 minutes because r-lang builds really slow
+                      COMMIT_SHA="${COMMIT_SHA}" harness_scripts/smoke_test/image_smoke_test.sh "${ENVDIR}"
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: false
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_image_check> == "true"
+        strategy:
+          matrix:
+            env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.changed_envs_matrix_values>)>
+            nodeName: <+matrix.env.env_path>/<+matrix.env.env_folder>
+    - stage:
+        name: Notebook Smoke Test
+        identifier: notebook_smoke_test
+        description: Start the notebook image via start_server.sh and check the gateway, kernels, drgithelper and sshd
+        type: CI
+        spec:
+          cloneCodebase: false
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Notebook Smoke Test
+                  identifier: notebook_smoke_test
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
+                    command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
+                      export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
+                      export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
+                      REPO='<+pipeline.variables.target_repo>'
+                      COMMIT_SHA='<+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.commit_sha>'
+                      ENVDIR='<+matrix.env.env_path>/<+matrix.env.env_folder>'
+                      set -x
+
+                      git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
+                      cd "${REPO}"
+                      git checkout "${COMMIT_SHA}"
+
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "Notebook Smoke Test - ${ENVDIR}" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      notify_exit() {
+                        local retval="${?}"
+                        local state='success'
+                        if [ "${retval}" -gt 0 ]; then
+                          state='failure'
+                        fi
+                        ghstatus.send "${state}" "Notebook Smoke Test ${state}"
+                      }
+
+                      trap notify_exit EXIT
+
+                      ghstatus.send pending "Notebook Smoke Test is running"
+
+                      repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
+                      tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${ENVDIR}/env_info.json")
+                      img="docker.io/datarobotdev/${repo}:${tag}"
+
+                      # The Image existence stage has already waited for the image.
+                      docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
+                      harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
+                    resources:
+                      limits:
+                        memory: 4G
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: false
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.should_run_notebook_smoke> == "true"
+        strategy:
+          matrix:
+            env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.notebook_smoke_matrix_values>)>
+            nodeName: <+matrix.env.env_path>/<+matrix.env.env_folder>
+  variables:
+    - name: target_repo
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: target_branch
+      type: String
+      description: Target branch (master, release/10.2)
+      required: false
+      value: <+input>
+    - name: source_branch
+      type: String
+      description: ""
+      required: false
+      value: <+input>
+    - name: source_commit_sha
+      type: String
+      description: Commit to test; the head of source_branch if empty. All stages test this commit.
+      required: false
+      value: <+input>
+    - name: envs_parent_folders_to_include
+      type: String
+      description: |-
+        Comma separated list of envs parent folders to check for changes; all if empty.
+        E.g. if changes are in: parent1/env1, parent2/env2; and parent2 is provided, only parent2/env2 is included
+      required: false
+      value: <+input>
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: <+pipeline.variables.target_repo>
+        build:
+          type: branch
+          spec:
+            branch: <+pipeline.variables.source_branch>
