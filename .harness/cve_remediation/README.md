@@ -45,14 +45,19 @@ search by key cannot see them.
 ### What this pipeline does not decide
 
 Whether PDIE covers the bump and regen on a given ref is a standing fact about the repo, not
-something this pipeline measures: it runs on `master`, not on `release/11.1`, and envs with no
-`requirements.in` are skipped on every branch. That rule lives in the agent's playbook
-(`packs/raptor/playbooks/datarobot-user-models.md`) and is maintained by hand when the workflow
-changes. The pipeline stages only what the agent cannot cheaply get for itself — the VITA scan,
-the Jira inventory, the built tags — and the agent has a full checkout to read the rest from.
+something this pipeline measures: it runs on `master` and not on `release/11.1`. That rule lives
+in the agent's playbook (`packs/raptor/playbooks/datarobot-user-models.md`) and is maintained by
+hand when the workflow changes. The pipeline stages only what the agent cannot cheaply get for
+itself — the VITA scan, the Jira inventory, the built tags — and the agent has a full checkout to
+read the rest from.
 
-Envs with no `requirements.in` are still named in the Triage log each run, so a reader sees which
-ones PDIE will skip without having to know the list.
+**PDIE does not skip the envs without a `requirements.in`.** `pdie_update_deps_versions` iterates
+every changed `public_*` environment with no such gate: it bumps `environmentVersionId` and runs
+`make update-deps`, which for `python3_mcp` and `python3_genai_agents` is `uv lock --upgrade`.
+They are named in the Triage log only because the regen mechanism differs, so a diff on them looks
+unlike the others — not because they are left alone. Treating them as untouched is how the agent
+would pin one and then have PDIE auto-commit on top of its branch, which is the race the grace
+window exists to prevent.
 
 ## What this pipeline cannot close
 

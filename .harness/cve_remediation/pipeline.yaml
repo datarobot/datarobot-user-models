@@ -72,7 +72,12 @@ pipeline:
       type: String
       description: Comma-separated image names this repo owns. Scopes both the ticket inventory and the agent's scan rows.
       required: false
-      value: <+input>.default(env-python,env-r-lang,env-java-codegen)
+      # Enumerated, not three substrings. "env-python" as a substring also matches
+      # env-python-genai-buzok, which is built in datarobot/buzok and is not ours; it was
+      # roughly a tenth of the in-scope scan rows, and any buzok ticket would have been
+      # counted as this repo's. This list is every imageRepository in
+      # public_dropin_environments/*/env_info.json as of 2026-10-08.
+      value: <+input>.default(env-java-codegen,env-python,env-python-3-genai-agents,env-python-keras,env-python-mcp,env-python-onnx,env-python-pytorch,env-python-sklearn,env-python-xgboost,env-r-lang)
     # On by default here, unlike remedy-agent's own default: this is CI, where the log
     # is the only view of a run, and the agent prints nothing between turns. A turn
     # against a large prompt ran five minutes silent on the first live run, which is
@@ -260,11 +265,15 @@ pipeline:
                         sed -n '1,5p' /harness/cve/scan-err.txt >&2
                         exit 78
                       fi
-                      # Substring match, same rule build_inventory.py's in_scope() applies to a
-                      # ticket's artifacts. It is why the scope needs only three entries here:
-                      # env-python also matches env-python-sklearn, -pytorch, -xgboost and the rest.
+                      # Exact match on the image name, not a substring. ArtifactName is
+                      # docker.io/datarobotdev/<name>:<tag>, so the host and tag come off first.
+                      # A substring test let env-python match env-python-genai-buzok, another
+                      # repo's image.
                       jq --argjson imgs "$(printf '%s\n' "${_imgs[@]}" | jq -R . | jq -cs 'map(select(length > 0))')" \
-                         '[ .[] | . as $r | select(any($imgs[]; . as $i | ($r.ArtifactName // "") | contains($i))) ]' \
+                         '[ .[] | . as $r
+                            | (($r.ArtifactName // "") | sub("^docker\\.io/"; "")
+                               | split(":")[0] | split("/") | last) as $n
+                            | select(any($imgs[]; . == $n)) ]' \
                          /harness/cve/scan-full.json > /harness/cve/scan.json
                       echo "scan: $(jq 'length' /harness/cve/scan.json) of $(jq 'length' /harness/cve/scan-full.json)" \
                            "rows in CVE-scan/$SCAN_DIR match $SCOPE_IMAGES -> /harness/cve/scan.json"
@@ -336,7 +345,20 @@ pipeline:
                            --base "$REPO_REF" --limit 100 \
                            --json number,title,headRefName,author,files,isDraft,updatedAt,url \
                            > /harness/cve/open-prs-all.json 2>/harness/cve/open-prs-err.txt; then
-                        jq '[.[] | select([.files[].path] | any(startswith("public_dropin_environments/")))]' \
+                        # Narrowed twice over. The playbook reads an open PR as "the fix exists and
+                        # is in review", so a PR nobody has touched for months would park a ticket
+                        # forever -- #1628 was last updated in 2025-08. And the regen job opens a
+                        # fresh PR each cycle, so only the newest one describes the current state.
+                        PR_STALE_AFTER="$(date -u -d '45 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+                                          || date -u -v-45d +%Y-%m-%dT%H:%M:%SZ)"
+                        jq --arg since "$PR_STALE_AFTER" '
+                          [ .[]
+                            | select([.files[].path] | any(startswith("public_dropin_environments/")))
+                            | select((.updatedAt // "") >= $since) ] as $live
+                          | ($live | map(select((.title // "") | test("^\\[auto\\] Regen"))) 
+                                   | sort_by(.updatedAt) | reverse | .[0:1]) as $newest_regen
+                          | ($live | map(select(((.title // "") | test("^\\[auto\\] Regen")) | not)))
+                            + $newest_regen' \
                           /harness/cve/open-prs-all.json > /harness/cve/open-prs.json
                         echo "open PRs on $REPO_REF touching dropin envs: $(jq 'length' /harness/cve/open-prs.json)"
                         jq -r '.[] | "  #\(.number) \(.author.login) \(.title[0:60])"' /harness/cve/open-prs.json
@@ -378,10 +400,12 @@ pipeline:
                         [ -n "$name" ] && [ -n "$tag" ] || {
                           echo "skipping $env: no imageRepository/environmentVersionId" >&2; continue; }
                         images+=("datarobotdev/${name}:${tag}")
-                        # An env with no requirements.in gets no PDIE regen even on master, so it
-                        # behaves like the release-branch case. Named here rather than discovered
-                        # as a silent skip later.
-                        [ -f "${d}requirements.in" ] || echo "note: $env has no requirements.in - no PDIE regen on any branch"
+                        # NOT a PDIE skip list. pdie_update_deps_versions iterates every changed
+                        # public_* env with no requirements.in gate: it bumps environmentVersionId
+                        # and runs `make update-deps`, which for these envs is `uv lock --upgrade`.
+                        # Logged only because the regen mechanism differs -- uv lock rather than
+                        # pip-compile -- so a diff on them looks unlike the others.
+                        [ -f "${d}requirements.in" ] || echo "note: $env regenerates via uv lock, not requirements.in"
                       done
 
                       # Written to a file AND logged. The agent needs these: they are the only
@@ -406,7 +430,14 @@ pipeline:
                       # After the gate marker, and it outranks it: divergence can be why the inventory
                       # narrowed to nothing, and a quiet day caused by the wrong picture is the worst
                       # of the outcomes.
-                      scanned="$(jq -r '[.[].ArtifactName // empty] | unique | .[]' /harness/cve/scan.json)"
+                      # The registry host comes off first: ArtifactName is always
+                      # docker.io/datarobotdev/..., while built names are datarobotdev/..., so the
+                      # anchored sed below matched nothing, `have` was always empty, and every
+                      # image hit `continue`. The guard could never fire -- including right after
+                      # PDIE bumps environmentVersionId and before the chart bump, which is exactly
+                      # when deployed and built differ.
+                      scanned="$(jq -r '[.[].ArtifactName // empty] | unique | .[]' /harness/cve/scan.json \
+                                 | sed -e 's|^docker\.io/||')"
                       diverged=""
                       for img in "${images[@]}"; do
                         name="${img%:*}"
@@ -621,7 +652,11 @@ pipeline:
                       findings=0
                       degenerate=""
                       if [ -n "$report" ]; then
-                        findings="$(jq '[(.root_causes//[]),(.fix_actions//[]),(.ticket_actions//[])]
+                        # .actions, not .fix_actions: RunReport has no such key, so //[] made
+                        # that term zero and the guard counted two of three categories. A run
+                        # whose output was only actions was declared degenerate and the stage
+                        # failed, losing the partial work.
+                        findings="$(jq '[(.root_causes//[]),(.actions//[]),(.ticket_actions//[])]
                                         | map(length) | add' "$report" 2>/dev/null || echo 0)"
                         # remedy-agent writes "DEGENERATE RUN: <why>" into report.blocked when its
                         # coverage check fails. Read the field, not the log line.
@@ -717,8 +752,16 @@ pipeline:
                       # in a write mode this step must not create a second one for the same fix.
                       CUR_BRANCH="$(git rev-parse --abbrev-ref HEAD)"
                       if [ "$CUR_BRANCH" != "HEAD" ]; then
-                        EXISTING="$(gh pr list --repo datarobot/datarobot-user-models --state open \
-                          --head "$CUR_BRANCH" --json url --jq '.[0].url // empty' 2>/dev/null || true)"
+                        # An auth or rate-limit failure used to read as "no existing PR", which in
+                        # hitl or auto mode opens a duplicate draft. A failed lookup now stops here.
+                        if ! EXISTING="$(gh pr list --repo datarobot/datarobot-user-models --state open \
+                             --head "$CUR_BRANCH" --json url --jq '.[0].url // empty' \
+                             2>/harness/cve/existing-pr-err.txt)"; then
+                          echo "Could not check for an existing PR on $CUR_BRANCH:" >&2
+                          sed -n '1,3p' /harness/cve/existing-pr-err.txt >&2
+                          echo "Not opening one: a duplicate is worse than a deferred proposal." >&2
+                          exit 0
+                        fi
                         if [ -n "$EXISTING" ]; then
                           echo "The agent already opened a PR for this work: $EXISTING"
                           echo "Not opening a second one. Review and merge that PR; the RunReport in"
