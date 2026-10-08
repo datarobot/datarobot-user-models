@@ -189,7 +189,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "Image existence - ${ENVDIR}" \
+                          "PDIE Smoke tests - Image existence - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -265,7 +265,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "Notebook Smoke Test - ${ENVDIR}" \
+                          "PDIE Smoke tests - Notebook Smoke Test - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
