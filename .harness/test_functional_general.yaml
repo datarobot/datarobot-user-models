@@ -12,7 +12,7 @@ pipeline:
     - stage:
         name: Check changed files
         identifier: check_changed_files
-        description: Skips the functional tests when the PR changes only notebook environments, which these tests don't use
+        description: Doesn't run the functional tests where they aren't needed, e.g. for PRs that change only notebook envs
         type: CI
         spec:
           cloneCodebase: true
@@ -33,8 +33,8 @@ pipeline:
                         git fetch origin "${target_branch}" || { echo "git fetch failed"; exit 1; }
                         changed_files=$(git diff --name-only "origin/${target_branch}...HEAD") || { echo "git diff failed"; exit 1; }
 
-                        # Envs these tests don't use; the tests are skipped when the PR changes
-                        # only these envs. To skip a new env, add its folder on a new line.
+                        # Envs that don't need these tests, e.g. notebook envs; the tests don't run
+                        # when the PR changes only these envs. To add an env, add its folder on a new line.
                         skip_tests_envs="
                         public_dropin_notebook_environments/python313_notebook
                         public_dropin_notebook_environments/python311_notebook_base
