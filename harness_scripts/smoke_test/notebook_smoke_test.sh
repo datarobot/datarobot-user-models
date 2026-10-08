@@ -34,12 +34,14 @@ SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC:-0}"
 KERNEL_DIR=/etc/system/kernel
 KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
 
-# Python checks, kept next to this script:
-#   notebook_gateway_check.py  runs inside the container and talks to the kernel gateway
-#   notebook_kernel_check.py   code that the gateway check runs in every kernel
+# Files kept next to this script:
+#   notebook_gateway_check.py     runs inside the container and talks to the kernel gateway
+#   notebook_kernel_check.py      code that the gateway check runs in every kernel
+#   notebook_required_modules.txt modules that must import in the kernels of each env
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATEWAY_CHECK="${SCRIPT_DIR}/notebook_gateway_check.py"
 KERNEL_CHECK="${SCRIPT_DIR}/notebook_kernel_check.py"
+REQUIRED_MODULES_FILE="${SCRIPT_DIR}/notebook_required_modules.txt"
 
 CURRENT_CHECK="setup"
 PASSED_CHECKS=()
@@ -114,6 +116,14 @@ log "Image:           ${IMAGE}"
 log "Startup timeout: ${STARTUP_TIMEOUT}s"
 log "Kernel exec:     $([ "${SKIP_KERNEL_EXEC}" = "1" ] && echo "skipped (SKIP_KERNEL_EXEC=1)" || echo "enabled")"
 
+# Env path relative to the repo root, as listed in the required modules file
+ENV_PATH="${ENV_DIR#./}"
+ENV_PATH="${ENV_PATH%/}"
+check "required modules for ${ENV_PATH} are listed in $(basename "${REQUIRED_MODULES_FILE}")"
+REQUIRED_MODULES=$(awk -v env="${ENV_PATH}" '$1 == env { $1 = ""; sub(/^ +/, ""); print; exit }' "${REQUIRED_MODULES_FILE}")
+[ -n "${REQUIRED_MODULES}" ] || fail "no line for ${ENV_PATH} in ${REQUIRED_MODULES_FILE}; add one"
+log "  modules: ${REQUIRED_MODULES}"
+
 check "image ${IMAGE} is available locally or can be pulled"
 docker image inspect "${IMAGE}" >/dev/null 2>&1 || docker pull "${IMAGE}" \
   || fail "cannot pull ${IMAGE}"
@@ -143,6 +153,7 @@ docker exec -i \
   -e STARTUP_TIMEOUT="${STARTUP_TIMEOUT}" \
   -e SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC}" \
   -e KERNEL_CHECK_CODE="$(cat "${KERNEL_CHECK}")" \
+  -e REQUIRED_MODULES="${REQUIRED_MODULES}" \
   "${NAME}" "${KERNEL_PYTHON}" - <"${GATEWAY_CHECK}" \
   || fail "kernel gateway check failed, see the last sub-check above"
 

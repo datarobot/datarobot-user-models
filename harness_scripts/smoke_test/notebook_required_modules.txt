@@ -1,0 +1,5 @@
+# Modules that must import in the kernels of each notebook env, used by notebook_smoke_test.sh.
+# One line per env: <env path from the repo root> <modules, space separated>.
+# dask also turns on the dask tokenize (MD5) check.
+public_dropin_notebook_environments/python313_notebook numpy pandas sklearn xgboost shap datarobot dask
+public_dropin_notebook_environments/python311_notebook_base numpy pandas datarobot

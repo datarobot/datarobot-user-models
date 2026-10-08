@@ -12,8 +12,9 @@ that failed.
 Env vars:
   STARTUP_TIMEOUT    seconds to wait for the gateway, kernels and replies
   SKIP_KERNEL_EXEC   set to 1 to only check that the prespawned kernel exists
-  KERNEL_CHECK_CODE  code to run in kernels (notebook_kernel_check.py); it must
-                     print SMOKE_OK when every check passed
+  KERNEL_CHECK_CODE  notebook_kernel_check.py; its run_checks() must print
+                     SMOKE_OK when every check passed
+  REQUIRED_MODULES   space separated modules that must import in the kernels
 """
 
 import asyncio
@@ -29,7 +30,9 @@ from tornado.websocket import websocket_connect
 BASE = "127.0.0.1:8888"
 TIMEOUT = int(os.environ["STARTUP_TIMEOUT"])
 SKIP_KERNEL_EXEC = os.environ.get("SKIP_KERNEL_EXEC") == "1"
-CODE = os.environ["KERNEL_CHECK_CODE"]
+REQUIRED_MODULES = os.environ["REQUIRED_MODULES"].split()
+# Kernels don't see this process's env vars, so the module list goes into the code.
+CODE = f"{os.environ['KERNEL_CHECK_CODE']}\nrun_checks({REQUIRED_MODULES!r})\n"
 http = AsyncHTTPClient()
 
 
