@@ -189,7 +189,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "Image existence - ${ENVDIR}" \
+                          "PDIE Smoke tests - Image existence - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -265,7 +265,7 @@ pipeline:
                         /usr/local/bin/github.status.sh json "${state}" \
                           "$(/usr/local/bin/harness.execution-url.sh)" \
                           "${desc}" \
-                          "Notebook Smoke Test - ${ENVDIR}" \
+                          "PDIE Smoke tests - Notebook Smoke Test - ${ENVDIR}" \
                           | /usr/local/bin/github.status.sh setfromhead
                       }
 
@@ -288,7 +288,7 @@ pipeline:
 
                       # The Image existence stage has already waited for the image.
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
-                      harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
+                      COMMIT_SHA="${COMMIT_SHA}" harness_scripts/smoke_test/notebook_smoke_test.sh "${ENVDIR}" "${img}"
                     resources:
                       limits:
                         memory: 4G
@@ -338,12 +338,3 @@ pipeline:
         E.g. if changes are in: parent1/env1, parent2/env2; and parent2 is provided, only parent2/env2 is included
       required: false
       value: <+input>
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.svc_harness_git1
-        repoName: <+pipeline.variables.target_repo>
-        build:
-          type: branch
-          spec:
-            branch: <+pipeline.variables.source_branch>

@@ -19,6 +19,7 @@
 #            docker.io/datarobotdev/<imageRepository>:<environmentVersionId>
 #
 # Optional env vars:
+#   COMMIT_SHA       commit the image was built for; only shown in the log header
 #   STARTUP_TIMEOUT  seconds to wait for the gateway and kernels (default 300)
 #   SKIP_KERNEL_EXEC set to 1 to only check that the prespawned kernel exists,
 #                    without running code; ipykernel never answers under amd64
@@ -30,6 +31,7 @@ ENV_DIR="${1:?Usage: notebook_smoke_test.sh <env_dir> [image]}"
 IMAGE="${2:-}"
 STARTUP_TIMEOUT="${STARTUP_TIMEOUT:-300}"
 SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC:-0}"
+COMMIT_SHA="${COMMIT_SHA:-}"
 
 KERNEL_DIR=/etc/system/kernel
 KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
@@ -49,7 +51,7 @@ CURRENT_CHECK="setup"
 PASSED_CHECKS=()
 WARNINGS=()
 
-log() { echo "[smoke] $*"; }
+log() { echo "[notebook-smoke] $*"; }
 # check <description>: starts a check; the next check or the end of the script
 # marks it as passed.
 check() {
@@ -65,15 +67,27 @@ finish_check() {
   fi
   CURRENT_CHECK="setup"
 }
-fail() { echo "[smoke]   FAIL: $*" >&2; exit 1; }
+fail() { echo "[notebook-smoke]   FAIL: $*" >&2; exit 1; }
 
+# Reads a top-level string field from env_info.json; sed instead of python/jq so
+# the host needs nothing but docker
+env_info_field() { sed -n "s/^ *\"$1\": *\"\([^\"]*\)\".*/\1/p" "${ENV_INFO}" | head -1; }
+
+ENV_INFO="${ENV_DIR}/env_info.json"
+ENV_NAME=""
+ENV_ID=""
+ENV_VERSION_ID=""
+if [ -f "${ENV_INFO}" ]; then
+  ENV_NAME=$(env_info_field name)
+  ENV_ID=$(env_info_field id)
+  ENV_VERSION_ID=$(env_info_field environmentVersionId)
+fi
 if [ -z "${IMAGE}" ]; then
-  env_info="${ENV_DIR}/env_info.json"
-  # sed instead of python/jq so the host needs nothing but docker
-  repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${env_info}")
-  tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${env_info}")
-  [ -n "${repo}" ] && [ -n "${tag}" ] || fail "cannot read imageRepository/environmentVersionId from ${env_info}"
-  IMAGE="docker.io/datarobotdev/${repo}:${tag}"
+  [ -f "${ENV_INFO}" ] || fail "${ENV_INFO} not found"
+  repo=$(env_info_field imageRepository)
+  [ -n "${repo}" ] && [ -n "${ENV_VERSION_ID}" ] \
+    || fail "cannot read imageRepository/environmentVersionId from ${ENV_INFO}"
+  IMAGE="docker.io/datarobotdev/${repo}:${ENV_VERSION_ID}"
 fi
 
 NAME="notebook-smoke-$$-${RANDOM}"
@@ -117,10 +131,14 @@ cleanup() {
 }
 trap cleanup EXIT
 
-log "Environment:     ${ENV_DIR}"
-log "Image:           ${IMAGE}"
-log "Startup timeout: ${STARTUP_TIMEOUT}s"
-log "Kernel exec:     $([ "${SKIP_KERNEL_EXEC}" = "1" ] && echo "skipped (SKIP_KERNEL_EXEC=1)" || echo "enabled")"
+log "Environment:      ${ENV_DIR}"
+log "Env name:         ${ENV_NAME:-n/a}"
+log "Image ID:         ${ENV_ID:-n/a}"
+log "Image version ID: ${ENV_VERSION_ID:-n/a}"
+log "Commit:           ${COMMIT_SHA:-not set}"
+log "Image name:       ${IMAGE}"
+log "Startup timeout:  ${STARTUP_TIMEOUT}s"
+log "Kernel exec:      $([ "${SKIP_KERNEL_EXEC}" = "1" ] && echo "skipped (SKIP_KERNEL_EXEC=1)" || echo "enabled")"
 
 # Env path relative to the repo root, as listed in the required modules file
 ENV_PATH="${ENV_DIR#./}"
@@ -174,10 +192,10 @@ docker exec -e HOME=/home/notebooks "${NAME}" "${KERNEL_DIR}/drgithelper" --vers
 
 processes=$(docker exec "${NAME}" ps -eo args)
 check "sshd is running"
-grep "sshd -D" <<<"${processes}" | sed 's/^/[smoke]   /' || fail "no 'sshd -D' process"
+grep "sshd -D" <<<"${processes}" | sed 's/^/[notebook-smoke]   /' || fail "no 'sshd -D' process"
 
 check "monitoring agent (uvicorn agent:app) is running"
-grep "uvicorn agent:app" <<<"${processes}" | sed 's/^/[smoke]   /' || fail "no 'uvicorn agent:app' process"
+grep "uvicorn agent:app" <<<"${processes}" | sed 's/^/[notebook-smoke]   /' || fail "no 'uvicorn agent:app' process"
 
 check "container log has no Go panics or Python tracebacks"
 if docker logs "${NAME}" 2>&1 | grep -n -A 5 -E "^panic:|Traceback \(most recent call last\)"; then

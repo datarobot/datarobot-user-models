@@ -82,8 +82,35 @@ on_exit() {
 }
 trap on_exit EXIT
 
-log "Environment: ${ENV_DIR}"
-log "Commit:      ${COMMIT_SHA:-not set}"
+# Reads a top-level string field from env_info.json; sed instead of python/jq so
+# reading it needs nothing but a shell
+env_info_field() { sed -n "s/^ *\"$1\": *\"\([^\"]*\)\".*/\1/p" "${ENV_INFO}" | head -1; }
+
+ENV_INFO="${ENV_DIR}/env_info.json"
+ENV_NAME=""
+ENV_ID=""
+ENV_VERSION_ID=""
+CURRENT_CHECK="read ${ENV_INFO}"
+if [ -f "${ENV_INFO}" ]; then
+  ENV_NAME=$(env_info_field name)
+  ENV_ID=$(env_info_field id)
+  ENV_VERSION_ID=$(env_info_field environmentVersionId)
+fi
+if [ -z "${IMAGE}" ]; then
+  [ -f "${ENV_INFO}" ] || fail "${ENV_INFO} not found"
+  repo=$(env_info_field imageRepository)
+  [ -n "${repo}" ] || fail "no imageRepository in ${ENV_INFO}"
+  [ -n "${ENV_VERSION_ID}" ] || fail "no environmentVersionId in ${ENV_INFO}"
+  IMAGE="docker.io/datarobotdev/${repo}:${ENV_VERSION_ID}"
+fi
+CURRENT_CHECK="setup"
+
+log "Environment:      ${ENV_DIR}"
+log "Env name:         ${ENV_NAME:-n/a}"
+log "Image ID:         ${ENV_ID:-n/a}"
+log "Image version ID: ${ENV_VERSION_ID:-n/a}"
+log "Commit:           ${COMMIT_SHA:-not set}"
+log "Image name:       ${IMAGE}"
 
 if [ -n "${COMMIT_SHA}" ]; then
   check "'${BUILD_STATUS_CONTEXT}' status is success on ${COMMIT_SHA} (waiting up to ${MAXWAIT}s)"
@@ -91,6 +118,7 @@ if [ -n "${COMMIT_SHA}" ]; then
   command -v jq >/dev/null || fail "jq is required with COMMIT_SHA"
   start=${SECONDS}
   last_error=""
+  shown_build_url=""
   while true; do
     waited=$((SECONDS - start))
     state=""
@@ -107,6 +135,10 @@ if [ -n "${COMMIT_SHA}" ]; then
     else
       last_error="${response}"
       log "  GitHub API error, will retry: ${last_error}"
+    fi
+    if [ -n "${build_url}" ] && [ "${build_url}" != "${shown_build_url}" ]; then
+      log "  build run: ${build_url}"
+      shown_build_url="${build_url}"
     fi
     case "${state}" in
       success)
@@ -130,18 +162,6 @@ else
   log "SKIP: image build status (COMMIT_SHA not set); the tag may hold an image built for an earlier commit"
 fi
 
-if [ -z "${IMAGE}" ]; then
-  env_info="${ENV_DIR}/env_info.json"
-  check "read the image from ${env_info}"
-  [ -f "${env_info}" ] || fail "${env_info} not found"
-  # sed instead of python/jq so the host needs nothing but docker
-  repo=$(sed -n 's/.*"imageRepository": *"\([^"]*\)".*/\1/p' "${env_info}")
-  tag=$(sed -n 's/.*"environmentVersionId": *"\([^"]*\)".*/\1/p' "${env_info}")
-  [ -n "${repo}" ] || fail "no imageRepository in ${env_info}"
-  [ -n "${tag}" ] || fail "no environmentVersionId in ${env_info}"
-  IMAGE="docker.io/datarobotdev/${repo}:${tag}"
-fi
-log "  image: ${IMAGE}"
 
 check "image tag is published (waiting up to ${MAXWAIT}s)"
 start=${SECONDS}
