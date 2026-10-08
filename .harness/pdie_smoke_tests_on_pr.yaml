@@ -19,6 +19,9 @@ trigger:
           connectorRef: account.svc_harness_git1
           autoAbortPreviousExecutions: true
           payloadConditions:
+            - key: changedFiles
+              operator: Contains
+              value: public_dropin_
             - key: targetBranch
               operator: Equals
               value: master
