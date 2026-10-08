@@ -72,12 +72,12 @@ pipeline:
       type: String
       description: Comma-separated image names this repo owns. Scopes both the ticket inventory and the agent's scan rows.
       required: false
-      # Enumerated, not three substrings. "env-python" as a substring also matches
-      # env-python-genai-buzok, which is built in datarobot/buzok and is not ours; it was
-      # roughly a tenth of the in-scope scan rows, and any buzok ticket would have been
-      # counted as this repo's. This list is every imageRepository in
-      # public_dropin_environments/*/env_info.json as of 2026-10-08.
-      value: <+input>.default(env-java-codegen,env-python,env-python-3-genai-agents,env-python-keras,env-python-mcp,env-python-onnx,env-python-pytorch,env-python-sklearn,env-python-xgboost,env-r-lang)
+      # "auto" reads every imageRepository from public_dropin_environments/*/env_info.json
+      # on the checked-out ref, so a new environment is in scope as soon as it exists.
+      # An explicit comma-separated list overrides it, for narrowing a run by hand.
+      # Not a substring match either way: "env-python" as a substring also matched
+      # env-python-genai-buzok, built in datarobot/buzok and not ours.
+      value: <+input>.default(auto)
     # On by default here, unlike remedy-agent's own default: this is CI, where the log
     # is the only view of a run, and the agent prints nothing between turns. A turn
     # against a large prompt ran five minutes silent on the first live run, which is
@@ -231,13 +231,37 @@ pipeline:
                       # One fetch, two shapes: remedy-agent's inventory rows and the raw
                       # shape cve-parse/cve-verify take. Narrowed to this repo's images,
                       # which is what scopes the agent run. See README.
+                      # Derived from the checkout by default, so a new dropin environment is in
+                      # scope the moment it exists. A hardcoded list silently drops one until
+                      # somebody remembers this line -- the same drift that let a substring scope
+                      # pull in another repo's image. The variable stays, as an override for
+                      # narrowing a run by hand.
                       IMAGE_FLAGS=()
-                      IFS=', ' read -r -a _imgs <<< "$SCOPE_IMAGES"
+                      if [ "$SCOPE_IMAGES" = "auto" ]; then
+                        _imgs=()
+                        while IFS= read -r i; do
+                          [ -n "$i" ] && _imgs+=("$i")
+                        done < <(for d in /harness/repo/public_dropin_environments/*/; do
+                                   [ -f "${d}env_info.json" ] || continue
+                                   jq -r '.imageRepository // empty' "${d}env_info.json"
+                                 done | sort -u)
+                        echo "scope: derived ${#_imgs[@]} image(s) from public_dropin_environments/*/env_info.json"
+                        printf '  %s\n' "${_imgs[@]}"
+                        SCOPE_IMAGES="$(printf '%s,' "${_imgs[@]}" | sed 's/,$//')"
+                        # The agent step takes SCAN_IMAGES from the pipeline variable, which is
+                        # still the literal "auto" there. Hand it the resolved list, or it would
+                        # narrow the pack's scope to an image name that does not exist.
+                        printf '%s' "$SCOPE_IMAGES" > /harness/cve/scope-images.txt
+                      else
+                        IFS=', ' read -r -a _imgs <<< "$SCOPE_IMAGES"
+                        echo "scope: using the scope_images override -> $SCOPE_IMAGES"
+                      fi
                       for i in "${_imgs[@]}"; do
                         [ -n "$i" ] && IMAGE_FLAGS+=(--image "$i")
                       done
                       if [ ${#IMAGE_FLAGS[@]} -eq 0 ]; then
-                        echo "FATAL: scope_images is empty; nothing would be in scope." >&2
+                        echo "FATAL: no images in scope. With scope_images=auto this means no" >&2
+                        echo "env_info.json under /harness/repo/public_dropin_environments/." >&2
                         exit 78
                       fi
                       # Scan first, inventory second: the inventory is branch-blind (it scopes by
@@ -582,6 +606,20 @@ pipeline:
                       # Written by Triage; see there for what these do.
                       . /harness/lib.sh || { echo "FATAL: /harness/lib.sh missing - did Triage run?" >&2; exit 78; }
                       gate_stop_or_exit
+
+                      # "auto" is resolved by Triage against the checkout; this variable still
+                      # carries the literal. SCAN_IMAGES narrows the pack itself, not just the
+                      # scan call, so an unresolved value here would tell the agent it owns an
+                      # image called "auto".
+                      if [ "${SCAN_IMAGES:-}" = "auto" ]; then
+                        SCAN_IMAGES="$(cat /harness/cve/scope-images.txt 2>/dev/null || true)"
+                        [ -n "$SCAN_IMAGES" ] || {
+                          echo "FATAL: scope_images=auto but Triage left no resolved list." >&2
+                          exit 78
+                        }
+                        export SCAN_IMAGES
+                        echo "scope: $SCAN_IMAGES"
+                      fi
 
                       # node and uv come from the image now. Fail loudly if a future
                       # rebuild drops them rather than letting run.sh die deeper in.
