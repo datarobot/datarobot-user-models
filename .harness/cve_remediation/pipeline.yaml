@@ -393,6 +393,43 @@ pipeline:
                         printf '[]' > /harness/cve/open-prs.json
                       fi
 
+                      # GHSA is the chassis's only advisory source, so an empty answer there reads as
+                      # "this CVE has no advisory". OSV carries entries GHSA does not. Queried by CVE
+                      # id: entries OSV holds only under an ecosystem id do not answer.
+                      osv_all="$(jq -r '[.. | strings | scan("CVE-[0-9]{4}-[0-9]+")] | unique | length' \
+                                 /harness/cve/inventory.json 2>/dev/null || echo 0)"
+                      # The cap is inside jq, not `| head -40`: under set -o pipefail head closes the
+                      # pipe, jq takes SIGPIPE and exits 141, killing this step.
+                      osv_cves="$(jq -r '[.. | strings | scan("CVE-[0-9]{4}-[0-9]+")] | unique | .[:40][]' \
+                                  /harness/cve/inventory.json 2>/dev/null || true)"
+                      [ "$osv_all" -gt 40 ] && echo "osv: $osv_all CVEs in scope, querying the first 40 by id" >&2
+                      # `unique` sorts, so the cap drops the newest ids. Recording which were asked
+                      # lets the agent tell "not queried" from "queried, no entry".
+                      jq -n --arg q "$osv_cves" '{_queried: ($q | split("\n") | map(select(. != "")))}' \
+                        > /harness/cve/osv.json
+                      osv_found=0
+                      for cve in $osv_cves; do
+                        entry="$(curl -sS -f --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null || true)"
+                        [ -n "$entry" ] || continue
+                        printf '%s' "$entry" | jq -e 'has("withdrawn") | not' >/dev/null 2>&1 || continue
+                        # On stdin, not --argjson: a single argument is capped near 128 KB on Linux
+                        # and some OSV entries are close to it.
+                        if printf '%s' "$entry" \
+                           | jq --arg c "$cve" --slurpfile base /harness/cve/osv.json '
+                               ($base[0] // {}) + {($c): {summary: (.summary // ""),
+                                                          details: (.details // ""),
+                                                          aliases: (.aliases // []),
+                                                          url: ("https://osv.dev/vulnerability/" + $c)}}' \
+                             > /harness/cve/osv.tmp; then
+                          mv /harness/cve/osv.tmp /harness/cve/osv.json
+                          osv_found=$((osv_found + 1))
+                        else
+                          rm -f /harness/cve/osv.tmp
+                          echo "osv: could not record $cve" >&2
+                        fi
+                      done
+                      echo "osv: $osv_found of $(printf '%s\n' $osv_cves | grep -c . || echo 0) queried CVEs have an entry (of $osv_all in scope)"
+
                       # Stop rather than pay an agent to discover there is nothing to do. The three
                       # reasons are named separately: a green run must not be ambiguous about which.
                       scan_rows="$(jq 'length' /harness/cve/scan.json)"
@@ -592,6 +629,9 @@ pipeline:
                       # state here -- without both the agent cannot tell a missing fix from an
                       # unpinned one, and proposes a rebuild for something already built.
                       BUILT_TAGS_FILE: /harness/cve/built-tags.json
+                      # The second place an advisory is looked for. The playbook reads this
+                      # before calling an advisory absent.
+                      OSV_FILE: /harness/cve/osv.json
                       # Open PRs already regenerating a dropin env on this ref. Read by the
                       # playbook before the agent edits an env, so it does not duplicate a
                       # regen PR that is open but not yet merged.
