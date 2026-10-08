@@ -36,10 +36,38 @@ pipeline:
                   name: build_list_of_environments_to_test_on
                   identifier: build_list_of_environments_to_test_on
                   spec:
-                    connectorRef: account.dockerhub_datarobot_read
-                    shell: Sh
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/genai-ci-tools:latest-docker
+                    shell: Bash
                     command: |-
+                      export GH_TOKEN='<+secrets.getValue("account.Github_Access_Token")>'
                       cd /harness/<+pipeline.variables.target_repo>
+                      # The repo was cloned by the GitClone step, possibly as another user
+                      git config --global --add safe.directory "$(pwd)"
+
+                      # Report this stage under a fixed context, so a failed env detection shows up
+                      # on the PR instead of looking like "no env changed".
+                      ghstatus.send() {
+                        local state="${1:?GitHub status state is required (pending, success, failure, error)}"
+                        local desc="${2:?Description is required}"
+                        /usr/local/bin/github.status.sh json "${state}" \
+                          "$(/usr/local/bin/harness.execution-url.sh)" \
+                          "${desc}" \
+                          "PDIE Smoke tests - Build list of envs to test" \
+                          | /usr/local/bin/github.status.sh setfromhead
+                      }
+
+                      result_desc=""
+                      notify_exit() {
+                        local retval="${?}"
+                        if [ "${retval}" -gt 0 ]; then
+                          ghstatus.send failure "Failed to build the list of envs to test"
+                        else
+                          ghstatus.send success "${result_desc}"
+                        fi
+                      }
+
+                      trap notify_exit EXIT
 
                       # Pin the run to one commit: the trigger commit when given, the branch head
                       # otherwise. Later stages check out commit_sha, so every stage tests the same
@@ -50,6 +78,7 @@ pipeline:
                         git checkout --detach "${source_commit_sha}" || { echo "git checkout ${source_commit_sha} failed"; exit 1; }
                       fi
                       commit_sha=$(git rev-parse HEAD)
+                      ghstatus.send pending "Building the list of envs to test"
 
                       echo "Show last 2 git commits: "
                       git log -2
@@ -66,8 +95,10 @@ pipeline:
 
                       # Changed envs: <parent>/<env> folders with an env_info.json that the PR touches.
                       changed_envs_items=""
+                      changed_envs_count=0
                       for env_dir in $(echo "${changed_files}" | grep -E "^(${env_parents_regex})/[^/]+/" | cut -d/ -f1-2 | sort -u); do
                         if [ -f "${env_dir}/env_info.json" ]; then
+                          changed_envs_count=$((changed_envs_count + 1))
                           changed_envs_items="${changed_envs_items:+${changed_envs_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
                         fi
                       done
@@ -84,8 +115,10 @@ pipeline:
                       public_dropin_notebook_environments/python311_notebook_base
                       "
                       notebook_smoke_items=""
+                      notebook_smoke_count=0
                       for env_dir in ${notebook_smoke_envs}; do
                         if echo "${changed_files}" | grep -q "^${env_dir}/"; then
+                          notebook_smoke_count=$((notebook_smoke_count + 1))
                           notebook_smoke_items="${notebook_smoke_items:+${notebook_smoke_items},}{\"env_path\":\"${env_dir%/*}\",\"env_folder\":\"${env_dir##*/}\"}"
                         fi
                       done
@@ -100,6 +133,7 @@ pipeline:
                       echo "changed_envs_matrix_values: ${changed_envs_matrix_values}"
                       echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
                       echo "notebook_smoke_matrix_values: ${notebook_smoke_matrix_values}"
+                      result_desc="Changed envs: ${changed_envs_count}, for Notebook Smoke Test: ${notebook_smoke_count}"
                     outputVariables:
                       - name: commit_sha
                       - name: should_run_image_check
