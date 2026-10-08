@@ -17,7 +17,7 @@ trigger:
         type: PullRequest
         spec:
           connectorRef: account.svc_harness_git1
-          autoAbortPreviousExecutions: false
+          autoAbortPreviousExecutions: true
           payloadConditions:
             - key: targetBranch
               operator: Equals

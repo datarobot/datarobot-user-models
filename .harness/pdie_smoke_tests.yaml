@@ -40,6 +40,17 @@ pipeline:
                     shell: Sh
                     command: |-
                       cd /harness/<+pipeline.variables.target_repo>
+
+                      # Pin the run to one commit: the trigger commit when given, the branch head
+                      # otherwise. Later stages check out commit_sha, so every stage tests the same
+                      # commit even if the [auto] Update versions commit lands during the run.
+                      source_commit_sha="<+pipeline.variables.source_commit_sha>"
+                      if [ -n "${source_commit_sha}" ] && [ "${source_commit_sha}" != "null" ]; then
+                        git fetch origin "${source_commit_sha}" || { echo "git fetch ${source_commit_sha} failed"; exit 1; }
+                        git checkout --detach "${source_commit_sha}" || { echo "git checkout ${source_commit_sha} failed"; exit 1; }
+                      fi
+                      commit_sha=$(git rev-parse HEAD)
+
                       echo "Show last 2 git commits: "
                       git log -2
 
@@ -84,11 +95,13 @@ pipeline:
                         should_run_notebook_smoke=true
                       fi
 
+                      echo "commit_sha: ${commit_sha}"
                       echo "should_run_image_check: ${should_run_image_check}"
                       echo "changed_envs_matrix_values: ${changed_envs_matrix_values}"
                       echo "should_run_notebook_smoke: ${should_run_notebook_smoke}"
                       echo "notebook_smoke_matrix_values: ${notebook_smoke_matrix_values}"
                     outputVariables:
+                      - name: commit_sha
                       - name: should_run_image_check
                       - name: changed_envs_matrix_values
                       - name: should_run_notebook_smoke
@@ -128,13 +141,13 @@ pipeline:
                       export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
                       export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
                       REPO='<+pipeline.variables.target_repo>'
-                      SOURCE_REF='<+pipeline.variables.source_branch>'
+                      COMMIT_SHA='<+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.commit_sha>'
                       ENVDIR='<+matrix.env.env_path>/<+matrix.env.env_folder>'
                       set -x
 
                       git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
                       cd "${REPO}"
-                      git checkout "${SOURCE_REF}"
+                      git checkout "${COMMIT_SHA}"
 
                       ghstatus.send() {
                         local state="${1:?GitHub status state is required (pending, success, failure, error)}"
@@ -203,13 +216,13 @@ pipeline:
                       export DH_USER='<+secrets.getValue("org.genai-systems-dockerhub-login")>'
                       export DH_TOKEN='<+secrets.getValue("org.genai-systems-dockerhub-token")>'
                       REPO='<+pipeline.variables.target_repo>'
-                      SOURCE_REF='<+pipeline.variables.source_branch>'
+                      COMMIT_SHA='<+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.commit_sha>'
                       ENVDIR='<+matrix.env.env_path>/<+matrix.env.env_folder>'
                       set -x
 
                       git clone "https://${GH_TOKEN}@github.com/datarobot/${REPO}.git"
                       cd "${REPO}"
-                      git checkout "${SOURCE_REF}"
+                      git checkout "${COMMIT_SHA}"
 
                       ghstatus.send() {
                         local state="${1:?GitHub status state is required (pending, success, failure, error)}"
@@ -276,6 +289,11 @@ pipeline:
     - name: source_branch
       type: String
       description: ""
+      required: false
+      value: <+input>
+    - name: source_commit_sha
+      type: String
+      description: Commit to test; the head of source_branch if empty. All stages test this commit.
       required: false
       value: <+input>
     - name: envs_parent_folders_to_include
