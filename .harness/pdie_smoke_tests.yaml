@@ -156,7 +156,7 @@ pipeline:
     - stage:
         name: Image existence
         identifier: image_existence
-        description: Wait for the image of every changed env to be published and pull it
+        description: Wait for the image of every changed env to be built for the commit and pull it
         type: CI
         spec:
           cloneCodebase: false
@@ -204,12 +204,13 @@ pipeline:
 
                       trap notify_exit EXIT
 
-                      ghstatus.send pending "Waiting for the image"
+                      ghstatus.send pending "Waiting for the image build"
 
-                      # Waits for the image to show up because build is an async process
+                      # Waits for the image build status on this commit, because the build is
+                      # async and the image tag stays the same across PR commits
                       docker login -u "${DH_USER}" --password-stdin <<<"${DH_TOKEN}"
                       export MAXWAIT=1800 # 30 minutes because r-lang builds really slow
-                      harness_scripts/smoke_test/image_smoke_test.sh "${ENVDIR}"
+                      COMMIT_SHA="${COMMIT_SHA}" harness_scripts/smoke_test/image_smoke_test.sh "${ENVDIR}"
           caching:
             enabled: false
             paths: []

@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Smoke test that the image of an environment has been published.
+# Smoke test that the image of an environment has been built and published.
 #
-# Reads the image from env_info.json, waits for its tag to show up in the
-# registry (images are built asynchronously after the PR is updated), then
+# Images are built asynchronously after the PR is updated, and the image tag
+# (environmentVersionId) stays the same across PR commits, so an existing tag
+# may still hold the image built for an earlier commit. With COMMIT_SHA set,
+# the script first waits for the image build's GitHub status on that commit
+# ("ExecEnv Build: <env_dir>") to be success, and fails as soon as it fails.
+# Then it reads the image from env_info.json, checks that its tag is published,
 # pulls it and prints its details.
 #
-# Only needs docker on the host. Log in to the registry beforehand if the
-# image is private.
+# Needs docker on the host, plus curl and jq with COMMIT_SHA. Log in to the
+# registry beforehand if the image is private.
 #
 # Usage: image_smoke_test.sh <env_dir> [image]
 #   env_dir  environment folder containing env_info.json,
@@ -15,15 +19,27 @@
 #            docker.io/datarobotdev/<imageRepository>:<environmentVersionId>
 #
 # Optional env vars:
-#   MAXWAIT   seconds to wait for the tag to be published (default 1800)
-#   INTERVAL  seconds between registry checks (default 30)
+#   COMMIT_SHA            commit to wait for the image build on; without it the
+#                         build status is not checked, only the tag
+#   GH_TOKEN              GitHub token to read commit statuses; required with COMMIT_SHA
+#   GITHUB_REPO           repo of COMMIT_SHA (default datarobot/datarobot-user-models)
+#   BUILD_STATUS_CONTEXT  build status name (default "ExecEnv Build: <env_dir>")
+#   MAXWAIT               seconds to wait for the build and for the tag (default 1800)
+#   INTERVAL              seconds between checks (default 30)
 
 set -euo pipefail
 
 ENV_DIR="${1:?Usage: image_smoke_test.sh <env_dir> [image]}"
 IMAGE="${2:-}"
+COMMIT_SHA="${COMMIT_SHA:-}"
+GITHUB_REPO="${GITHUB_REPO:-datarobot/datarobot-user-models}"
 MAXWAIT="${MAXWAIT:-1800}"
 INTERVAL="${INTERVAL:-30}"
+
+# Env path relative to the repo root, as used in the build status name
+ENV_PATH="${ENV_DIR#./}"
+ENV_PATH="${ENV_PATH%/}"
+BUILD_STATUS_CONTEXT="${BUILD_STATUS_CONTEXT:-ExecEnv Build: ${ENV_PATH}}"
 
 CURRENT_CHECK="setup"
 PASSED_CHECKS=()
@@ -67,6 +83,52 @@ on_exit() {
 trap on_exit EXIT
 
 log "Environment: ${ENV_DIR}"
+log "Commit:      ${COMMIT_SHA:-not set}"
+
+if [ -n "${COMMIT_SHA}" ]; then
+  check "'${BUILD_STATUS_CONTEXT}' status is success on ${COMMIT_SHA} (waiting up to ${MAXWAIT}s)"
+  [ -n "${GH_TOKEN:-}" ] || fail "GH_TOKEN is required with COMMIT_SHA"
+  command -v jq >/dev/null || fail "jq is required with COMMIT_SHA"
+  start=${SECONDS}
+  last_error=""
+  while true; do
+    waited=$((SECONDS - start))
+    state=""
+    build_url=""
+    # The combined status holds the latest status of every context on the commit
+    if response=$(curl --silent --show-error --fail -L \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Token ${GH_TOKEN}" \
+      "https://api.github.com/repos/${GITHUB_REPO}/commits/${COMMIT_SHA}/status?per_page=100" 2>&1); then
+      state=$(jq -r --arg ctx "${BUILD_STATUS_CONTEXT}" \
+        'first(.statuses[] | select(.context == $ctx) | .state) // ""' <<<"${response}")
+      build_url=$(jq -r --arg ctx "${BUILD_STATUS_CONTEXT}" \
+        'first(.statuses[] | select(.context == $ctx) | .target_url) // ""' <<<"${response}")
+    else
+      last_error="${response}"
+      log "  GitHub API error, will retry: ${last_error}"
+    fi
+    case "${state}" in
+      success)
+        log "  build succeeded after ${waited}s: ${build_url}"
+        break
+        ;;
+      failure | error)
+        fail "image build ${state}: ${build_url}"
+        ;;
+    esac
+    if [ "${waited}" -ge "${MAXWAIT}" ]; then
+      if [ -n "${state}" ]; then
+        fail "build still ${state} after ${waited}s: ${build_url}"
+      fi
+      fail "no '${BUILD_STATUS_CONTEXT}' status on ${COMMIT_SHA} after ${waited}s; the image was not built for this commit${last_error:+; last API error: ${last_error}}"
+    fi
+    log "  build ${state:-not reported yet} after ${waited}s, checking again in ${INTERVAL}s"
+    sleep "${INTERVAL}"
+  done
+else
+  log "SKIP: image build status (COMMIT_SHA not set); the tag may hold an image built for an earlier commit"
+fi
 
 if [ -z "${IMAGE}" ]; then
   env_info="${ENV_DIR}/env_info.json"
