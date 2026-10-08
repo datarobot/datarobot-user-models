@@ -1,12 +1,11 @@
 pipeline:
-  # Distinct from the global-envs-models pipeline, which is CVE_Remediation in this
-  # same project: Harness identifiers are unique per project, and reusing that one
-  # would either be rejected or, worse, repoint the gem pipeline at this file.
-  # Stays in Global_Models because the Slack secret below is scoped to this project
-  # and because sharing the queue key only serialises within one project's entities.
-  name: CVE Remediation - datarobot-user-models
-  identifier: CVE_Remediation_User_Models
-  projectIdentifier: Global_Models
+  # Lives in this repo's own Harness project, beside the automation it runs behind
+  # (pdie_update_versions_dependencies, PDIE_Update_And_Rebuild_All). The identifier
+  # matches the global-envs-models pipeline deliberately: identifiers are unique per
+  # project, these are in different ones, and the pair reads as one flow per repo.
+  name: CVE Remediation
+  identifier: CVE_Remediation
+  projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
   variables:
@@ -873,5 +872,7 @@ pipeline:
         type: Slack
         spec:
           userGroups: []
-          webhookUrl: <+secrets.getValue("project.slack_genai_systems_alerts")>
+          # Org-scoped, so this resolves from any Custom_Models project. The
+          # project-scoped twin exists only in Global_Models and would not resolve here.
+          webhookUrl: <+secrets.getValue("org.slack_webhook_genai_systems_alerts")>
       enabled: true
