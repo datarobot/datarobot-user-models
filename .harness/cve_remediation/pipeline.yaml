@@ -1,6 +1,11 @@
 pipeline:
-  name: CVE Remediation
-  identifier: CVE_Remediation
+  # Distinct from the global-envs-models pipeline, which is CVE_Remediation in this
+  # same project: Harness identifiers are unique per project, and reusing that one
+  # would either be rejected or, worse, repoint the gem pipeline at this file.
+  # Stays in Global_Models because the Slack secret below is scoped to this project
+  # and because sharing the queue key only serialises within one project's entities.
+  name: CVE Remediation - datarobot-user-models
+  identifier: CVE_Remediation_User_Models
   projectIdentifier: Global_Models
   orgIdentifier: Custom_Models
   tags: {}
