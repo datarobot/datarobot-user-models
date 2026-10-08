@@ -8,8 +8,8 @@ azure-core==1.41.0
 azure-identity==1.26.0
 azure-storage-blob==12.19.0
 blinker==1.9.0
-boto3==1.43.108
-botocore==1.43.108
+boto3==1.43.109
+botocore==1.43.109
 certifi==2026.7.22
 cffi==2.1.1
 charset-normalizer==3.5.2
@@ -27,7 +27,7 @@ flatbuffers==25.12.19
 gast==0.7.0
 gevent==26.9.0
 google-api-core==2.41.0
-google-auth==2.60.0
+google-auth==2.61.0
 google-cloud-core==2.8.0
 google-cloud-storage==2.19.0
 google-crc32c==1.9.0
@@ -70,7 +70,7 @@ opentelemetry-semantic-conventions==0.66b1
 opentelemetry-util-http==0.66b1
 opt-einsum==3.4.0
 optree==0.20.0
-orjson==3.12.0
+orjson==3.13.0
 packaging==26.3
 pandas==3.0.6
 pillow==12.3.0
