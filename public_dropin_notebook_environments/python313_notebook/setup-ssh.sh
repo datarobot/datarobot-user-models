@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# FLEET-8918: the Dockerfile pre-creates and chowns this file, so it is writable at the
+# image's own uid and nowhere else. A default install writes exactly where it always did;
+# only a session at some other uid falls back to a volume, from where
+# /etc/profile.d/notebooks-rw-load.sh sources it back into login shells.
+NBX_ENV_FILE=/etc/profile.d/notebooks-load-env.sh
+if [ ! -w "$NBX_ENV_FILE" ]; then
+    NBX_ENV_FILE="${NOTEBOOKS_RW_DIR:-/home/notebooks/.nbx-rw}/profile.d/notebooks-load-env.sh"
+    mkdir -p "$(dirname "$NBX_ENV_FILE")"
+fi
+
 echo "Persisting container environment variables for sshd..."
 {
     echo "#!/bin/bash"
@@ -27,4 +37,4 @@ echo "Persisting container environment variables for sshd..."
     echo "set +a"
     # setup the working directory for terminal sessions
     echo "cd $WORKING_DIR"
-} > /etc/profile.d/notebooks-load-env.sh
+} > "$NBX_ENV_FILE"
