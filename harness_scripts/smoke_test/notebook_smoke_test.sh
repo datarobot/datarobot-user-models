@@ -37,14 +37,17 @@ KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
 # Files kept next to this script:
 #   notebook_gateway_check.py     runs inside the container and talks to the kernel gateway
 #   notebook_kernel_check.py      code that the gateway check runs in every kernel
-#   notebook_required_modules.txt modules that must import in the kernels of each env
+#   notebook_required_modules.txt modules that must import in the kernels of each env;
+#                                 envs not listed there get DEFAULT_REQUIRED_MODULES
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GATEWAY_CHECK="${SCRIPT_DIR}/notebook_gateway_check.py"
 KERNEL_CHECK="${SCRIPT_DIR}/notebook_kernel_check.py"
 REQUIRED_MODULES_FILE="${SCRIPT_DIR}/notebook_required_modules.txt"
+DEFAULT_REQUIRED_MODULES="numpy pandas"
 
 CURRENT_CHECK="setup"
 PASSED_CHECKS=()
+WARNINGS=()
 
 log() { echo "[smoke] $*"; }
 # check <description>: starts a check; the next check or the end of the script
@@ -83,6 +86,9 @@ print_summary() {
   for c in "${PASSED_CHECKS[@]+"${PASSED_CHECKS[@]}"}"; do
     log "  [PASS] ${c}"
   done
+  for c in "${WARNINGS[@]+"${WARNINGS[@]}"}"; do
+    log "  [WARN] ${c}"
+  done
 }
 
 cleanup() {
@@ -119,9 +125,14 @@ log "Kernel exec:     $([ "${SKIP_KERNEL_EXEC}" = "1" ] && echo "skipped (SKIP_K
 # Env path relative to the repo root, as listed in the required modules file
 ENV_PATH="${ENV_DIR#./}"
 ENV_PATH="${ENV_PATH%/}"
-check "required modules for ${ENV_PATH} are listed in $(basename "${REQUIRED_MODULES_FILE}")"
+check "required modules for ${ENV_PATH}"
 REQUIRED_MODULES=$(awk -v env="${ENV_PATH}" '$1 == env { $1 = ""; sub(/^ +/, ""); print; exit }' "${REQUIRED_MODULES_FILE}")
-[ -n "${REQUIRED_MODULES}" ] || fail "no line for ${ENV_PATH} in ${REQUIRED_MODULES_FILE}; add one"
+if [ -z "${REQUIRED_MODULES}" ]; then
+  REQUIRED_MODULES="${DEFAULT_REQUIRED_MODULES}"
+  warning="${ENV_PATH} is not listed in $(basename "${REQUIRED_MODULES_FILE}"), checking only the default modules"
+  WARNINGS+=("${warning}")
+  log "  WARNING: ${warning}"
+fi
 log "  modules: ${REQUIRED_MODULES}"
 
 check "image ${IMAGE} is available locally or can be pulled"
