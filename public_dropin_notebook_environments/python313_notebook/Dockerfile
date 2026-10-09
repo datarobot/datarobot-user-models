@@ -92,16 +92,26 @@ RUN addgroup -g "$GID" "$UNAME" && \
 
 # Prompt customizations
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
+# FLEET-8918: sorts into the position the generated env file used to occupy, so it still
+# runs before setup-prompt.sh sets PS1.
+COPY ./notebooks-rw-load.sh /etc/profile.d/notebooks-rw-load.sh
 
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Adding SSHD requirements: sshd prep + limit max processes
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
+  # Kept although setup-ssh.sh can now write the generated env file to a volume instead: an
+  # empty file here sources as a no-op and means an image a customer already extended cannot
+  # miss a path it used to find (FLEET-8918).
   && touch /etc/profile.d/notebooks-load-env.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
   && touch /etc/profile.d/bash-profile-load.sh \
-  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
+  # Writable by group 0 only, which the image's own user is not in, so a default install cannot
+  # touch it and a session at an assigned uid can give that uid a name sshd will log in (FLEET-8918).
+  && chgrp 0 /etc/passwd \
+  && chmod g+w /etc/passwd
 
 USER $UNAME
 

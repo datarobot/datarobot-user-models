@@ -15,10 +15,22 @@ else
     nproc_limit=$NOTEBOOKS_NPROC_LIMIT
 fi
 
+# Deliberately in the image layer: the nbx-operator chart shadows it with a read-only ConfigMap
+# and relies on this write failing so the chart's version wins (CFX-6369), while at any other
+# uid it fails with nothing providing limits, so say which case it is rather than fail silently.
+NBX_LIMITS_FILE=/etc/profile.d/bash-profile-load.sh
 echo "Generating common bash profile..."
-{
-    echo "#!/bin/bash"
-    echo "# Setting user process limits."
-    echo "ulimit -Su ${nproc_limit}"
-    echo "ulimit -Hu ${nproc_limit}"
-} > /etc/profile.d/bash-profile-load.sh
+# One simple command with one redirection: bash does not propagate a failed redirection on a
+# compound command through `!`, so `if ! { ...; } > file` would never fire.
+if ! printf '%s\n' \
+    "#!/bin/bash" \
+    "# Setting user process limits." \
+    "ulimit -Su ${nproc_limit}" \
+    "ulimit -Hu ${nproc_limit}" > "$NBX_LIMITS_FILE" 2>/dev/null; then
+    if [ -s "$NBX_LIMITS_FILE" ]; then
+        echo "${NBX_LIMITS_FILE} is not writable and already has content - leaving it to the overlay that provides it." >&2
+    else
+        echo "WARNING: could not write ${NBX_LIMITS_FILE} and it is empty, so no process limits will be applied." >&2
+        echo "WARNING: enable notebookSession.userLimits in the nbx-operator chart to supply it." >&2
+    fi
+fi
