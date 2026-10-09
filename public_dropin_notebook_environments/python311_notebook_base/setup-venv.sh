@@ -74,11 +74,27 @@ elif [[ $IS_PYTHON_KERNEL == true ]]; then
     USR_VENV="${NOTEBOOKS_RW_DIR:-/home/notebooks/.nbx-rw}/venv"
     [[ $VERBOSE_MODE == true ]] && echo "Kernel venv is read-only at this uid; setting up a user venv ($USR_VENV)..."
 
-    if python3 -m venv "${USR_VENV}" 2>/dev/null; then
+    # setup-prompt.sh sources this file from /etc/profile.d, so the venv is only built when it
+    # is not already there and a terminal login reuses the one the session started with.
+    if [ -x "${USR_VENV}/bin/python" ] || python3 -m venv "${USR_VENV}" 2>/dev/null; then
       # shellcheck disable=SC1091
       source "${USR_VENV}/bin/activate"
       USER_PACKAGES=$(python -c "import site; print(site.getsitepackages()[0])")
+      # A .pth rather than PYTHONPATH alone, so the kernel venv's own .pth files are processed
+      # and anything installed there as editable keeps resolving.
+      echo "import site; site.addsitedir('${KERNEL_PACKAGES}')" > "${USER_PACKAGES}/zz-nbx-kernel-venv.pth"
       export PYTHONPATH="$USER_PACKAGES:$KERNEL_PACKAGES:$PYTHONPATH"
+
+      # jupyter_client rewrites a kernelspec argv[0] of "python" to whichever interpreter the
+      # gateway runs on, which is the read-only kernel venv, so a cell's pip install would still
+      # fail; name the user venv in a kernelspec of our own and put it first on JUPYTER_PATH.
+      NBX_KERNELS_DIR="${JUPYTER_DATA_DIR:-${NOTEBOOKS_RW_DIR:-/home/notebooks/.nbx-rw}/jupyter/data}/kernels/python3"
+      if mkdir -p "$NBX_KERNELS_DIR" 2>/dev/null && python -c 'import json,sys; s=json.load(open(sys.argv[1])); s["argv"][0]=sys.argv[3]; json.dump(s, open(sys.argv[2],"w"), indent=2)' \
+          "${VENV_PATH}/share/jupyter/kernels/python3/kernel.json" "${NBX_KERNELS_DIR}/kernel.json" "${USR_VENV}/bin/python"; then
+        export JUPYTER_PATH="${NBX_KERNELS_DIR%/kernels/python3}"
+      else
+        echo "WARNING: could not write a kernelspec at ${NBX_KERNELS_DIR}, so installing packages from a cell will still fail." >&2
+      fi
     else
       echo "WARNING: could not create a user venv at ${USR_VENV}; falling back to the kernel venv." >&2
       echo "WARNING: installing packages from a cell will fail unless this session runs as the image's own uid." >&2

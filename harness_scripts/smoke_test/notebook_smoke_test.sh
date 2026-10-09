@@ -5,8 +5,10 @@
 # image user, with SSH keys mounted under /var/run/notebooks/ssh) and checks
 # that every service comes up and a kernel can run code:
 #   - the kernel gateway answers on /api
-#   - code runs in the prespawned kernel and in a newly created kernel
-#   - drgithelper runs, sshd and the monitoring agent are up
+#   - code runs in the prespawned kernel and in a newly created kernel, renders a
+#     dataframe through the dataframe_formatter extension and installs a package
+#   - drgithelper runs, sshd and the monitoring agent are up, and an ssh key login works
+#   - a login shell picks up the generated session env file
 #   - the container log has no Go panics or Python tracebacks
 #
 # Those checks run twice: once as the image's own user with no extra mounts, which is what
@@ -33,6 +35,8 @@
 #   SESSION_UID      uid for the hardened pass (default 1500), any value the image was not
 #                    built with and absent from /etc/passwd, as a cluster-assigned uid is
 #   SKIP_HARDENED    set to 1 to run the default pass only
+#   SKIP_SSH_LOGIN   set to 1 to skip the ssh login check; sshd cannot install its seccomp
+#                    sandbox under amd64 emulation (Rosetta) on Apple Silicon, so use it there
 
 set -euo pipefail
 
@@ -43,6 +47,7 @@ SKIP_KERNEL_EXEC="${SKIP_KERNEL_EXEC:-0}"
 COMMIT_SHA="${COMMIT_SHA:-}"
 SESSION_UID="${SESSION_UID:-1500}"
 SKIP_HARDENED="${SKIP_HARDENED:-0}"
+SKIP_SSH_LOGIN="${SKIP_SSH_LOGIN:-0}"
 
 KERNEL_DIR=/etc/system/kernel
 KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
@@ -76,6 +81,13 @@ finish_check() {
     log "  OK: ${CURRENT_CHECK}"
     PASSED_CHECKS+=("${CURRENT_CHECK}")
   fi
+  CURRENT_CHECK="setup"
+}
+# skip_check <reason>: ends the current check without recording it as passed, so a check that
+# could not run never reads as one that did.
+skip_check() {
+  WARNINGS+=("$*")
+  log "  SKIP: $*"
   CURRENT_CHECK="setup"
 }
 fail() { echo "[notebook-smoke]   FAIL: $*" >&2; exit 1; }
@@ -191,7 +203,7 @@ docker run --rm --user root --volume "${SSH_VOLUME}:/ssh" --entrypoint /bin/sh "
 run_session() {
   local pass="${1}"
   shift
-  local processes
+  local processes login_env ssh_output
 
   NAME="${RUN_ID}-$(tr -cd 'a-z0-9' <<<"${pass}" | cut -c1-12)"
   CONTAINERS+=("${NAME}")
@@ -233,6 +245,42 @@ run_session() {
   check "[${pass}] monitoring agent (uvicorn agent:app) is running"
   grep "uvicorn agent:app" <<<"${processes}" | sed 's/^/[notebook-smoke]   /' || fail "no 'uvicorn agent:app' process"
 
+  check "[${pass}] a login shell picks up the generated session env file"
+  # Only setup-ssh.sh ever appends the dr CLI directory to PATH, so finding it in a login
+  # shell proves the file was both written somewhere writable and sourced back in.
+  login_env=$(docker exec "${NAME}" bash -lc 'echo "PATH=${PATH}"; echo "WORKING_DIR=${WORKING_DIR:-unset}"' 2>&1) \
+    || fail "could not start a login shell"
+  sed 's/^/[notebook-smoke]   /' <<<"${login_env}"
+  grep -q "/home/notebooks/.local/bin/dr" <<<"${login_env}" \
+    || fail "the generated session env file is not reaching login shells, so terminals lose PATH and the kernel env"
+
+  check "[${pass}] ssh key login on port 8022 succeeds"
+  # sshd being up is not the same as sshd letting anyone in. At an assigned uid StrictModes
+  # rejects the mounted authorized_keys, and a non-root sshd cannot switch to the uid the
+  # passwd entry names, so either failure ends a login the container still looks healthy after.
+  # The client is the image itself plus openssh-client, which it does not ship, installed from
+  # its own apk repositories; only that install step may downgrade the check to a warning.
+  if [ "${SKIP_SSH_LOGIN}" = "1" ]; then
+    skip_check "[${pass}] ssh login not checked (SKIP_SSH_LOGIN=1)"
+  else
+    ssh_output=$(docker run --rm --user root --network "container:${NAME}" \
+      --volume "${SSH_VOLUME}:/ssh:ro" --entrypoint /bin/sh "${IMAGE}" -c '
+        command -v ssh >/dev/null 2>&1 || apk add --no-cache openssh-client >/dev/null 2>&1 \
+          || { echo "SSH_CLIENT_UNAVAILABLE"; exit 0; }
+        # The image chowns /etc/ssh to its own user, which the client refuses to read as root.
+        chown -R root:root /etc/ssh/ssh_config /etc/ssh/ssh_config.d 2>/dev/null || true
+        cp /ssh/keys/ssh_host_key /tmp/smoke_id && chmod 600 /tmp/smoke_id
+        ssh -i /tmp/smoke_id -p 8022 -v -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -o BatchMode=yes -o ConnectTimeout=30 notebooks@127.0.0.1 "id; echo SSH_LOGIN_OK"
+      ' 2>&1) || true
+    sed 's/^/[notebook-smoke]   /' <<<"${ssh_output}"
+    if grep -q "SSH_CLIENT_UNAVAILABLE" <<<"${ssh_output}"; then
+      skip_check "[${pass}] ssh login not checked: openssh-client could not be installed in the test container"
+    elif ! grep -q "SSH_LOGIN_OK" <<<"${ssh_output}"; then
+      fail "ssh login failed, see the client trace above"
+    fi
+  fi
+
   check "[${pass}] container log has no Go panics or Python tracebacks"
   if docker logs "${NAME}" 2>&1 | grep -n -A 5 -E "^panic:|Traceback \(most recent call last\)"; then
     fail "found panics or tracebacks in the container log (shown above)"
@@ -255,11 +303,13 @@ else
   # Reproduces what nbx-operator builds when notebookSession.writableVolumes is enabled: a
   # foreign uid in group 0 as a cluster assigns, and a tmpfs at mode 1777 standing in for the
   # emptyDir kubelet mounts over each path start_server.sh writes to.
+  # exec because a kubelet emptyDir is not mounted noexec, unlike docker's default tmpfs, and
+  # the session venv under .nbx-rw has to be able to run its own entry points.
   run_session "hardened uid ${SESSION_UID}" \
     --user "${SESSION_UID}:0" \
-    --tmpfs /home/notebooks/.nbx-rw:rw,mode=1777 \
-    --tmpfs /etc/authorized_keys:rw,mode=1777 \
-    --tmpfs /etc/ssh/keys:rw,mode=1777
+    --tmpfs /home/notebooks/.nbx-rw:rw,exec,mode=1777 \
+    --tmpfs /etc/authorized_keys:rw,exec,mode=1777 \
+    --tmpfs /etc/ssh/keys:rw,exec,mode=1777
 fi
 
 print_summary

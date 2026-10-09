@@ -107,7 +107,11 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   && touch /etc/profile.d/notebooks-load-env.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
   && touch /etc/profile.d/bash-profile-load.sh \
-  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh \
+  # Writable by group 0 only, which the image's own user is not in, so a default install cannot
+  # touch it and a session at an assigned uid can give that uid a name sshd will log in (FLEET-8918).
+  && chgrp 0 /etc/passwd \
+  && chmod g+w /etc/passwd
 
 USER $UNAME
 
