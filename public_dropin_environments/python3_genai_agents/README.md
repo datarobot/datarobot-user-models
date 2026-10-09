@@ -20,6 +20,19 @@ Agents rely on three world-writable directories baked into the image: `/opt/code
 agent's code, `/opt/venv` for the agent's virtualenv and `/tmp/uv-cache` for uv. Custom model
 containers run as uid 1000, so these cannot be owned by the image user.
 
+## Pre-warmed LangGraph packages
+
+The image keeps a `uv` cache warmed with the LangGraph agent template's lock, so a LangGraph
+agent's `uv sync --frozen` at start links wheels from the cache instead of downloading them.
+Nothing from that lock is installed: the build syncs it into a throwaway venv, deletes the venv
+and keeps the cache. Agents whose lock differs still download the packages that differ, and
+agents of other frameworks are unaffected.
+
+`langgraph/pyproject.toml` and `langgraph/uv.lock` are copies of the files a freshly generated
+LangGraph agent has. Refresh them when the template's LangGraph lock moves: render the template
+with `agent_template_framework=langgraph` and copy `pyproject.toml` and `uv.lock` from the
+rendered `agent/` folder.
+
 ## Build locally
 
 1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_genai_agents/ .`
