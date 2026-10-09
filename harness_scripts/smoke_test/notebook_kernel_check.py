@@ -3,11 +3,9 @@
 Defines run_checks(); notebook_gateway_check.py appends a call to it with the
 env's required modules from notebook_required_modules.txt. Each check prints its
 own line, so the log shows which import or call failed. hashlib.md5 and dask
-tokenize (MD5) catch a base image that blocks non-FIPS digests.
-
-The dataframe formatter and pip install checks only run inside a kernel, where
-they are what proves a session at a uid the image was not built with still
-renders dataframes and can install a package from a cell (FLEET-8918).
+tokenize (MD5) catch a base image that blocks non-FIPS digests. In a kernel it
+also checks that the dataframe extension renders a DataFrame and that %pip
+installs a package the kernel can import.
 
 To run it directly with an image's python (the call must start a new,
 unindented line):
@@ -16,82 +14,19 @@ python3 -c "$(cat notebook_kernel_check.py)
 run_checks(['numpy', 'pandas'])"
 """
 
+import base64
+import builtins
 import hashlib
 import importlib
 import os
 import ssl
-import subprocess
 import sys
 import tempfile
+import uuid
 import zipfile
 
-DATAFRAME_MIME = "application/vnd.dataframe+json"
-SMOKE_PKG = "nbx_smoke_pkg"
-
-
-def _get_ipython():
-    """The running kernel's InteractiveShell, or None when run outside one."""
-    try:
-        from IPython import get_ipython
-    except ImportError:
-        return None
-    return get_ipython()
-
-
-def check_dataframe_formatter(ipython):
-    """The dataframe_formatter extension is loaded and renders a DataFrame.
-
-    ipython_config.py loads the extension from IPYTHONDIR/extensions, which only
-    imports while that directory is on PYTHONPATH; IPython warns and carries on
-    when it is not, so a kernel with no dataframe rendering still looks healthy.
-    """
-    import pandas
-
-    formatters = ipython.display_formatter.formatters
-    assert DATAFRAME_MIME in formatters, (
-        f"{DATAFRAME_MIME} is not registered, so dataframes render as plain text; "
-        f"registered: {sorted(formatters)}"
-    )
-    data, _ = ipython.display_formatter.format(
-        pandas.DataFrame({"a": [1, 2]}), include=[DATAFRAME_MIME]
-    )
-    assert DATAFRAME_MIME in data, f"{DATAFRAME_MIME} produced no output for a DataFrame"
-
-
-def check_pip_install():
-    """pip install works from a cell, into whichever venv this kernel runs on.
-
-    Installs a wheel built here rather than one from an index, so the check needs
-    no network and fails only on the venv being read-only.
-    """
-    with tempfile.TemporaryDirectory() as tmp:
-        wheel = os.path.join(tmp, f"{SMOKE_PKG}-0.0.1-py3-none-any.whl")
-        dist_info = f"{SMOKE_PKG}-0.0.1.dist-info"
-        with zipfile.ZipFile(wheel, "w") as z:
-            z.writestr(f"{SMOKE_PKG}.py", "VALUE = 'nbx-smoke'\n")
-            z.writestr(
-                f"{dist_info}/METADATA",
-                f"Metadata-Version: 2.1\nName: {SMOKE_PKG}\nVersion: 0.0.1\n",
-            )
-            z.writestr(
-                f"{dist_info}/WHEEL",
-                "Wheel-Version: 1.0\nGenerator: smoke\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
-            )
-            z.writestr(f"{dist_info}/RECORD", "")
-        result = subprocess.run(
-            [sys.executable, "-m", "pip", "install", "--no-index", "--no-deps",
-             "--disable-pip-version-check", "--no-input", wheel],
-            capture_output=True,
-            text=True,
-        )
-    assert result.returncode == 0, (
-        f"pip install failed with {result.returncode}; this is what a user gets when they "
-        f"install from a cell:\n{result.stdout}\n{result.stderr}"
-    )
-    importlib.invalidate_caches()
-    module = importlib.import_module(SMOKE_PKG)
-    assert module.VALUE == "nbx-smoke", f"installed package imported wrong: {module.VALUE!r}"
-    return os.path.dirname(module.__file__)
+# Mimetype that dataframe_formatter from the image's ipython_config.py adds to DataFrames.
+DATAFRAME_MIMETYPE = "application/vnd.dataframe+json"
 
 
 def run_checks(required_modules):
@@ -118,15 +53,48 @@ def run_checks(required_modules):
     ssl.create_default_context()
     print("OK")
 
-    ipython = _get_ipython()
+    ipython = getattr(builtins, "get_ipython", lambda: None)()
     if ipython is None:
-        print("dataframe formatter and pip install ... SKIP (not running in a kernel)")
+        print("not in an IPython kernel, skipping the dataframe extension and %pip checks")
     else:
-        print("dataframe_formatter renders a DataFrame ...", end=" ")
-        check_dataframe_formatter(ipython)
+        print("dataframe extension renders a DataFrame ...", end=" ")
+        import pandas
+
+        mimetypes = ipython.display_formatter.format(pandas.DataFrame({"a": [1]}))[0]
+        if DATAFRAME_MIMETYPE not in mimetypes:
+            raise RuntimeError(f"no {DATAFRAME_MIMETYPE} in {sorted(mimetypes)}")
         print("OK")
 
-        print("pip install from a cell ...", end=" ")
-        print("OK, into", check_pip_install())
+        # A new package name per call, so the second kernel can't import what the first installed.
+        print("%pip install from a cell ...")
+        name = f"nbx_smoke_pkg_{uuid.uuid4().hex[:8]}"
+        wheel = _build_wheel(name)
+        ipython.run_line_magic(
+            "pip", f"install --no-index --no-deps --quiet --disable-pip-version-check {wheel}"
+        )
+        importlib.invalidate_caches()
+        module = importlib.import_module(name)
+        print("%pip install from a cell ... OK", module.__file__)
 
     print("SMOKE_OK")
+
+
+def _build_wheel(name):
+    """Writes a minimal pure-Python wheel, so pip installs it without network access."""
+    dist_info = f"{name}-0.0.1.dist-info"
+    files = {
+        f"{name}/__init__.py": b"",
+        f"{dist_info}/METADATA": f"Metadata-Version: 2.1\nName: {name}\nVersion: 0.0.1\n".encode(),
+        f"{dist_info}/WHEEL": b"Wheel-Version: 1.0\nRoot-Is-Purelib: true\nTag: py3-none-any\n",
+    }
+    record = ""
+    for path, data in files.items():
+        digest = base64.urlsafe_b64encode(hashlib.sha256(data).digest()).rstrip(b"=").decode()
+        record += f"{path},sha256={digest},{len(data)}\n"
+    files[f"{dist_info}/RECORD"] = f"{record}{dist_info}/RECORD,,\n".encode()
+
+    wheel = os.path.join(tempfile.mkdtemp(), f"{name}-0.0.1-py3-none-any.whl")
+    with zipfile.ZipFile(wheel, "w") as archive:
+        for path, data in files.items():
+            archive.writestr(path, data)
+    return wheel
