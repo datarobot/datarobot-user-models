@@ -38,17 +38,31 @@ pipeline:
                       git log -2
 
                       # Skip the per-framework test matrix when the diff is confined to the
-                      # notebook EE (CFX-8186) - independent of the Reconcile stage's
-                      # CHANGED_DIRS, which also gates the deployment-relevant image build
-                      # above and must keep running unconditionally for that.
+                      # envs these tests don't use, e.g. the notebook EE (CFX-8186) - independent
+                      # of the Reconcile stage's CHANGED_DIRS, which also gates the
+                      # deployment-relevant image build above and must keep running
+                      # unconditionally for that.
                       # A git failure here must fail this step loudly rather than silently
                       # defaulting to "skip" - see PR #2397 review.
                       git fetch origin <+pipeline.variables.target_branch> || { echo "git fetch failed"; exit 1; }
                       changed_files=$(git diff --name-only origin/<+pipeline.variables.target_branch>...HEAD) || { echo "git diff failed"; exit 1; }
+
+                      # Envs that don't need these tests; the tests don't run when the PR
+                      # changes only these envs. To add an env, add its folder on a new line.
+                      skip_tests_envs="
+                      public_dropin_notebook_environments
+                      public_dropin_environments/python3_genai_agents
+                      "
+                      files_to_test="${changed_files}"
+                      for env_dir in ${skip_tests_envs}; do
+                        files_to_test=$(echo "${files_to_test}" | grep -v "^${env_dir}/" || true)
+                      done
                       should_run_framework_tests=true
-                      if [ -n "${changed_files}" ] && ! echo "${changed_files}" | grep -qvE "^public_dropin_notebook_environments/"; then
+                      if [ -n "${changed_files}" ] && [ -z "${files_to_test}" ]; then
                         should_run_framework_tests=false
                       fi
+                      echo "changed files outside of the skipped envs:"
+                      echo "${files_to_test:-  none}"
                       echo "should_run_framework_tests: ${should_run_framework_tests}"
 
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
