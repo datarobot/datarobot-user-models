@@ -9,6 +9,56 @@ pipeline:
         repoName: datarobot-user-models
         build: <+input>
   stages:
+    - stage:
+        name: Check changed files
+        identifier: check_changed_files
+        description: Doesn't run the functional tests where they aren't needed, e.g. for PRs that change only notebook envs
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Check changed files
+                  identifier: check_changed_files
+                  spec:
+                    shell: Bash
+                    command: |-
+                      target_branch="<+codebase.targetBranch>"
+                      should_run_tests=true
+                      # Not a PR build: nothing to compare with, run the tests
+                      if [ -n "${target_branch}" ] && [ "${target_branch}" != "null" ]; then
+                        # A git failure must fail this step rather than silently skip the tests.
+                        git fetch origin "${target_branch}" || { echo "git fetch failed"; exit 1; }
+                        changed_files=$(git diff --name-only "origin/${target_branch}...HEAD") || { echo "git diff failed"; exit 1; }
+
+                        # Envs that don't need these tests, e.g. notebook envs; the tests don't run
+                        # when the PR changes only these envs. To add an env, add its folder on a new line.
+                        skip_tests_envs="
+                        public_dropin_notebook_environments/python313_notebook
+                        public_dropin_notebook_environments/python311_notebook_base
+                        "
+                        files_to_test="${changed_files}"
+                        for env_dir in ${skip_tests_envs}; do
+                          files_to_test=$(echo "${files_to_test}" | grep -v "^${env_dir}/" || true)
+                        done
+                        if [ -n "${changed_files}" ] && [ -z "${files_to_test}" ]; then
+                          should_run_tests=false
+                        fi
+                        echo "changed files outside of the skipped envs:"
+                        echo "${files_to_test:-  none}"
+                      fi
+                      echo "should_run_tests: ${should_run_tests}"
+                    outputVariables:
+                      - name: should_run_tests
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        timeout: 10m
     - parallel:
         - stage:
             name: test mlops reporting
@@ -47,6 +97,9 @@ pipeline:
                 type: Cloud
                 spec: {}
             timeout: 15m
+            when:
+              pipelineStatus: Success
+              condition: <+pipeline.stages.check_changed_files.spec.execution.steps.check_changed_files.output.outputVariables.should_run_tests> == "true"
         - stage:
             name: test inference custom java predictor
             identifier: custom_java_predictor
@@ -77,6 +130,9 @@ pipeline:
                 type: Cloud
                 spec: {}
             timeout: 15m
+            when:
+              pipelineStatus: Success
+              condition: <+pipeline.stages.check_changed_files.spec.execution.steps.check_changed_files.output.outputVariables.should_run_tests> == "true"
         - stage:
             name: test functional general
             identifier: general_tests
@@ -108,6 +164,9 @@ pipeline:
                 type: Cloud
                 spec: {}
             timeout: 60m
+            when:
+              pipelineStatus: Success
+              condition: <+pipeline.stages.check_changed_files.spec.execution.steps.check_changed_files.output.outputVariables.should_run_tests> == "true"
   identifier: test_functional_general
   name: test functional general
   allowStageExecutions: true
