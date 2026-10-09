@@ -40,6 +40,8 @@
 #   SKIP_HARDENED    set to 1 to run the default pass only
 #   SSH_CLIENT_IMAGE image for the ssh login check (default alpine:3.22); it shares the
 #                    container's network and gets openssh-client from apk
+#   SKIP_SSH_LOGIN   set to 1 to skip the ssh login check; sshd cannot install its seccomp
+#                    sandbox under amd64 emulation (Rosetta) on Apple Silicon, so use it there
 
 set -euo pipefail
 
@@ -51,6 +53,7 @@ COMMIT_SHA="${COMMIT_SHA:-}"
 SESSION_UID="${SESSION_UID:-1500}"
 SKIP_HARDENED="${SKIP_HARDENED:-0}"
 SSH_CLIENT_IMAGE="${SSH_CLIENT_IMAGE:-alpine:3.22}"
+SKIP_SSH_LOGIN="${SKIP_SSH_LOGIN:-0}"
 
 KERNEL_DIR=/etc/system/kernel
 KERNEL_PYTHON="${KERNEL_DIR}/.venv/bin/python3"
@@ -84,6 +87,13 @@ finish_check() {
     log "  OK: ${CURRENT_CHECK}"
     PASSED_CHECKS+=("${CURRENT_CHECK}")
   fi
+  CURRENT_CHECK="setup"
+}
+# skip_check <reason>: ends the current check without recording it as passed, so a check that
+# could not run never reads in the summary as one that did.
+skip_check() {
+  WARNINGS+=("$*")
+  log "  SKIP: $*"
   CURRENT_CHECK="setup"
 }
 fail() { echo "[notebook-smoke]   FAIL: $*" >&2; exit 1; }
@@ -205,7 +215,7 @@ docker run --rm --user root --volume "${SSH_VOLUME}:/ssh" --entrypoint /bin/sh "
 run_session() {
   local pass="${1}"
   shift
-  local processes output marker ssh_output
+  local processes output marker ssh_output cred_output
 
   NAME="${RUN_ID}-$(tr -cd 'a-z0-9' <<<"${pass}" | cut -c1-12)"
   CONTAINERS+=("${NAME}")
@@ -237,7 +247,9 @@ run_session() {
     || fail "kernel gateway check failed, see the last sub-check above"
 
   check "[${pass}] drgithelper --version runs (no Go panic, libcrypto found)"
-  docker exec -e HOME=/home/notebooks "${NAME}" "${KERNEL_DIR}/drgithelper" --version 2>&1 \
+  # HOME=/tmp because this check is about the binary loading its crypto, not about where it
+  # writes; the HOME git itself gives it is what the credential helper check below covers.
+  docker exec -e HOME=/tmp "${NAME}" "${KERNEL_DIR}/drgithelper" --version 2>&1 \
     | tee -a "${output}" || fail "drgithelper does not run"
 
   processes=$(docker exec "${NAME}" ps -eo args)
@@ -259,17 +271,32 @@ run_session() {
   check "[${pass}] ssh login on port 8022 works and gets the session env"
   # The image has no ssh client, so it runs in a container on this container's network. The
   # key is the generated host key, whose public half is the authorized key for "notebooks".
-  ssh_output=$(docker run --rm --network "container:${NAME}" --volume "${SSH_VOLUME}:/ssh:ro" \
-    --env REMOTE_CMD='bash -lc '\''id; echo "${NBX_SMOKE_MARKER:-}"'\''' \
-    "${SSH_CLIENT_IMAGE}" sh -c '
-      apk add --quiet --no-progress openssh-client >/dev/null &&
-      cp /ssh/keys/ssh_host_key /tmp/key && chmod 600 /tmp/key &&
-      ssh -i /tmp/key -p 8022 -o BatchMode=yes -o ConnectTimeout=20 -o LogLevel=ERROR \
-        -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        notebooks@127.0.0.1 "${REMOTE_CMD}"' 2>&1) || true
-  tee -a "${output}" <<<"${ssh_output}" | sed 's/^/[notebook-smoke]   /'
-  [ "$(tail -1 <<<"${ssh_output}")" = "${SESSION_MARKER}" ] \
-    || fail "ssh session did not print NBX_SMOKE_MARKER='${SESSION_MARKER}' (output above)"
+  if [ "${SKIP_SSH_LOGIN}" = "1" ]; then
+    skip_check "[${pass}] ssh login not checked (SKIP_SSH_LOGIN=1)"
+  else
+    ssh_output=$(docker run --rm --network "container:${NAME}" --volume "${SSH_VOLUME}:/ssh:ro" \
+      --env REMOTE_CMD='bash -lc '\''id; echo "${NBX_SMOKE_MARKER:-}"'\''' \
+      "${SSH_CLIENT_IMAGE}" sh -c '
+        apk add --quiet --no-progress openssh-client >/dev/null &&
+        cp /ssh/keys/ssh_host_key /tmp/key && chmod 600 /tmp/key &&
+        ssh -i /tmp/key -p 8022 -o BatchMode=yes -o ConnectTimeout=20 -o LogLevel=ERROR \
+          -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+          notebooks@127.0.0.1 "${REMOTE_CMD}"' 2>&1) || true
+    tee -a "${output}" <<<"${ssh_output}" | sed 's/^/[notebook-smoke]   /'
+    [ "$(tail -1 <<<"${ssh_output}")" = "${SESSION_MARKER}" ] \
+      || fail "ssh session did not print NBX_SMOKE_MARKER='${SESSION_MARKER}' (output above)"
+  fi
+
+  check "[${pass}] git calls the drgithelper credential helper with a writable HOME"
+  # git runs the helper from the generated gitconfig with the session's own HOME, which is
+  # read-only at an assigned uid, so without the redirect the helper cannot write its log.
+  # The request itself cannot succeed with no platform to ask, which is not what is checked.
+  cred_output=$(docker exec "${NAME}" env -i HOME=/home/notebooks bash -lc '
+    printf "protocol=https\nhost=smoke.invalid\n\n" | timeout 30 git credential fill' 2>&1) || true
+  tee -a "${output}" <<<"${cred_output}" | sed 's/^/[notebook-smoke]   /'
+  if grep -qiE "drgithelper.*(permission denied|read-only)" <<<"${cred_output}"; then
+    fail "the credential helper ran without the redirected HOME, so git credentials are degraded"
+  fi
 
   check "[${pass}] git credential cache daemon starts"
   # credential.helper starts with "cache", and its socket lives under XDG_CACHE_HOME or ~/.cache
