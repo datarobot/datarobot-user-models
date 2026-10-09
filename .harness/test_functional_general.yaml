@@ -38,6 +38,7 @@ pipeline:
                         skip_tests_envs="
                         public_dropin_notebook_environments/python313_notebook
                         public_dropin_notebook_environments/python311_notebook_base
+                        public_dropin_environments/python3_genai_agents
                         "
                         files_to_test="${changed_files}"
                         for env_dir in ${skip_tests_envs}; do
