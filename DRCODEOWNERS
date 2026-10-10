@@ -31,7 +31,7 @@
 /model_templates/proxy_model_azureml                              @datarobot/inference-platform
 /model_templates/proxy_model_datarobot                            @datarobot/inference-platform
 /model_templates/triton_onnx_unstructured                         @datarobot/inference-platform
-/public_dropin_environments/java_codegen                          @datarobot/predictions
+/public_dropin_environments/java_codegen                          @datarobot/inference-platform
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/inference-platform @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/inference-platform
