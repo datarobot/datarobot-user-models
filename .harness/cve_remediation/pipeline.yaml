@@ -414,8 +414,12 @@ pipeline:
                         # while a timeout or 5xx is no answer at all. Collapsing the two put a
                         # failed lookup in _queried with no record, which reads as a confirmed
                         # miss -- the false no-advisory verdict this whole block exists to stop.
+                        # `|| code="000"`, not `|| true`: curl prints 200 from %{http_code} even
+                        # when --max-time cuts the body short, so only its exit status tells a
+                        # complete 200 from a truncated one.
                         code="$(curl -sS -o /harness/cve/osv-entry.json -w '%{http_code}' \
-                                  --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null || true)"
+                                  --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null)" \
+                          || code="000"
                         code="${code:-000}"
                         case "$code" in
                           200) : ;;
@@ -426,6 +430,14 @@ pipeline:
                         esac
                         entry="$(cat /harness/cve/osv-entry.json 2>/dev/null || true)"
                         [ -n "$entry" ] || { osv_failed="$osv_failed $cve"; continue; }
+                        # Parse before trusting. Without this an unparseable body fails the
+                        # withdrawn test below and takes its `continue` -- a failed lookup
+                        # leaving by the "OSV says nothing" door.
+                        if ! printf '%s' "$entry" | jq -e . >/dev/null 2>&1; then
+                          osv_failed="$osv_failed $cve"
+                          echo "osv: unparseable entry for $cve" >&2
+                          continue
+                        fi
                         printf '%s' "$entry" | jq -e 'has("withdrawn") | not' >/dev/null 2>&1 || continue
                         # On stdin, not --argjson: a single argument is capped near 128 KB on Linux
                         # and some OSV entries are close to it.
