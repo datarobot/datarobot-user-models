@@ -2,7 +2,9 @@ datarobot-drum
 tensorflow
 numpy
 pandas
-scikit-learn
+# scikeras 0.13.0 does not support scikit-learn >= 1.7; same pin as
+# public_dropin_environments/python3_keras.
+scikit-learn >=1.6.1,<1.7
 scipy
 protobuf
 pillow
