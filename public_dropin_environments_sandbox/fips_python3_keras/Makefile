@@ -16,5 +16,6 @@ image:
 	  -t $(ENV_REPONAME):$(ENV_VERSIONID) \
 	  -t datarobotdev/$(ENV_REPONAME):$(ENV_VERSIONID)
 
+# Sandbox environments are not published to Docker Hub; CI only verifies the image builds.
 image-push:
-	docker push datarobotdev/$(ENV_REPONAME):$(ENV_VERSIONID)
+	$(info Sandbox environment: skipping docker push)
