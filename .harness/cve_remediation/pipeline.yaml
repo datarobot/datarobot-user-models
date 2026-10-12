@@ -64,6 +64,14 @@ pipeline:
       description: Tickets younger than this are left to the repo's own automation and deferred.
       required: false
       value: <+input>.default(3)
+    # Age past which an open CVE-fix PR from this pipeline is reported to Slack.
+    # A variable, not a constant, because the run that decides what counts as stale
+    # is the run that quietly stops saying so.
+    - name: stale_pr_days
+      type: String
+      description: Age in days past which an open CVE-fix PR is reported to Slack.
+      required: false
+      value: <+input>.default(3)
     # This repo's image scope, declared ONCE. It narrows three things that have to
     # agree: which tickets build_inventory.py keeps, which VITA scan rows the agent is
     # shown, and therefore what the agent believes it owns. Listing it per consumer is
@@ -414,8 +422,12 @@ pipeline:
                         # while a timeout or 5xx is no answer at all. Collapsing the two put a
                         # failed lookup in _queried with no record, which reads as a confirmed
                         # miss -- the false no-advisory verdict this whole block exists to stop.
+                        # `|| code="000"`, not `|| true`: curl prints 200 from %{http_code} even
+                        # when --max-time cuts the body short, so only its exit status tells a
+                        # complete 200 from a truncated one.
                         code="$(curl -sS -o /harness/cve/osv-entry.json -w '%{http_code}' \
-                                  --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null || true)"
+                                  --max-time 20 "https://api.osv.dev/v1/vulns/${cve}" 2>/dev/null)" \
+                          || code="000"
                         code="${code:-000}"
                         case "$code" in
                           200) : ;;
@@ -426,6 +438,14 @@ pipeline:
                         esac
                         entry="$(cat /harness/cve/osv-entry.json 2>/dev/null || true)"
                         [ -n "$entry" ] || { osv_failed="$osv_failed $cve"; continue; }
+                        # Parse before trusting. Without this an unparseable body fails the
+                        # withdrawn test below and takes its `continue` -- a failed lookup
+                        # leaving by the "OSV says nothing" door.
+                        if ! printf '%s' "$entry" | jq -e . >/dev/null 2>&1; then
+                          osv_failed="$osv_failed $cve"
+                          echo "osv: unparseable entry for $cve" >&2
+                          continue
+                        fi
                         printf '%s' "$entry" | jq -e 'has("withdrawn") | not' >/dev/null 2>&1 || continue
                         # On stdin, not --argjson: a single argument is capped near 128 KB on Linux
                         # and some OSV entries are close to it.
@@ -985,6 +1005,108 @@ pipeline:
                       fi
                   when:
                     stageStatus: All
+              - step:
+                  type: Run
+                  name: Push what needs a human
+                  identifier: Notify_unresolved
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/genai-ci-tools:latest
+                    shell: Bash
+                    envVariables:
+                      GITHUB_TOKEN: <+pipeline.variables.github_token>
+                      # The org-scoped webhook, same one the PipelineFailed rule below uses.
+                      # The project-scoped twin exists only in Global_Models and would not
+                      # resolve here.
+                      SLACK_WEBHOOK: <+secrets.getValue("org.slack_webhook_genai_systems_alerts")>
+                      STALE_PR_DAYS: <+pipeline.variables.stale_pr_days>
+                      REPO_REF: <+pipeline.variables.repo_ref>
+                      MODE: <+pipeline.variables.mode>
+                    command: |-
+                      set -uo pipefail
+                      # The notificationRules below fire on PipelineFailed. A run that SUCCEEDS
+                      # carrying cases it could not settle is the silent one, and that is the
+                      # one this step exists for. Never fails the stage: a missed notification
+                      # must not cost the run that produced the report.
+                      report="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
+                      blocked=""; not_verified=""
+                      if [ -n "$report" ]; then
+                        blocked="$(jq -r '(.blocked // [])[]' "$report" 2>/dev/null || true)"
+                        not_verified="$(jq -r '(.not_verified // [])[]' "$report" 2>/dev/null || true)"
+                      fi
+
+                      # Stale CVE-fix PRs: an age, from the pipeline variable, not a judgement here.
+                      cutoff="$(date -u -d "-${STALE_PR_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
+                                || date -u -v-"${STALE_PR_DAYS}"d +%Y-%m-%dT%H:%M:%SZ)"
+                      # Identified by branch, not title: the PRs this pipeline opens are drafts
+                      # whose titles are indistinguishable from every other RAPTOR PR in the repo,
+                      # while the branch is ours by construction (see Open_remediation_PR).
+                      # Scoped to this run's base branch for the same reason.
+                      stale_unavailable=""
+                      # --paginate, and oldest first: the default listing is newest-first, and the
+                      # stale PRs are by definition the oldest. Without both, once the repo passes
+                      # one page of open PRs the stale ones fall off the end and the check reads
+                      # all-clear -- the same false reassurance the failure branch below exists for.
+                      if raw_prs="$(gh api --paginate \
+                            "repos/datarobot/datarobot-user-models/pulls?state=open&per_page=100&sort=created&direction=asc" \
+                            --jq '.[] | select((.head.ref // "") | startswith("raptor/cve-remediation-"))
+                                  | select(.base.ref == env.REPO_REF)
+                                  | "\(.created_at)\t#\(.number) \(.title)\t\(.html_url)"' \
+                            2>/tmp/stale-prs-err.txt)"; then
+                        stale="$(printf '%s\n' "$raw_prs" \
+                                 | awk -F'\t' -v c="$cutoff" '$1 != "" && $1 < c {print "  " $2 "  " $3}')"
+                      else
+                        # An auth or rate-limit failure used to be indistinguishable from "no stale
+                        # PRs", so the message could say all was well when the lookup never ran.
+                        stale=""
+                        stale_unavailable="$(head -1 /tmp/stale-prs-err.txt 2>/dev/null)"
+                        echo "WARNING: stale-PR lookup failed: $stale_unavailable" >&2
+                      fi
+
+                      n_b="$(printf '%s' "$blocked" | grep -c . || true)"
+                      n_nv="$(printf '%s' "$not_verified" | grep -c . || true)"
+                      n_s="$(printf '%s' "$stale" | grep -c . || true)"
+                      if [ "$n_b" -eq 0 ] && [ "$n_nv" -eq 0 ] && [ "$n_s" -eq 0 ] \
+                         && [ -z "$stale_unavailable" ]; then
+                        echo "nothing unresolved and no stale CVE PRs: not posting."
+                        exit 0
+                      fi
+
+                      {
+                        printf 'CVE remediation run %s on %s (mode=%s) needs a human.\n' \
+                               "<+pipeline.sequenceId>" "$REPO_REF" "$MODE"
+                        [ "$n_b" -gt 0 ] && printf '\n*Blocked (%s)*\n%s\n' "$n_b" "$blocked"
+                        [ "$n_nv" -gt 0 ] && printf '\n*Not verified (%s)*\n%s\n' "$n_nv" "$not_verified"
+                        [ "$n_s" -gt 0 ] && printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
+                               "$STALE_PR_DAYS" "$n_s" "$stale"
+                        [ -n "$stale_unavailable" ] && \
+                          printf '\n_Stale-PR check unavailable: %s_\n' "$stale_unavailable"
+                        printf '\n<+pipeline.execution.url>\n'
+                      } > /tmp/slack-unresolved.txt
+
+                      if [ -z "${SLACK_WEBHOOK:-}" ]; then
+                        echo "no webhook configured; the report follows." >&2
+                        cat /tmp/slack-unresolved.txt
+                        exit 0
+                      fi
+                      bash /harness/genai-tools/genai-ci-tools/scripts/slack/slack.message.sh \
+                        "$SLACK_WEBHOOK" /tmp/slack-unresolved.txt \
+                        || { echo "slack post failed; the report follows." >&2
+                             cat /tmp/slack-unresolved.txt; }
+                      exit 0
+                  # Beside spec, not inside it: nested here they are silently ignored.
+                  timeout: 10m
+                  failureStrategies:
+                    - onFailure:
+                        errors:
+                          - AllErrors
+                        action:
+                          type: Ignore
+                  when:
+                    # Success, not All: a failed run already announces itself through the
+                    # PipelineFailed rule below, and a degenerate run writes to `blocked` AND
+                    # fails the stage, so under All it was reported twice.
+                    stageStatus: Success
           platform:
             os: Linux
             arch: Amd64
