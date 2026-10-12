@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create FIPS-compliant artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "699dbf89477264076dce2f84",
+  "environmentVersionId": "6abc36620066b11c4c006d90",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
