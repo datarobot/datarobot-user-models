@@ -1043,8 +1043,12 @@ pipeline:
                       # while the branch is ours by construction (see Open_remediation_PR).
                       # Scoped to this run's base branch for the same reason.
                       stale_unavailable=""
-                      if raw_prs="$(gh api \
-                            "repos/datarobot/datarobot-user-models/pulls?state=open&per_page=100" \
+                      # --paginate, and oldest first: the default listing is newest-first, and the
+                      # stale PRs are by definition the oldest. Without both, once the repo passes
+                      # one page of open PRs the stale ones fall off the end and the check reads
+                      # all-clear -- the same false reassurance the failure branch below exists for.
+                      if raw_prs="$(gh api --paginate \
+                            "repos/datarobot/datarobot-user-models/pulls?state=open&per_page=100&sort=created&direction=asc" \
                             --jq '.[] | select((.head.ref // "") | startswith("raptor/cve-remediation-"))
                                   | select(.base.ref == env.REPO_REF)
                                   | "\(.created_at)\t#\(.number) \(.title)\t\(.html_url)"' \
