@@ -963,6 +963,18 @@ pipeline:
                       # describes is unverified by construction -- a rebuilt tag does not
                       # exist until this merges and a build publishes one. Draft says
                       # "read this" without asking anyone to approve a fix claim.
+                      # The run's own caveats, from the same file the Slack step reads. Without them a PR
+                      # can carry a confident claim over something the run itself recorded as unconfirmed.
+                      UNRESOLVED_FILE="$(ls -t /harness/cve/report-*.unresolved.txt 2>/dev/null | head -1 || true)"
+                      UNRESOLVED_SECTION=""
+                      if [ -n "$UNRESOLVED_FILE" ] && [ -s "$UNRESOLVED_FILE" ]; then
+                        UNRESOLVED_SECTION="
+                      
+                      ## What this run could not settle
+                      
+                      $(cat "$UNRESOLVED_FILE")"
+                      fi
+
                       gh pr create --draft --repo datarobot/datarobot-user-models \
                         --base "$REPO_REF" --head "$BR" \
                         --title "[RAPTOR] CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
@@ -970,7 +982,8 @@ pipeline:
 
                       The diff was prepared by remedy-agent from this repo's ticket inventory and the VITA scan. **Not verified as a fix** - per the team playbook, a version bump is only proven by a clean grype scan of the rebuilt tag, which cannot happen until this merges and a build publishes it.
 
-                      Review the change on its own merits and read the RunReport in the pipeline execution for the reasoning behind it." \
+                      Review the change on its own merits and read the RunReport in the pipeline execution for the reasoning behind it.
+                      $UNRESOLVED_SECTION" \
                         || { echo "PR creation failed; the branch is pushed as $BR." >&2; exit 1; }
                   # Never fail the stage on this: the RunReport is the deliverable and the
                   # next step prints it. A PR that could not be opened is worth knowing
@@ -1028,12 +1041,14 @@ pipeline:
                       # carrying cases it could not settle is the silent one, and that is the
                       # one this step exists for. Never fails the stage: a missed notification
                       # must not cost the run that produced the report.
-                      report="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
-                      blocked=""; not_verified=""
-                      if [ -n "$report" ]; then
-                        blocked="$(jq -r '(.blocked // [])[]' "$report" 2>/dev/null || true)"
-                        not_verified="$(jq -r '(.not_verified // [])[]' "$report" 2>/dev/null || true)"
-                      fi
+                      # The agent renders this itself now (RunReport.unresolved_summary) and writes it
+                      # beside the report. Reading that instead of re-deriving it here is what keeps this
+                      # message and the PR body from drifting -- they were two hand-rolled renderings of
+                      # the same two lists. Absence means nothing unresolved: the file is only written
+                      # when there is something to say.
+                      unresolved="$(ls -t /harness/cve/report-*.unresolved.txt 2>/dev/null | head -1 || true)"
+                      summary=""
+                      [ -n "$unresolved" ] && summary="$(cat "$unresolved" 2>/dev/null || true)"
 
                       # Stale CVE-fix PRs: an age, from the pipeline variable, not a judgement here.
                       cutoff="$(date -u -d "-${STALE_PR_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
@@ -1063,10 +1078,9 @@ pipeline:
                         echo "WARNING: stale-PR lookup failed: $stale_unavailable" >&2
                       fi
 
-                      n_b="$(printf '%s' "$blocked" | grep -c . || true)"
-                      n_nv="$(printf '%s' "$not_verified" | grep -c . || true)"
+                      n_u="$(printf '%s' "$summary" | grep -c . || true)"
                       n_s="$(printf '%s' "$stale" | grep -c . || true)"
-                      if [ "$n_b" -eq 0 ] && [ "$n_nv" -eq 0 ] && [ "$n_s" -eq 0 ] \
+                      if [ "$n_u" -eq 0 ] && [ "$n_s" -eq 0 ] \
                          && [ -z "$stale_unavailable" ]; then
                         echo "nothing unresolved and no stale CVE PRs: not posting."
                         exit 0
@@ -1075,8 +1089,7 @@ pipeline:
                       {
                         printf 'CVE remediation run %s on %s (mode=%s) needs a human.\n' \
                                "<+pipeline.sequenceId>" "$REPO_REF" "$MODE"
-                        [ "$n_b" -gt 0 ] && printf '\n*Blocked (%s)*\n%s\n' "$n_b" "$blocked"
-                        [ "$n_nv" -gt 0 ] && printf '\n*Not verified (%s)*\n%s\n' "$n_nv" "$not_verified"
+                        [ -n "$summary" ] && printf '\n%s\n' "$summary"
                         [ "$n_s" -gt 0 ] && printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
                                "$STALE_PR_DAYS" "$n_s" "$stale"
                         [ -n "$stale_unavailable" ] && \
