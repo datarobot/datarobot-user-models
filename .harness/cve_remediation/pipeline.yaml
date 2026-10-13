@@ -943,11 +943,35 @@ pipeline:
                         exit 0
                       fi
 
+                      # Every commit and PR this pipeline produces must name the ticket it is for.
+                      # "[RAPTOR]" is not a ticket key: it links to nothing, Jira cannot pick it up and
+                      # it breaks the repo's [TICKET-ID] convention. The keys are already in the run
+                      # report, on the actions the agent took for this repo and branch.
+                      TAGS=""
+                      _rpt="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
+                      if [ -n "$_rpt" ] && jq -e . "$_rpt" >/dev/null 2>&1; then
+                        TAGS="$(jq -r --arg base "$REPO_REF" '
+                                  [.actions[]?
+                                   | select((.status // "proposed") != "blocked"
+                                            and ((.repo // "") | ascii_downcase | test("(^|/)datarobot-user-models$"))
+                                            and (((.branch // "") == "") or ((.branch // "") == $base)))
+                                   | .tickets[]?
+                                   | select(type == "string" and test("^[A-Z]+-[0-9]+$"))]
+                                  | unique | .[0:2] | map("[" + . + "]") | join("")' "$_rpt" 2>/dev/null || true)"
+                      fi
+                      # No key means nothing to trace this back to. Push the branch and let a person
+                      # open it with the right key, rather than publish an untraceable PR.
+                      if [ -z "$TAGS" ]; then
+                        echo "No PR was opened: no Jira ticket key could be derived for this diff." >&2
+                        echo "The branch below is pushed. Open the PR by hand with the right key, or" >&2
+                        echo "check why the RunReport's actions carried no tickets for $REPO_REF." >&2
+                      fi
+
                       BR="raptor/cve-remediation-<+pipeline.sequenceId>"
                       git checkout -b "$BR" 2>/dev/null || git checkout "$BR"
                       if [ "$SOURCE" = "uncommitted edits" ]; then
                         git add -A
-                        git commit -q -m "[RAPTOR] CVE remediation proposed by remedy-agent
+                        git commit -q -m "${TAGS:-[NO-TICKET]} CVE remediation proposed by remedy-agent
 
                       Prepared by remedy-agent in $MODE mode, pipeline run
                       <+pipeline.sequenceId>. The RunReport for this run is in the
@@ -975,9 +999,14 @@ pipeline:
                       $(cat "$UNRESOLVED_FILE")"
                       fi
 
+                      if [ -z "$TAGS" ]; then
+                        git --no-pager diff --stat "$BASE_REF"..HEAD >&2
+                        exit 0
+                      fi
+
                       gh pr create --draft --repo datarobot/datarobot-user-models \
                         --base "$REPO_REF" --head "$BR" \
-                        --title "[RAPTOR] CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
+                        --title "$TAGS CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
                         --body "Opened by the CVE Remediation pipeline, run <+pipeline.sequenceId>, mode \`$MODE\`.
 
                       The diff was prepared by remedy-agent from this repo's ticket inventory and the VITA scan. **Not verified as a fix** - per the team playbook, a version bump is only proven by a clean grype scan of the rebuilt tag, which cannot happen until this merges and a build publishes it.
