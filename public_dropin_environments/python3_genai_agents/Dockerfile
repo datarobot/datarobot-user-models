@@ -122,6 +122,17 @@ RUN . ${VENV_PATH}/bin/activate && \
     uv sync --frozen --extra agentic_playground && \
     uv cache clean && mkdir -p "${UV_CACHE_DIR}" && \
     chmod -R 777 ${VENV_PATH}
+
+# Warm the uv cache with the LangGraph agent's lock, so an agent's `uv sync --frozen` at
+# start links wheels from the cache instead of downloading them. Nothing stays installed:
+# the throwaway venv is deleted and only the cache is kept. umask 000 makes the cache
+# files usable by the custom model user (uid 1000) without a chmod layer that would copy them.
+# See langgraph/ and the README for how this set is refreshed.
+COPY --chown=${UNAME}:${UNAME} ./langgraph/pyproject.toml ./langgraph/uv.lock ${WORKDIR}/langgraph/
+RUN umask 000 && cd ${WORKDIR}/langgraph && \
+    UV_PROJECT_ENVIRONMENT=/tmp/langgraph-warm UV_COMPILE_BYTECODE=0 \
+    uv sync --frozen --no-install-project --no-progress && \
+    rm -rf /tmp/langgraph-warm ${WORKDIR}/langgraph
 WORKDIR /
 
 RUN rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json && chmod a+x ${WORKDIR}/start_server.sh
