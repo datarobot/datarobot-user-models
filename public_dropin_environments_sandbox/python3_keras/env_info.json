@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "697275fe1f8fd3076df5b7e0",
+  "environmentVersionId": "6accbb99007e031dbb0034f1",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
