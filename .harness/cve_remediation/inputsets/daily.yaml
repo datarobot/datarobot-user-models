@@ -1,0 +1,60 @@
+# Fed to CVE_Remediation by the `Daily dry-run` trigger, 05:00 UTC daily.
+#
+# The values live here rather than in the trigger because a trigger is `storeType: None`:
+# Harness holds it, nothing mirrors it to git, and a change to the mode, the budget or the
+# scope would leave no trace a reviewer sees. For the same reason the trigger itself is not
+# copied into this repo -- a copy nothing syncs drifts silently and still reads as
+# authoritative. Check Harness for the live schedule. The trigger keeps the cron and the
+# name of this input set, and nothing else.
+#
+# The hour of separation from global-envs-models (06:00)
+# and execution-environment-installer (07:00)
+# is load-bearing: all three queue on the same agent state.
+#
+# Harness keys an input set by FILE PATH, so renaming this file creates a second input set
+# rather than moving this one. Add a sibling here for a different kind of run (a cheap probe,
+# a one-off against a release branch); do not rename this one.
+inputSet:
+  name: Daily run
+  identifier: Daily_run
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  tags: {}
+  pipeline:
+    identifier: CVE_Remediation
+    variables:
+      - name: mode
+        type: String
+        value: dry-run
+      - name: max_budget_usd
+        type: String
+        value: "10"
+      - name: model
+        type: String
+        value: claude-sonnet-4-6
+      - name: remedy_ref
+        type: String
+        value: main
+      - name: datarobot_endpoint
+        type: String
+        value: https://app.datarobot.com/api/v2
+      - name: repo_ref
+        type: String
+        value: master
+      - name: genai_tools_ref
+        type: String
+        value: main
+      - name: grace_days
+        type: String
+        value: "3"
+      # auto: the images are derived from the repo's own environments rather than listed
+      # here, so adding an environment does not need this file changed.
+      - name: scope_images
+        type: String
+        value: auto
+      - name: progress
+        type: String
+        value: "true"
+      - name: dr_token
+        type: Secret
+        value: org.US_PRODUCTION_cm_canary_user_api_key
