@@ -943,11 +943,35 @@ pipeline:
                         exit 0
                       fi
 
+                      # Every commit and PR this pipeline produces must name the ticket it is for.
+                      # "[RAPTOR]" is not a ticket key: it links to nothing, Jira cannot pick it up and
+                      # it breaks the repo's [TICKET-ID] convention. The keys are already in the run
+                      # report, on the actions the agent took for this repo and branch.
+                      TAGS=""
+                      _rpt="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
+                      if [ -n "$_rpt" ] && jq -e . "$_rpt" >/dev/null 2>&1; then
+                        TAGS="$(jq -r --arg base "$REPO_REF" '
+                                  [.actions[]?
+                                   | select((.status // "proposed") != "blocked"
+                                            and ((.repo // "") | ascii_downcase | test("(^|/)datarobot-user-models$"))
+                                            and (((.branch // "") == "") or ((.branch // "") == $base)))
+                                   | .tickets[]?
+                                   | select(type == "string" and test("^[A-Z]+-[0-9]+$"))]
+                                  | unique | .[0:2] | map("[" + . + "]") | join("")' "$_rpt" 2>/dev/null || true)"
+                      fi
+                      # No key means nothing to trace this back to. Push the branch and let a person
+                      # open it with the right key, rather than publish an untraceable PR.
+                      if [ -z "$TAGS" ]; then
+                        echo "No PR was opened: no Jira ticket key could be derived for this diff." >&2
+                        echo "The branch below is pushed. Open the PR by hand with the right key, or" >&2
+                        echo "check why the RunReport's actions carried no tickets for $REPO_REF." >&2
+                      fi
+
                       BR="raptor/cve-remediation-<+pipeline.sequenceId>"
                       git checkout -b "$BR" 2>/dev/null || git checkout "$BR"
                       if [ "$SOURCE" = "uncommitted edits" ]; then
                         git add -A
-                        git commit -q -m "[RAPTOR] CVE remediation proposed by remedy-agent
+                        git commit -q -m "${TAGS:-[NO-TICKET]} CVE remediation proposed by remedy-agent
 
                       Prepared by remedy-agent in $MODE mode, pipeline run
                       <+pipeline.sequenceId>. The RunReport for this run is in the
@@ -963,14 +987,32 @@ pipeline:
                       # describes is unverified by construction -- a rebuilt tag does not
                       # exist until this merges and a build publishes one. Draft says
                       # "read this" without asking anyone to approve a fix claim.
+                      # The run's own caveats, from the same file the Slack step reads. Without them a PR
+                      # can carry a confident claim over something the run itself recorded as unconfirmed.
+                      UNRESOLVED_FILE="$(ls -t /harness/cve/report-*.unresolved.txt 2>/dev/null | head -1 || true)"
+                      UNRESOLVED_SECTION=""
+                      if [ -n "$UNRESOLVED_FILE" ] && [ -s "$UNRESOLVED_FILE" ]; then
+                        UNRESOLVED_SECTION="
+                      
+                      ## What this run could not settle
+                      
+                      $(cat "$UNRESOLVED_FILE")"
+                      fi
+
+                      if [ -z "$TAGS" ]; then
+                        git --no-pager diff --stat "$BASE_REF"..HEAD >&2
+                        exit 0
+                      fi
+
                       gh pr create --draft --repo datarobot/datarobot-user-models \
                         --base "$REPO_REF" --head "$BR" \
-                        --title "[RAPTOR] CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
+                        --title "$TAGS CVE remediation proposed by remedy-agent (run <+pipeline.sequenceId>)" \
                         --body "Opened by the CVE Remediation pipeline, run <+pipeline.sequenceId>, mode \`$MODE\`.
 
                       The diff was prepared by remedy-agent from this repo's ticket inventory and the VITA scan. **Not verified as a fix** - per the team playbook, a version bump is only proven by a clean grype scan of the rebuilt tag, which cannot happen until this merges and a build publishes it.
 
-                      Review the change on its own merits and read the RunReport in the pipeline execution for the reasoning behind it." \
+                      Review the change on its own merits and read the RunReport in the pipeline execution for the reasoning behind it.
+                      $UNRESOLVED_SECTION" \
                         || { echo "PR creation failed; the branch is pushed as $BR." >&2; exit 1; }
                   # Never fail the stage on this: the RunReport is the deliverable and the
                   # next step prints it. A PR that could not be opened is worth knowing
@@ -1028,11 +1070,19 @@ pipeline:
                       # carrying cases it could not settle is the silent one, and that is the
                       # one this step exists for. Never fails the stage: a missed notification
                       # must not cost the run that produced the report.
-                      report="$(ls -t /harness/cve/report-*.json 2>/dev/null | head -1 || true)"
-                      blocked=""; not_verified=""
-                      if [ -n "$report" ]; then
-                        blocked="$(jq -r '(.blocked // [])[]' "$report" 2>/dev/null || true)"
-                        not_verified="$(jq -r '(.not_verified // [])[]' "$report" 2>/dev/null || true)"
+                      # The agent renders this itself now (RunReport.unresolved_summary) and writes it
+                      # beside the report. Reading that instead of re-deriving it here is what keeps this
+                      # message and the PR body from drifting -- they were two hand-rolled renderings of
+                      # the same two lists. Absence means nothing unresolved: the file is only written
+                      # when there is something to say.
+                      unresolved="$(ls -t /harness/cve/report-*.unresolved.txt 2>/dev/null | head -1 || true)"
+                      summary=""
+                      # `if`, not `[ … ] && …`: an AND-list carries the failed test's status, so it
+                      # ends the step whenever it is the last command -- with or without `set -e`,
+                      # which Harness prepends anyway. Nothing here is last today; the point is that
+                      # this step must survive someone appending a line to it.
+                      if [ -n "$unresolved" ]; then
+                        summary="$(cat "$unresolved" 2>/dev/null || true)"
                       fi
 
                       # Stale CVE-fix PRs: an age, from the pipeline variable, not a judgement here.
@@ -1063,10 +1113,9 @@ pipeline:
                         echo "WARNING: stale-PR lookup failed: $stale_unavailable" >&2
                       fi
 
-                      n_b="$(printf '%s' "$blocked" | grep -c . || true)"
-                      n_nv="$(printf '%s' "$not_verified" | grep -c . || true)"
+                      n_u="$(printf '%s' "$summary" | grep -c . || true)"
                       n_s="$(printf '%s' "$stale" | grep -c . || true)"
-                      if [ "$n_b" -eq 0 ] && [ "$n_nv" -eq 0 ] && [ "$n_s" -eq 0 ] \
+                      if [ "$n_u" -eq 0 ] && [ "$n_s" -eq 0 ] \
                          && [ -z "$stale_unavailable" ]; then
                         echo "nothing unresolved and no stale CVE PRs: not posting."
                         exit 0
@@ -1075,12 +1124,16 @@ pipeline:
                       {
                         printf 'CVE remediation run %s on %s (mode=%s) needs a human.\n' \
                                "<+pipeline.sequenceId>" "$REPO_REF" "$MODE"
-                        [ "$n_b" -gt 0 ] && printf '\n*Blocked (%s)*\n%s\n' "$n_b" "$blocked"
-                        [ "$n_nv" -gt 0 ] && printf '\n*Not verified (%s)*\n%s\n' "$n_nv" "$not_verified"
-                        [ "$n_s" -gt 0 ] && printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
-                               "$STALE_PR_DAYS" "$n_s" "$stale"
-                        [ -n "$stale_unavailable" ] && \
+                        if [ -n "$summary" ]; then
+                          printf '\n%s\n' "$summary"
+                        fi
+                        if [ "$n_s" -gt 0 ]; then
+                          printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
+                                 "$STALE_PR_DAYS" "$n_s" "$stale"
+                        fi
+                        if [ -n "$stale_unavailable" ]; then
                           printf '\n_Stale-PR check unavailable: %s_\n' "$stale_unavailable"
+                        fi
                         printf '\n<+pipeline.execution.url>\n'
                       } > /tmp/slack-unresolved.txt
 
