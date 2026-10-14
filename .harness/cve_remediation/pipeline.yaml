@@ -1077,7 +1077,13 @@ pipeline:
                       # when there is something to say.
                       unresolved="$(ls -t /harness/cve/report-*.unresolved.txt 2>/dev/null | head -1 || true)"
                       summary=""
-                      [ -n "$unresolved" ] && summary="$(cat "$unresolved" 2>/dev/null || true)"
+                      # `if`, not `[ … ] && …`: an AND-list carries the failed test's status, so it
+                      # ends the step whenever it is the last command -- with or without `set -e`,
+                      # which Harness prepends anyway. Nothing here is last today; the point is that
+                      # this step must survive someone appending a line to it.
+                      if [ -n "$unresolved" ]; then
+                        summary="$(cat "$unresolved" 2>/dev/null || true)"
+                      fi
 
                       # Stale CVE-fix PRs: an age, from the pipeline variable, not a judgement here.
                       cutoff="$(date -u -d "-${STALE_PR_DAYS} days" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null \
@@ -1118,11 +1124,16 @@ pipeline:
                       {
                         printf 'CVE remediation run %s on %s (mode=%s) needs a human.\n' \
                                "<+pipeline.sequenceId>" "$REPO_REF" "$MODE"
-                        [ -n "$summary" ] && printf '\n%s\n' "$summary"
-                        [ "$n_s" -gt 0 ] && printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
-                               "$STALE_PR_DAYS" "$n_s" "$stale"
-                        [ -n "$stale_unavailable" ] && \
+                        if [ -n "$summary" ]; then
+                          printf '\n%s\n' "$summary"
+                        fi
+                        if [ "$n_s" -gt 0 ]; then
+                          printf '\n*CVE-fix PRs open over %s days (%s)*\n%s\n' \
+                                 "$STALE_PR_DAYS" "$n_s" "$stale"
+                        fi
+                        if [ -n "$stale_unavailable" ]; then
                           printf '\n_Stale-PR check unavailable: %s_\n' "$stale_unavailable"
+                        fi
                         printf '\n<+pipeline.execution.url>\n'
                       } > /tmp/slack-unresolved.txt
 
