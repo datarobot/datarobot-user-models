@@ -30,5 +30,5 @@ constraint-dependencies = [
     "pytest>=9.0.3",
     "requests>=2.33.0",
     "tornado>=6.5.8",
-    "urllib3>=2.7.0",
+    "urllib3>=2.8.0",
 ]
