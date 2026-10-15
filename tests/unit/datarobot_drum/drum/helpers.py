@@ -6,7 +6,11 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
 # file name "helpers" avoids name conflict with utils/ directory
+import json
 import os
+import subprocess
+import sys
+import textwrap
 
 from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParameters
 
@@ -31,3 +35,27 @@ def unset_runtime_parameter(name: str):
     as if it was never defined.
     """
     os.environ.pop(f"{RuntimeParameters.PARAM_PREFIX}_{name}", None)
+
+
+def loaded_proprietary_modules(script: str):
+    """
+    Run `script` in a fresh interpreter and return the proprietary DataRobot libraries
+    (datarobot client, datarobot-mlops, datarobot-storage) it left loaded in `sys.modules`.
+    The R predictor relies on these staying out of the process that embeds the GPL-licensed
+    rpy2/libR, unless monitoring or DR API access is enabled.
+    """
+    report = """
+import json, sys
+print(json.dumps(sorted(
+    name for name in sys.modules
+    if name == "datarobot"
+    or name.startswith(("datarobot.", "datarobot_mlops", "datarobot_storage"))
+)))
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", textwrap.dedent(script) + report],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout.strip().splitlines()[-1])

@@ -10,6 +10,7 @@ import copy
 import logging
 import os
 import socket
+import textwrap
 from contextlib import closing
 
 import numpy as np
@@ -32,6 +33,8 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
     RawPredictResponse,
 )
+
+from tests.unit.datarobot_drum.drum.helpers import loaded_proprietary_modules
 
 logger = logging.getLogger(__name__)
 
@@ -377,3 +380,45 @@ class TestJavaPredictor(object):
         # required to properly shutdown py4j Gateway
         pred._setup_py4j_client_connection()
         pred._stop_py4j()
+
+
+@pytest.mark.skipif(not r_supported, reason="requires R framework to be installed")
+def test_r_predictor_does_not_load_proprietary_libraries(tmp_path):
+    (tmp_path / "custom.R").write_text(
+        textwrap.dedent(
+            """
+            load_model <- function(input_dir) {
+                "model"
+            }
+
+            score <- function(data, model, ...) {
+                data.frame(Predictions = rep(1.0, nrow(data)))
+            }
+            """
+        )
+    )
+    # monitor and allow_dr_api_access are requested but must be ignored for R models.
+    script = f"""
+    import datarobot_drum.drum.drum
+    import datarobot_drum.drum.root_predictors.prediction_server
+    from datarobot_drum.drum.enum import StructuredDtoKeys
+    from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+
+    predictor = RPredictor()
+    predictor.configure(
+        {{
+            "target_type": "regression",
+            "__custom_model_path__": {str(tmp_path)!r},
+            "monitor": True,
+            "allow_dr_api_access": True,
+            "deployment_id": "1234",
+            "external_webserver_url": "http://localhost",
+            "api_token": "token",
+        }}
+    )
+    response = predictor.predict(
+        **{{StructuredDtoKeys.BINARY_DATA: b"a,b\\n1,2\\n3,4\\n", StructuredDtoKeys.MIMETYPE: "text/csv"}}
+    )
+    assert len(response.predictions) == 2
+    """
+    assert loaded_proprietary_modules(script) == []

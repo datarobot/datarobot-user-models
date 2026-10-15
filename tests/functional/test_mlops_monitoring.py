@@ -28,7 +28,7 @@ from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
-from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
+from datarobot_mlops.mlops import MLOps
 from tests.fixtures.unstructured_custom_mlops import NUM_REPORTED_DEPLOYMENT_STATS
 
 from tests.constants import (

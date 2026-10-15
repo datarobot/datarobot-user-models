@@ -8,8 +8,6 @@ import os
 import re
 from pathlib import Path
 
-import datarobot as dr_client
-
 from datarobot_drum.drum.common import (
     get_metadata,
 )
@@ -22,6 +20,8 @@ MODEL_LOGS_LINK_FORMAT = "{url}/projects/{project_id}/models/{model_id}/log"
 
 
 def _convert_target_type(unconverted_target_type):
+    import datarobot as dr_client
+
     if unconverted_target_type == TargetType.REGRESSION.value:
         return dr_client.TARGET_TYPE.REGRESSION
     elif unconverted_target_type == TargetType.BINARY.value:
@@ -34,6 +34,8 @@ def _convert_target_type(unconverted_target_type):
 
 
 def _push_training(model_config, code_dir, endpoint=None, token=None):
+    import datarobot as dr_client
+
     try:
         from datarobot import CustomTask, CustomTaskVersion, UserBlueprint
     except ImportError:
@@ -110,6 +112,8 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
 
 
 def _push_inference(model_config, code_dir, token=None, endpoint=None):
+    import datarobot as dr_client
+
     dr_client.Client(token=token, endpoint=endpoint)
     if ModelMetadataKeys.MODEL_ID in model_config:
         model_id = model_config[ModelMetadataKeys.MODEL_ID]
@@ -158,6 +162,8 @@ def _push_inference(model_config, code_dir, token=None, endpoint=None):
 
 
 def _print_model_started_dialogue(new_model_id):
+    import datarobot as dr_client
+
     print("\nYour model was successfully pushed")
     print("\n🏁 Follow this link to get started 🏁")
     print(

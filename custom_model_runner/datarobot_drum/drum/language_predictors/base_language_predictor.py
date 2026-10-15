@@ -33,8 +33,6 @@ from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInpu
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.drum.root_predictors.chat_helpers import is_streaming_response
 
-import datarobot as dr
-from datarobot_mlops.common.connected_exception import DRMLOpsConnectedException
 from opentelemetry.instrumentation.utils import suppress_instrumentation
 
 DEFAULT_PROMPT_COLUMN_NAME = "promptText"
@@ -46,23 +44,35 @@ DRIFT_ERROR_MESSAGE = (
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
+# The DataRobot client and datarobot_mlops are imported on first use rather than at module
+# import, so they are only loaded into the process when monitoring or DR API access is enabled.
 mlops_loaded = False
 mlops_import_error = None
 MLOps = None
-try:
-    from datarobot_mlops.mlops import MLOps
-    from datarobot_mlops.common.exception import DRCommonException
+DRCommonException = None
+DRMLOpsConnectedException = None
 
-    mlops_loaded = True
-except ImportError as e:
-    mlops_import_error = "Error importing MLOps python module(new path): {}".format(e)
+
+def _import_mlops():
+    global MLOps, DRCommonException, DRMLOpsConnectedException, mlops_loaded, mlops_import_error
     try:
-        from datarobot.mlops.mlops import MLOps
-        from datarobot.mlops.common.exception import DRCommonException
-
-        mlops_loaded = True
+        from datarobot_mlops.mlops import MLOps as mlops_class
+        from datarobot_mlops.common.exception import DRCommonException as common_exception
+        from datarobot_mlops.common.connected_exception import (
+            DRMLOpsConnectedException as connected_exception,
+        )
     except ImportError as e:
-        mlops_import_error += "\n\tError importing MLOps python module(old path): {}".format(e)
+        mlops_import_error = "Error importing MLOps python module: {}".format(e)
+        return
+
+    # Keep names that are already set, e.g. patched in tests.
+    if MLOps is None:
+        MLOps = mlops_class
+    if DRCommonException is None:
+        DRCommonException = common_exception
+    if DRMLOpsConnectedException is None:
+        DRMLOpsConnectedException = connected_exception
+    mlops_loaded = True
 
 
 def uuid4_fast():
@@ -132,6 +142,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         if to_bool(params.get("allow_dr_api_access")):
             logger.info("Initializing DataRobot Python client.")
+            import datarobot as dr
+
             dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
 
@@ -161,10 +173,13 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.info("Deployment id not set, monitoring will be disabled.")
             return
 
+        _import_mlops()
         if not mlops_loaded:
             raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
 
         if to_bool(self._params.get("allow_dr_api_access")):
+            import datarobot as dr
+
             try:
                 self._deployment = dr.Deployment.get(deployment_id)
                 self._refresh_tracking_settings()
@@ -189,6 +204,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _refresh_tracking_settings(self):
         deployment_id = self._params.get("deployment_id", None)
         if to_bool(self._params.get("allow_dr_api_access")) and deployment_id is not None:
+            import datarobot as dr
+
             self._deployment = dr.Deployment.get(deployment_id)
             self._tracking_settings = self._deployment.get_drift_tracking_settings()
             self._data_collection = self._deployment.get_predictions_data_collection_settings()

@@ -11,7 +11,7 @@ import pandas as pd
 from scipy.sparse import coo_matrix
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
-from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.common import SupportedPayloadFormats, to_bool
 from datarobot_drum.drum.enum import (
     CustomHooks,
     LOGGER_NAME_PREFIX,
@@ -57,9 +57,20 @@ R_COMMON_PATH = os.path.abspath(
 
 r_handler = ro.r
 
+# Features that load proprietary DataRobot libraries (datarobot client, datarobot-mlops) into the
+# process. They are disabled for R models so those libraries never share a process with
+# the GPL-licensed rpy2/libR.
+R_UNSUPPORTED_PARAMS = ("monitor", "allow_dr_api_access")
+
 
 class RPredictor(BaseLanguagePredictor):
     def configure(self, params):
+        params = dict(params)
+        for param in R_UNSUPPORTED_PARAMS:
+            if to_bool(params.get(param)):
+                logger.warning("'%s' is not supported for R models and will be ignored.", param)
+            params[param] = False
+
         super(RPredictor, self).configure(params)
 
         r_handler.source(R_COMMON_PATH)
