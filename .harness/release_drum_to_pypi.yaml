@@ -28,16 +28,10 @@ pipeline:
                     shell: Bash
                     command: |-
                       . ${VIRTUAL_ENV}/bin/activate
-                      cd custom_model_runner
-                      make
-                      cd -
-                      DRUM_WHEEL="$(realpath "$(find custom_model_runner/dist/datarobot_drum*.whl)")"
-                      echo ""
-                      echo "Built DRUM wheel"
-                      echo ${DRUM_WHEEL}
-
-                      pip3 install --only-binary=:all: twine
-                      twine upload ${DRUM_WHEEL} -u <+secrets.getValue("datarobot_drum_pypi_username")> -p <+secrets.getValue("datarobot_drum_pypi_password")>
+                      ./harness_scripts/drum_release/release_drum.sh "<+pipeline.variables.release_type>"
+                    envVariables:
+                      PYPI_USERNAME: <+secrets.getValue("datarobot_drum_pypi_username")>
+                      PYPI_PASSWORD: <+secrets.getValue("datarobot_drum_pypi_password")>
           platform:
             os: Linux
             arch: Amd64
@@ -51,4 +45,13 @@ pipeline:
             enabled: false
   identifier: release_drum_to_pypi
   name: Release DRUM to Pypi
-  description: Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
+  description: |-
+    Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
+    release_type=main publishes the version from description.py as is.
+    release_type=dev publishes <version>.devN, where N is the next free dev number on PyPI.
+  variables:
+    - name: release_type
+      type: String
+      description: "main - release version as is; dev - release <version>.devN"
+      required: true
+      value: <+input>.default(main).allowedValues(main,dev)
