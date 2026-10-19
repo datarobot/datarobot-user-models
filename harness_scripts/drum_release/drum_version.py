@@ -45,7 +45,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("current", help="Print the version in description.py")
-    is_published = commands.add_parser("is-published", help="Print true if VERSION is on PyPI, else false")
+    is_published = commands.add_parser(
+        "is-published", help="Print true if VERSION is on PyPI, else false"
+    )
     is_published.add_argument("version")
     next_dev = commands.add_parser("next-dev", help="Print the next free BASE.devN on PyPI")
     next_dev.add_argument("base_version")
