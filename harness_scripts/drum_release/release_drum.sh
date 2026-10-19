@@ -10,6 +10,7 @@ shopt -s inherit_errexit
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRUM_VERSION_PY="${SCRIPT_DIR}/drum_version.py"
 MAX_DEV_UPLOAD_ATTEMPTS=10
+UPLOAD_FILE_ALREADY_EXISTS=3
 
 release_type="${1:?release type (dev|main) is required}"
 DRY_RUN="${DRY_RUN:-false}"
@@ -36,7 +37,7 @@ upload_wheel() {
   fi
   # PyPI never accepts a filename twice, even after the release is deleted, so a
   # computed dev number can still collide; the caller retries with the next one.
-  grep -q "File already exists" "${log}" && return 3
+  grep -q "File already exists" "${log}" && return "${UPLOAD_FILE_ALREADY_EXISTS}"
   return 1
 }
 
@@ -61,7 +62,7 @@ case "${release_type}" in
       upload_wheel "${wheel}" || upload_status=$?
       if [ "${upload_status}" -eq 0 ]; then
         break
-      elif [ "${upload_status}" -ne 3 ] || [ "${attempt}" -eq "${MAX_DEV_UPLOAD_ATTEMPTS}" ]; then
+      elif [ "${upload_status}" -ne "${UPLOAD_FILE_ALREADY_EXISTS}" ] || [ "${attempt}" -eq "${MAX_DEV_UPLOAD_ATTEMPTS}" ]; then
         exit 1
       fi
       minimum_dev_number=$(( ${version##*.dev} + 1 ))

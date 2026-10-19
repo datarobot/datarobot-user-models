@@ -32,7 +32,8 @@ def published_versions():
 def next_dev_version(base_version, versions, minimum_dev_number=0):
     dev_pattern = re.compile(rf"{re.escape(base_version)}\.dev(\d+)")
     dev_numbers = [int(m[1]) for v in versions if (m := dev_pattern.fullmatch(v))]
-    return f"{base_version}.dev{max(max(dev_numbers, default=-1) + 1, minimum_dev_number)}"
+    next_dev_number = max(dev_numbers, default=-1) + 1
+    return f"{base_version}.dev{max(next_dev_number, minimum_dev_number)}"
 
 
 def set_version(new_version):
@@ -44,8 +45,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     commands.add_parser("current", help="Print the version in description.py")
-    commands.add_parser("parse", help="Print the version from description.py source on stdin")
-    is_published = commands.add_parser("is-published", help="Exit 0 if VERSION is on PyPI")
+    is_published = commands.add_parser("is-published", help="Print true if VERSION is on PyPI, else false")
     is_published.add_argument("version")
     next_dev = commands.add_parser("next-dev", help="Print the next free BASE.devN on PyPI")
     next_dev.add_argument("base_version")
@@ -56,10 +56,8 @@ def main():
 
     if args.command == "current":
         print(parse_version(DESCRIPTION_FILE.read_text()))
-    elif args.command == "parse":
-        print(parse_version(sys.stdin.read()))
     elif args.command == "is-published":
-        sys.exit(0 if args.version in published_versions() else 1)
+        print(str(args.version in published_versions()).lower())
     elif args.command == "next-dev":
         print(next_dev_version(args.base_version, published_versions(), args.minimum_dev_number))
     elif args.command == "set":
@@ -71,4 +69,4 @@ if __name__ == "__main__":
         main()
     except (urllib.error.URLError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
-        sys.exit(2)
+        sys.exit(1)
