@@ -30,6 +30,7 @@ pipeline:
                       . ${VIRTUAL_ENV}/bin/activate
                       ./harness_scripts/drum_release/release_drum.sh "<+pipeline.variables.release_type>"
                     envVariables:
+                      DRY_RUN: <+pipeline.variables.dry_run>
                       PYPI_USERNAME: <+secrets.getValue("datarobot_drum_pypi_username")>
                       PYPI_PASSWORD: <+secrets.getValue("datarobot_drum_pypi_password")>
           platform:
@@ -49,9 +50,15 @@ pipeline:
     Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
     release_type=main publishes the version from description.py as is.
     release_type=dev publishes <version>.devN, where N is the next free dev number on PyPI.
+    dry_run=true builds and validates the wheel but does not upload it.
   variables:
     - name: release_type
       type: String
       description: "main - release version as is; dev - release <version>.devN"
       required: true
       value: <+input>.default(main).allowedValues(main,dev)
+    - name: dry_run
+      type: String
+      description: "true - build and validate the wheel without uploading it to PyPI"
+      required: true
+      value: <+input>.default(false).allowedValues(false,true)

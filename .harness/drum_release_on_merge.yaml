@@ -5,22 +5,19 @@ pipeline:
   orgIdentifier: Custom_Models
   description: |-
     Started by the drum_release_on_push_master trigger when description.py changes on master.
-    If the DRUM version was bumped and is not on PyPI yet, asks for approval to release
+    If the DRUM version in description.py is not on PyPI yet, asks for approval to release
     a dev build (<version>.devN) and then the main version, via release_drum_to_pypi.
-    Rejecting or not answering an approval aborts the remaining releases.
+    Rejecting the dev approval skips the dev release and moves on to the main approval.
+    Rejecting the main approval ends the run without a main release.
+    Releases currently run with dry_run=true: wheels are built and validated, nothing is uploaded.
   tags: {}
+  timeout: 15d
   properties:
     ci:
       codebase:
         connectorRef: account.svc_harness_git1
         repoName: datarobot-user-models
         build: <+input>
-  variables:
-    - name: before_sha
-      type: String
-      description: Previous master head of the push; empty for manual runs, then only PyPI is checked.
-      required: false
-      value: <+input>.default()
   stages:
     - stage:
         name: Detect DRUM version bump
@@ -37,11 +34,11 @@ pipeline:
                   identifier: detect_version
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobotdev/drum-builder:ubuntu-24-04
-                    shell: Bash
+                    image: python:3.12-alpine
+                    shell: Sh
                     command: |-
-                      source ./harness_scripts/drum_release/detect_version_bump.sh "<+pipeline.variables.before_sha>"
-                      COMMIT_SHA="$(git rev-parse HEAD)"
+                      . ./harness_scripts/drum_release/detect_version_bump.sh
+                      COMMIT_SHA="<+codebase.commitSha>"
                     outputVariables:
                       - name: VERSION_BUMPED
                       - name: DRUM_VERSION
@@ -62,6 +59,7 @@ pipeline:
         identifier: approve_dev_release
         description: ""
         type: Approval
+        timeout: 7d
         spec:
           execution:
             steps:
@@ -73,7 +71,7 @@ pipeline:
                   spec:
                     approvalMessage: |-
                       Release DRUM <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.DRUM_VERSION> as a dev build (<version>.devN) to PyPI?
-                      Reject to skip both dev and main releases.
+                      Approve to release a dev build. Reject to skip it and go straight to the main release approval.
                     includePipelineExecutionHistory: true
                     isAutoRejectEnabled: false
                     approvers:
@@ -91,7 +89,7 @@ pipeline:
                 - ApprovalRejection
                 - Timeout
               action:
-                type: Abort
+                type: Ignore
     - stage:
         name: Release dev
         identifier: release_dev
@@ -114,14 +112,18 @@ pipeline:
               - name: release_type
                 type: String
                 value: dev
+              - name: dry_run
+                type: String
+                value: "true"
         when:
           pipelineStatus: Success
-          condition: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.VERSION_BUMPED> == "true"
+          condition: <+pipeline.stages.approve_dev_release.status> == "SUCCEEDED"
     - stage:
         name: Approve main release
         identifier: approve_main_release
         description: ""
         type: Approval
+        timeout: 7d
         spec:
           execution:
             steps:
@@ -173,6 +175,9 @@ pipeline:
               - name: release_type
                 type: String
                 value: main
+              - name: dry_run
+                type: String
+                value: "true"
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.VERSION_BUMPED> == "true"

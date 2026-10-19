@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: release_drum.sh dev|main
-# Builds the DRUM wheel and uploads it to PyPI. Requires PYPI_USERNAME and PYPI_PASSWORD.
+# Builds the DRUM wheel and uploads it to PyPI. Requires PYPI_USERNAME and PYPI_PASSWORD
+# unless DRY_RUN=true, which builds and validates the wheel but skips the upload.
 # For dev, the version becomes <version>.devN with N the next free number on PyPI.
 
 set -euo pipefail
@@ -8,10 +9,13 @@ shopt -s inherit_errexit
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DRUM_VERSION_PY="${SCRIPT_DIR}/drum_version.py"
-MAX_DEV_UPLOAD_ATTEMPTS=3
+MAX_DEV_UPLOAD_ATTEMPTS=10
 
 release_type="${1:?release type (dev|main) is required}"
-: "${PYPI_USERNAME:?}" "${PYPI_PASSWORD:?}"
+DRY_RUN="${DRY_RUN:-false}"
+if [ "${DRY_RUN}" != "true" ]; then
+  : "${PYPI_USERNAME:?}" "${PYPI_PASSWORD:?}"
+fi
 
 build_wheel() {
   make -C custom_model_runner >&2
@@ -21,6 +25,11 @@ build_wheel() {
 upload_wheel() {
   local wheel="${1}"
   local log
+  twine check --strict "${wheel}"
+  if [ "${DRY_RUN}" = "true" ]; then
+    echo "DRY RUN: skipping upload of $(basename "${wheel}")"
+    return 0
+  fi
   log="$(mktemp)"
   if twine upload --non-interactive -u "${PYPI_USERNAME}" -p "${PYPI_PASSWORD}" "${wheel}" 2>&1 | tee "${log}"; then
     return 0
@@ -64,4 +73,8 @@ case "${release_type}" in
     ;;
 esac
 
-echo "Released DRUM ${version}: https://pypi.org/project/datarobot-drum/${version}/"
+if [ "${DRY_RUN}" = "true" ]; then
+  echo "DRY RUN: DRUM ${version} built but not released"
+else
+  echo "Released DRUM ${version}: https://pypi.org/project/datarobot-drum/${version}/"
+fi

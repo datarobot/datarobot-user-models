@@ -39,7 +39,3 @@ trigger:
               type: commitSha
               spec:
                 commitSha: <+trigger.commitSha>
-      variables:
-        - name: before_sha
-          type: String
-          value: <+trigger.payload.before>
