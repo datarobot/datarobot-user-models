@@ -14,7 +14,7 @@ asttokens==3.0.1
 attrs==26.1.0
 beautifulsoup4==4.14.3
 bleach[css]==6.4.0
-certifi==2026.2.25
+certifi==2026.10.19
 cffi==2.0.0
 charset-normalizer==3.4.6
 click==8.3.1
