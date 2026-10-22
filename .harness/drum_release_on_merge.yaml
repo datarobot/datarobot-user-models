@@ -1,0 +1,183 @@
+pipeline:
+  name: Release DRUM on merge
+  identifier: drum_release_on_merge
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  description: |-
+    Started by the drum_release_on_push_master trigger when description.py changes on master.
+    If the DRUM version in description.py is not on PyPI yet, asks for approval to release
+    a dev build (<version>.devN) and then the main version, via release_drum_to_pypi.
+    Rejecting the dev approval skips the dev release and moves on to the main approval.
+    Rejecting the main approval ends the run without a main release.
+    Releases currently run with dry_run=true: wheels are built and validated, nothing is uploaded.
+  tags: {}
+  timeout: 15d
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Detect DRUM version bump
+        identifier: detect
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Detect version bump
+                  identifier: detect_version
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: python:3.12-alpine
+                    shell: Sh
+                    command: |-
+                      . ./harness_scripts/drum_release/detect_version_bump.sh
+                      COMMIT_SHA="<+codebase.commitSha>"
+                    outputVariables:
+                      - name: VERSION_BUMPED
+                      - name: DRUM_VERSION
+                      - name: COMMIT_SHA
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          caching:
+            enabled: false
+            paths: []
+          buildIntelligence:
+            enabled: false
+    - stage:
+        name: Approve dev release
+        identifier: approve_dev_release
+        description: ""
+        type: Approval
+        timeout: 7d
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: HarnessApproval
+                  name: Approve dev release
+                  identifier: approve_dev_release
+                  timeout: 7d
+                  spec:
+                    approvalMessage: |-
+                      Release DRUM <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.DRUM_VERSION> as a dev build (<version>.devN) to PyPI?
+                      Approve to release a dev build. Reject to skip it and go straight to the main release approval.
+                    includePipelineExecutionHistory: true
+                    isAutoRejectEnabled: false
+                    approvers:
+                      userGroups:
+                        - drum_release_approvers
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                    approverInputs: []
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.VERSION_BUMPED> == "true"
+        failureStrategies:
+          - onFailure:
+              errors:
+                - ApprovalRejection
+                - Timeout
+              action:
+                type: Ignore
+    - stage:
+        name: Release dev
+        identifier: release_dev
+        description: ""
+        type: Pipeline
+        spec:
+          org: Custom_Models
+          project: datarobotusermodels
+          pipeline: release_drum_to_pypi
+          inputs:
+            identifier: release_drum_to_pypi
+            properties:
+              ci:
+                codebase:
+                  build:
+                    type: commitSha
+                    spec:
+                      commitSha: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.COMMIT_SHA>
+            variables:
+              - name: release_type
+                type: String
+                value: dev
+              - name: dry_run
+                type: String
+                value: "true"
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.approve_dev_release.status> == "SUCCEEDED"
+    - stage:
+        name: Approve main release
+        identifier: approve_main_release
+        description: ""
+        type: Approval
+        timeout: 7d
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: HarnessApproval
+                  name: Approve main release
+                  identifier: approve_main_release
+                  timeout: 7d
+                  spec:
+                    approvalMessage: |-
+                      Release DRUM <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.DRUM_VERSION> to PyPI as the main version?
+                    includePipelineExecutionHistory: true
+                    isAutoRejectEnabled: false
+                    approvers:
+                      userGroups:
+                        - drum_release_approvers
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                    approverInputs: []
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.VERSION_BUMPED> == "true"
+        failureStrategies:
+          - onFailure:
+              errors:
+                - ApprovalRejection
+                - Timeout
+              action:
+                type: Abort
+    - stage:
+        name: Release main
+        identifier: release_main
+        description: ""
+        type: Pipeline
+        spec:
+          org: Custom_Models
+          project: datarobotusermodels
+          pipeline: release_drum_to_pypi
+          inputs:
+            identifier: release_drum_to_pypi
+            properties:
+              ci:
+                codebase:
+                  build:
+                    type: commitSha
+                    spec:
+                      commitSha: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.COMMIT_SHA>
+            variables:
+              - name: release_type
+                type: String
+                value: main
+              - name: dry_run
+                type: String
+                value: "true"
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.detect.spec.execution.steps.detect_version.output.outputVariables.VERSION_BUMPED> == "true"

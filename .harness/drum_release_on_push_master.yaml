@@ -1,0 +1,41 @@
+trigger:
+  name: drum_release_on_push_master
+  identifier: drum_release_on_push_master
+  enabled: true
+  stagesToExecute: []
+  description: Starts the DRUM release flow when the DRUM version file changes on master.
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: drum_release_on_merge
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: Push
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: changedFiles
+              operator: Contains
+              value: custom_model_runner/datarobot_drum/drum/description.py
+            - key: targetBranch
+              operator: Equals
+              value: master
+          headerConditions: []
+          repoName: datarobot-user-models
+          actions: []
+  pipelineBranchName: <+trigger.branch>
+  inputYaml: |
+    pipeline:
+      identifier: drum_release_on_merge
+      properties:
+        ci:
+          codebase:
+            build:
+              type: commitSha
+              spec:
+                commitSha: <+trigger.commitSha>
