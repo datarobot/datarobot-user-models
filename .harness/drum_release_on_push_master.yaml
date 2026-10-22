@@ -29,13 +29,5 @@ trigger:
           repoName: datarobot-user-models
           actions: []
   pipelineBranchName: <+trigger.branch>
-  inputYaml: |
-    pipeline:
-      identifier: drum_release_on_merge
-      properties:
-        ci:
-          codebase:
-            build:
-              type: commitSha
-              spec:
-                commitSha: <+trigger.commitSha>
+  inputSetRefs:
+    - drum_release_on_merge_default_input

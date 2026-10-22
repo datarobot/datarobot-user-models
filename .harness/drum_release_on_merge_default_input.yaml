@@ -1,0 +1,14 @@
+inputSet:
+  name: drum_release_on_merge_default_input
+  identifier: drum_release_on_merge_default_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: drum_release_on_merge
+    properties:
+      ci:
+        codebase:
+          build:
+            type: commitSha
+            spec:
+              commitSha: <+trigger.commitSha>
