@@ -20,6 +20,7 @@ ARG UV_CACHE_DIR=/tmp/uv-cache
 # This is the python 3.13 base image from Chainguard
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS base
 
+ARG PYTHON_VERSION
 ARG UNAME
 ARG UID
 ARG GID
@@ -31,8 +32,13 @@ ARG UV_CACHE_DIR
 USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# Minimum versions for the CA root store remediation. apk fails the build instead of
+# silently keeping an older package from a stale base image or mirror.
+# pip and py3-pip-wheel matter because pip vendors its own certifi (py3-pip-wheel seeds
+# the user venv that setup-venv.sh creates); uv bundles webpki roots.
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache uv openssh-server \
+RUN apk add --no-cache 'ca-certificates-bundle>=20260909-r3' 'uv>=0.13.4' \
+    "py${PYTHON_VERSION}-pip>=26.2.2" 'py3-pip-wheel>=26.2.2' openssh-server \
     && rm -f /etc/ssh/ssh_host_*
 
 # hadolint ignore=DL3018,DL3059
@@ -53,6 +59,10 @@ ENV PYTHONUNBUFFERED=1 \
     NOTEBOOKS_KERNEL="python" \
     DEEPEVAL_HOME=/tmp/.deepeval \
     DEEPEVAL_TELEMETRY_OPT_OUT="YES"
+
+# grpcio ships its own roots.pem; point it at the system bundle instead. Agents can pull
+# grpcio in at runtime (e.g. OTLP gRPC exporters), so this is set for every stage.
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
