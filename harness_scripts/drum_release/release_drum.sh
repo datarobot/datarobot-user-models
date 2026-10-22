@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Usage: release_drum.sh dev|main
-# Builds the DRUM wheel and uploads it to PyPI. Requires PYPI_USERNAME and PYPI_PASSWORD
-# unless DRY_RUN=true, which builds and validates the wheel but skips the upload.
+# Builds the DRUM wheel and uploads it to PyPI. Requires TWINE_USERNAME and TWINE_PASSWORD
+# (twine reads them itself; use __token__ as the username for an API token) unless
+# DRY_RUN=true, which builds and validates the wheel but skips the upload.
 # For dev, the version becomes <version>.devN with N the next free number on PyPI.
 
 set -euo pipefail
@@ -15,7 +16,7 @@ UPLOAD_FILE_ALREADY_EXISTS=3
 release_type="${1:?release type (dev|main) is required}"
 DRY_RUN="${DRY_RUN:-false}"
 if [ "${DRY_RUN}" != "true" ]; then
-  : "${PYPI_USERNAME:?}" "${PYPI_PASSWORD:?}"
+  : "${TWINE_USERNAME:?}" "${TWINE_PASSWORD:?}"
 fi
 
 build_wheel() {
@@ -26,13 +27,14 @@ build_wheel() {
 upload_wheel() {
   local wheel="${1}"
   local log
-  twine check --strict "${wheel}"
+  # Called as `upload_wheel ... || status=$?`, which disables errexit inside the function.
+  twine check --strict "${wheel}" || return 1
   if [ "${DRY_RUN}" = "true" ]; then
     echo "DRY RUN: skipping upload of $(basename "${wheel}")"
     return 0
   fi
   log="$(mktemp)"
-  if twine upload --non-interactive -u "${PYPI_USERNAME}" -p "${PYPI_PASSWORD}" "${wheel}" 2>&1 | tee "${log}"; then
+  if twine upload --non-interactive "${wheel}" 2>&1 | tee "${log}"; then
     return 0
   fi
   # PyPI never accepts a filename twice, even after the release is deleted, so a
