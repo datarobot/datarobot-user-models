@@ -85,7 +85,12 @@ pipeline:
 
                       # Clone ourselves because harness clones strip creds and forcibly shallow clone
                       # and we end up doing more work
-                      git clone "https://${GH_TOKEN}@github.com/datarobot/datarobot-user-models.git"
+                      # Pass the token with a credential helper, not in the clone URL. Newer git
+                      # drops URL credentials after it follows a redirect, so the push POST
+                      # goes out without auth and fails. The helper reads GH_TOKEN at run time.
+                      git config --global credential.https://github.com.helper \
+                        '!f() { echo username=x-access-token; echo "password=${GH_TOKEN}"; }; f'
+                      git clone "https://github.com/datarobot/datarobot-user-models.git"
                       cd datarobot-user-models
                       git checkout "${SOURCE_REF}"
                       # Idempotence check. skip pipeline if any branch commits match our message,
