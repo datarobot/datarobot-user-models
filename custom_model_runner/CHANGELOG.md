@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.18.2] - 2026-10-22
+##### Changed
+- No functional changes. First release published through the approval-gated `drum_release_on_merge` Harness pipeline.
+
 #### [1.18.1] - 2026-09-30
 ##### Changed
 - Gunicorn keep-alive is now disabled by default (`keepalive=0`), so pooled idle connections (e.g. from the KEDA HTTP interceptor) no longer pin workers. `DRUM_GUNICORN_KEEP_ALIVE` now accepts `0`; set it to a positive value to re-enable keep-alive. Applies to `gevent` workers only (`DRUM_GUNICORN_WORKER_CLASS=gevent`); no effect on the default `sync` worker, which already closes the connection after every response.
