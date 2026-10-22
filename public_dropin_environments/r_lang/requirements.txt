@@ -83,7 +83,7 @@ texttable==1.7.2
 trafaret==2.1.1
 typing-extensions==4.16.0
 typing-inspection==0.4.4
-tzlocal==5.4.4
+tzlocal==5.4.5
 urllib3==2.8.0
 werkzeug==3.1.9
 wrapt==2.5.1
