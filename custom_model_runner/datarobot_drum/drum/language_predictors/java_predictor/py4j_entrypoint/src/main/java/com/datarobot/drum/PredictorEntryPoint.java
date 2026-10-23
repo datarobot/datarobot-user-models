@@ -43,7 +43,7 @@ public class PredictorEntryPoint {
     private static EntryPointConfig parseArgs(String[] args) throws Exception {
         ArgumentParser parser = ArgumentParsers.newFor("ComponentEntryPoint").build()
                                                .defaultHelp(true)
-                                               .description("Calculate checksum of given files.");
+                                               .description("Start a py4j gateway server for the given predictor class.");
         parser.addArgument("--class-name")
               .type(String.class)
               .help("Class name to run py4j gateway on");
