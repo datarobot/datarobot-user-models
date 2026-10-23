@@ -26,7 +26,8 @@ RUN apk add --no-cache \
     libpng-dev \
     tiff-dev \
     libjpeg-turbo-dev \
-    libuv-dev && \
+    libuv-dev \
+    libgit2-dev && \
     ln -s /usr/lib/R/lib /usr/lib/R/lib64
 
 ENV R_HOME=/usr/lib/R
@@ -86,6 +87,11 @@ COPY --from=build /usr/lib/libsasl2* /usr/lib/
 COPY --from=build /usr/lib/libbrotlicommon* /usr/lib/
 COPY --from=build /usr/lib/libzstd* /usr/lib/
 COPY --from=build /usr/lib/libuv* /usr/lib/
+
+# 'libgit2' is required by the 'gert' R package (devtools -> usethis -> gert)
+COPY --from=build /usr/lib/libgit2* /usr/lib/
+COPY --from=build /usr/lib/libhttp_parser* /usr/lib/
+COPY --from=build /usr/lib/libssh2* /usr/lib/
 
 COPY --from=build /etc/R /etc/R
 COPY --from=build /usr/share/R /usr/share/R
