@@ -87,11 +87,10 @@ COPY --from=build /usr/lib/libsasl2* /usr/lib/
 COPY --from=build /usr/lib/libbrotlicommon* /usr/lib/
 COPY --from=build /usr/lib/libzstd* /usr/lib/
 COPY --from=build /usr/lib/libuv* /usr/lib/
-
-# 'libgit2' is required by the 'gert' R package (devtools -> usethis -> gert)
-COPY --from=build /usr/lib/libgit2* /usr/lib/
-COPY --from=build /usr/lib/libhttp_parser* /usr/lib/
-COPY --from=build /usr/lib/libssh2* /usr/lib/
+# 'gert' (devtools dependency) links the system libgit2
+COPY --from=build /usr/lib/libgit2.so.* /usr/lib/
+COPY --from=build /usr/lib/libssh2.so.* /usr/lib/
+COPY --from=build /usr/lib/libhttp_parser.so.* /usr/lib/
 
 COPY --from=build /etc/R /etc/R
 COPY --from=build /usr/share/R /usr/share/R
