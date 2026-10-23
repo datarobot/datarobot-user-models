@@ -35,7 +35,7 @@ google-pasta==0.2.0
 google-resumable-media==2.11.0
 googleapis-common-protos==1.76.0
 greenlet==3.5.6
-grpcio==1.84.1
+grpcio==1.85.0
 gunicorn==26.2.0
 h5py==3.16.0
 idna==3.20
