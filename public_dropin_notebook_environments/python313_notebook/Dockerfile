@@ -17,7 +17,7 @@ ARG GID=10101
 
 ARG CLI_VERSION=v0.15.3
 ARG GITHELPER_VERSION=v0.0.37
-ARG OPENCODE_VERSION=1.18.30
+ARG OPENCODE_VERSION=1.19.4
 
 ARG ENVIRONMENT_VERSION_ID
 ARG GIT_COMMIT
@@ -214,3 +214,5 @@ RUN find $VENV_PATH/lib/python3.*/site-packages -name "pip-*.dist-info" -type d 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+# grpcio otherwise uses its own bundled roots.pem instead of the system CA bundle.
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
