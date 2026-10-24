@@ -51,7 +51,7 @@ USER root
 # libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
 RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
-  openblas git openssh-server busybox coreutils gzip zip unzip wget curl \
+  openblas git openssh-server busybox coreutils gzip zip unzip wget curl jq tmux \
   openjdk-11 vim nano procps tzdata poppler-utils nodejs npm \
   "pulumi>=3.256.0-r3" pulumi-language-python pulumi-language-yaml pulumi-language-go pulumi-language-nodejs \
   gh uv "task>=3.53.1-r4" bash-completion xdg-utils \
