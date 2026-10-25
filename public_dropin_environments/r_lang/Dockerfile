@@ -42,6 +42,13 @@ RUN Rscript -e "install.packages(c('tidyverse'), repos='https://cloud.r-project.
 RUN Rscript -e "install.packages(c('pack'), repos='https://cloud.r-project.org', Ncpus=4); library(pack)"
 RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLookup()[['forReg']] | modelLookup()[['forClass']], 'model']), repos='https://cloud.r-project.org', Ncpus=4)"
 
+# Some CRAN packages ship their own copy of the Mozilla CA list (RCurl's CurlSSL/cacert.pem
+# and etc/ca-bundle.crt, openssl's cacert.pem), which lags the system bundle and still
+# trusted the compromised emSign ECC Root CA - G3 (PRDSEC-2832). Point every such copy at
+# the system bundle, which the base image keeps current.
+RUN find /usr/lib/R/library -type f \( -name 'cacert.pem' -o -name 'ca-bundle.crt' \) \
+      -exec ln -sf /etc/ssl/certs/ca-certificates.crt {} \;
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
