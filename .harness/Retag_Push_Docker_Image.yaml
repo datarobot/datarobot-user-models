@@ -33,11 +33,19 @@ pipeline:
                   spec:
                     shell: Bash
                     command: |-
+                      set -euo pipefail
+
                       # Set source and target image tags
                       echo "Starting script"
                       docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
 
-                      changed_files=$(git diff --name-only HEAD~1 HEAD)
+                      # Harness clones shallow, so HEAD~1 can sit outside the fetched history. Deepen once,
+                      # then fail loudly: an unchecked `git diff` that errors returns empty, which reads as
+                      # "no environments changed" and exits 0 having promoted nothing.
+                      if [ -f "$(git rev-parse --git-dir)/shallow" ]; then
+                        git fetch -q --deepen=1 >/dev/null 2>&1 || true
+                      fi
+                      changed_files=$(git diff --name-only HEAD~1 HEAD) || { echo 'git diff HEAD~1 HEAD failed' >&2; exit 1; }
                       env_files=$(echo "$changed_files" | grep 'env_info\.json' || true)
 
                       if [ -n "$env_files" ]; then
