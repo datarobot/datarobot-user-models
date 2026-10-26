@@ -43,7 +43,7 @@ If your change adds a **Python dependency**:
 ## What not to edit by hand
 
 * `environmentVersionId` and `tags` in `env_info.json`. CI pushes a version-bump commit to your PR branch.
-* Requirements files in other `public_dropin_environments/*` directories. CI regenerates them, so they can appear in your diff.
+* Requirements files in other `public_dropin_environments/*` directories. CI may regenerate them on a notebook PR, so unrelated files can appear in your diff. Don't revert or edit them.
 
 ## Review
 
