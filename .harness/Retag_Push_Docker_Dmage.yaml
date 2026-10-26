@@ -1,0 +1,77 @@
+pipeline:
+  name: Retag and Push Docker Image
+  identifier: retag_push_docker_image
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: Retag Docker Image
+        identifier: Retag_Docker_Image
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+            paths: []
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Retag and Push Image
+                  identifier: Retag_and_Push_Image
+                  spec:
+                    shell: Bash
+                    command: |-
+                      # Set source and target image tags
+                      echo "Starting script"
+                      docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
+
+                      changed_files=$(git diff --name-only HEAD~1 HEAD)
+                      env_files=$(echo "$changed_files" | grep 'env_info\.json' || true)
+
+                      if [ -n "$env_files" ]; then
+                        echo "Found changed env_info.json files:"
+                        echo ${env_files}
+                        for file in $env_files; do
+                          if [ -f "$file" ]; then
+                            echo "Processing: $file"
+
+                            REPO=$(jq -r ".imageRepository" $file)
+                            ENV_VER_ID=$(jq -r ".environmentVersionId" $file)
+                            SOURCE_IMAGE="datarobotdev/${REPO}:${ENV_VER_ID}"
+                            TARGET_IMAGE="datarobot/${REPO}:${ENV_VER_ID}"
+                          
+                            echo "Pulling source image: $SOURCE_IMAGE"
+                            docker pull "$SOURCE_IMAGE"
+
+                            echo "Retagging to: $TARGET_IMAGE"
+                            docker tag "$SOURCE_IMAGE" "$TARGET_IMAGE"
+
+                            echo "Pushing target image..."
+                            docker push "$TARGET_IMAGE"
+                          else
+                            echo "File not found: $file"
+                          fi
+                        done
+                      else
+                        echo "No env_info.json files changed in the last commit."
+                      fi
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+        sparseCheckout: []
+  description: Pipeline is triggered when PR, that changes environments, is merged to master. For every changed environment. E.g. based on env_info.json,  image "datarobotdev/<image_repo>:<tag>" is promoted to "datarobot/<image_repo>:<tag>"
