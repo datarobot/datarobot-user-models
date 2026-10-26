@@ -2,8 +2,8 @@
 
 This directory holds the images behind DataRobot Codespaces and Notebooks:
 
-* `python313_notebook` is the image Codespaces/Notebooks run today.
-* `python311_notebook_base` is published as a template that customers extend to build their own notebook environments.
+* `python313_notebook` is the image Codespaces/Notebooks run today. It is shipped to DataRobot cloud and on-premise deployments.
+* `python311_notebook_base` is an example template for building custom notebook environments. It is not shipped from this repository.
 
 The `@datarobot/agent-lifecycle` team owns both images (see `.github/CODEOWNERS`).
 Their review is required for every change under this directory.
@@ -12,7 +12,7 @@ Anyone is welcome to open a PR.
 ## Why review is required
 
 Every package in these images becomes part of the vulnerability surface the owning team patches and ships.
-Changes also reach customers: the 3.11 image is a public template, and new image versions are released to all notebook users.
+Changes also reach customers: new versions of the 3.13 image are released to all notebook users.
 
 ## Before you open a PR
 
@@ -30,12 +30,7 @@ If your change adds, removes, or upgrades a **system package** (`apk add` in a `
 
 If your change adds a **long-running or background tool** (for example `tmux`, `sshd`, or a language server):
 
-- [ ] Checked how it interacts with `agent/agent.py` and `agent/cgroup_watchers.py` (idle detection, resource accounting, cleanup on shutdown).
 - [ ] Checked it works when the session runs as a different UID than the image was built with.
-
-If your change touches the **3.11 template image**:
-
-- [ ] Considered customers who extend it. Anything added becomes part of their base.
 
 If your change adds a **Python dependency**:
 
