@@ -25,6 +25,12 @@ USER root
 # Copy the JRE from the development stage
 COPY --from=build /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/java-11-openjdk
 
+# The JDK's lib/security/cacerts is a symlink to this file from java-cacerts (pulled in by
+# openjdk-11 in the build stage). Without it Java has no default trust store, so every TLS
+# connection fails. java-cacerts 20260909-r3 or later drops the compromised eMudhra roots
+# (PRDSEC-2816).
+COPY --from=build /etc/ssl/certs/java/cacerts /etc/ssl/certs/java/cacerts
+
 # Most of the binaries below are just symlinks to busybox and some OCI build tools follow
 # symlinks (Docker buildkit) and some do not (Kaniko) so copy this in to be safe.
 COPY --from=build /usr/bin/busybox /usr/bin/busybox
