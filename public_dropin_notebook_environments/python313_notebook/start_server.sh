@@ -74,18 +74,42 @@ source /etc/system/kernel/common-user-limits.sh
 
 # shellcheck disable=SC1091
 source /etc/system/kernel/setup-ssh.sh
-cp -L /var/run/notebooks/ssh/authorized_keys/notebooks /etc/authorized_keys/ && chmod 600 /etc/authorized_keys/notebooks
+# The session's SSH keys are either mounted ready-made (Kubernetes sessions get them from the
+# orchestrator) or exchanged here through the shared directory: the runner publishes its
+# public key there when it starts, and the kernel makes its own host key and publishes the
+# public half for the runner to trust.
+NBX_SSH_SHARED_DIR=/var/run/notebooks/ssh/authorized_keys
+NBX_SSHD_OPTS=()
+NBX_AUTHORIZED_KEYS_DIR=/etc/authorized_keys
+
 # mkdir -p, not mkdir: an emptyDir mounted over this path makes a plain mkdir fail with
 # "File exists", so the cp never runs and sshd comes up with no host key while the pod
 # still reports 1/1 Running.
-mkdir -p /etc/ssh/keys && cp -L /var/run/notebooks/ssh/keys/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
+mkdir -p /etc/ssh/keys
+if compgen -G "/var/run/notebooks/ssh/keys/ssh_host_*" > /dev/null; then
+    cp -L /var/run/notebooks/ssh/keys/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
+else
+    # sshd only offers ecdsa-sha2-nistp256 and ssh-ed25519 host keys (sshd_config)
+    ssh-keygen -q -t ecdsa -b 256 -N "" -f /etc/ssh/keys/ssh_host_key
+    cp /etc/ssh/keys/ssh_host_key.pub "${NBX_SSH_SHARED_DIR}/ssh_host_key.pub" || \
+        echo "WARNING: the generated SSH host key can't be published to ${NBX_SSH_SHARED_DIR}." >&2
+fi
+
+if [ -f "${NBX_SSH_SHARED_DIR}/notebooks" ]; then
+    cp -L "${NBX_SSH_SHARED_DIR}/notebooks" /etc/authorized_keys/ && chmod 600 /etc/authorized_keys/notebooks
+else
+    # The runner's key isn't there yet: sshd reads it from the shared directory at each login
+    # instead of a copy, so it doesn't matter which container starts first.
+    NBX_AUTHORIZED_KEYS_DIR="${NBX_SSH_SHARED_DIR}"
+    NBX_SSHD_OPTS+=(-o "AuthorizedKeysFile=${NBX_SSH_SHARED_DIR}/%u")
+fi
+
 # StrictModes refuses an authorized_keys file whose directory group or others can write, which
-# is what an emptyDir mounted over /etc/authorized_keys is, so the check is dropped only when
-# that is really the case and a default install keeps it.
-NBX_SSHD_OPTS=()
-if find /etc/authorized_keys -maxdepth 0 \( -perm -0020 -o -perm -0002 \) 2>/dev/null | grep -q .; then
-    echo "WARNING: /etc/authorized_keys is writable by group or others, so sshd runs with StrictModes off." >&2
-    NBX_SSHD_OPTS=(-o StrictModes=no)
+# is what an emptyDir mounted over the authorized keys directory is, so the check is dropped
+# only when that is really the case and a default install keeps it.
+if find "${NBX_AUTHORIZED_KEYS_DIR}" -maxdepth 0 \( -perm -0020 -o -perm -0002 \) 2>/dev/null | grep -q .; then
+    echo "WARNING: ${NBX_AUTHORIZED_KEYS_DIR} is writable by group or others, so sshd runs with StrictModes off." >&2
+    NBX_SSHD_OPTS+=(-o StrictModes=no)
 fi
 nohup /usr/sbin/sshd -D ${NBX_SSHD_OPTS[@]+"${NBX_SSHD_OPTS[@]}"} &
 
