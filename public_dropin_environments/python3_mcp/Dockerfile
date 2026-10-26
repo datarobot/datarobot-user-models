@@ -164,6 +164,8 @@ ENV VENV_DIR=${VENV_PATH} \
     CODE_DIR=/opt/code \
     ADDRESS=0.0.0.0:8080 \
     PYTHONUNBUFFERED=1
+# grpcio otherwise uses its own bundled roots.pem instead of the system CA bundle.
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 
 # MCP server port. The only port this environment exposes.
 EXPOSE 8080
