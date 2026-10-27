@@ -49,6 +49,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 # libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
+# jq: JSON handling in deploy scripts; tmux: terminal sessions that survive a dropped connection, not a pod restart
 RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl jq tmux \
