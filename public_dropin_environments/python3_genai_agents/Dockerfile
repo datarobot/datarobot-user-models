@@ -36,9 +36,12 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # silently keeping an older package from a stale base image or mirror.
 # pip and py3-pip-wheel matter because pip vendors its own certifi (py3-pip-wheel seeds
 # the user venv that setup-venv.sh creates); uv bundles webpki roots.
+# libbrotli*: CVE-2026-111497, fixed in 1.2.0-r7.
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache 'ca-certificates-bundle>=20260909-r3' 'uv>=0.13.4' \
-    "py${PYTHON_VERSION}-pip>=26.2.2" 'py3-pip-wheel>=26.2.2' openssh-server \
+    "py${PYTHON_VERSION}-pip>=26.2.2" 'py3-pip-wheel>=26.2.2' \
+    'libbrotlicommon1>=1.2.0-r7' 'libbrotlidec1>=1.2.0-r7' 'libbrotlienc1>=1.2.0-r7' \
+    openssh-server \
     && rm -f /etc/ssh/ssh_host_*
 
 # hadolint ignore=DL3018,DL3059
