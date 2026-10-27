@@ -54,6 +54,8 @@ ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV HOME=/opt
 ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
+# grpcio otherwise uses its own bundled roots.pem instead of the system CA bundle.
+ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 
 # MARK: FUNCTIONAL-TEST-ADD-HERE. (This line is used by DRUM functional test automation and can be safely ignored.)
 
