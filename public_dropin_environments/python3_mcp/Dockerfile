@@ -14,7 +14,7 @@
 #
 # The environment NAME is deliberately version-less ("[DataRobot] Python 3 MCP",
 # precedent: python3_genai_agents): the interpreter inside may move within the
-# Python 3 line (3.12 today) without renaming the environment or breaking the
+# Python 3 line (3.15 today) without renaming the environment or breaking the
 # consumers that reference it by name (af-component-datarobot-mcp defaults).
 #
 # This image ships NO start script of its own. The model bundle must provide
@@ -36,7 +36,7 @@
 #      on PATH at image level so a bare `python`/`fastmcp` entrypoint resolves
 #      without sourcing an activate script.
 
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.15
 ARG WORKDIR=/etc/system/mcp
 ARG VENV_PATH=${WORKDIR}/.venv
 ARG UNAME=mcp

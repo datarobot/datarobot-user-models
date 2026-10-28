@@ -1,4 +1,4 @@
-PYTHON_VERSION = 3.12
+PYTHON_VERSION = 3.15
 ENV_VERSIONID  = $(shell jq -r .environmentVersionId env_info.json)
 ENV_REPONAME   = $(shell jq -r .imageRepository env_info.json)
 LABEL_REPONAME = $(notdir $(shell git remote get-url origin || printf 'unknown'))
