@@ -12,7 +12,7 @@ is 8080.
 
 The environment name is deliberately version-less (precedent:
 [`python3_genai_agents`](../python3_genai_agents)): the interpreter inside may move
-within the Python 3 line (3.12 today) without renaming the environment or breaking
+within the Python 3 line (3.13 today) without renaming the environment or breaking
 consumers that reference it by name.
 
 This is not a replacement for
