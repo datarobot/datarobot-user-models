@@ -25,6 +25,7 @@ dev = [
 required-version = ">=0.10.0"
 constraint-dependencies = [
     # CVE fixes - constraints for transitive dependencies.
+    "grpcio>=1.84.1",
     "idna>=3.15",
     "pygments>=2.20.0",
     "pytest>=9.0.3",
