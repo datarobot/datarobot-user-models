@@ -4,16 +4,16 @@ name = "agent_llamaindex"
 version = "11.1.11"
 description = "Implementation of agent_llamaindex"
 readme = "README.md"
-requires-python = ">=3.10,<3.14"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     # Generic deps.
     "click~=8.3.3",
     "datarobot-drum==1.17.15",
-    "datarobot-moderations[all]==11.2.29",
+    "datarobot-moderations[all]==11.2.45",
     "datarobot-mlops==11.1.0",
     "datarobot[auth]==3.8.2",
     "dotenv~=0.9.9",
-    "litellm~=1.85.0",
+    "litellm>=1.100.4,<2",
     "onnxruntime~=1.22.0",
     "openai>=2,<3",
     "python-dotenv>=1.2.2",
@@ -46,27 +46,34 @@ exclude-dependencies = [
 ]
 constraint-dependencies = [
     # CVE fixes - constraints for transitive dependencies.
-    "aiohttp>=3.14.3",
+    "aiohttp>=3.14.4",
     "anyio>=4.14.2",
-    "banks>=2.4.5",
+    "banks>=2.5.1",
     "boto3>=1.43.117",
     "botocore>=1.43.117",
     "click>=8.3.3",
     "cryptography>=50.0.0",
     "datasets>=5.0.1",
+    "filelock>=4.2.1",
+    "fsspec>=2026.6.0",
     "grpcio>=1.84.1",
     "idna>=3.15",
     "langchain>=1.3.9",
     "langchain-classic>=1.0.7",
     "langchain-core>=1.3.3",
+    "langchain-nvidia-ai-endpoints>=1.4.2",
     "langchain-openai>=1.1.14",
     "langchain-text-splitters>=1.1.2",
+    "langgraph>=1.2.14",
     "langgraph-checkpoint>=4.1.1",
+    "langgraph-sdk>=0.4.6",
     "langsmith>=0.8.18",
-    "litellm>=1.84.0",
-    "nltk>=3.10.3",
+    "litellm>=1.100.4",
+    "multidict>=6.9.1",
+    "nltk>=3.10.4",
     "openai>=2.30.0",
-    "pillow>=12.3.0",
+    "opentelemetry-api>=1.45.1",
+    "pillow>=13.0.0",
     "pyarrow>=23.0.1",
     "pyasn1>=0.6.4",
     "pydantic-settings>=2.14.2",
@@ -74,9 +81,12 @@ constraint-dependencies = [
     "pyjwt>=2.15.0",
     "pytest>=9.0.3",
     "requests>=2.33.0",
-    "setuptools>=83.0.0",
+    "setuptools>=84.1.0",
     "starlette>=1.3.1",
+    "tinytag>=2.3.0",
     "urllib3>=2.8.0",
+    "virtualenv>=21.14.13",
+    "werkzeug>=3.1.9",
 ]
 
 [dependency-groups]
