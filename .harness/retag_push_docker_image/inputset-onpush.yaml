@@ -9,6 +9,6 @@ inputSet:
       ci:
         codebase:
           build:
-            type: branch
+            type: commitSha
             spec:
-              branch: <+trigger.branch>
+              commitSha: <+trigger.commitSha>
