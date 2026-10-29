@@ -19,13 +19,13 @@
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
 /                                                                 @datarobot/inference-platform
-/.harness/python3_mcp_image_build_default_pr_input.yaml           @datarobot/core-modeling
-/.harness/python3_mcp_image_build_pr_input.yaml                   @datarobot/core-modeling
-/.harness/python3_mcp_on_pr.yaml                                  @datarobot/core-modeling
-/.harness/python3_mcp_on_push_master.yaml                         @datarobot/core-modeling
-/.harness/python3_mcp_publish_to_docker_pr_input.yaml             @datarobot/core-modeling
-/.harness/python3_mcp_trivy_scan_pr_input.yaml                    @datarobot/core-modeling
-/.harness/python3_mcp_update_env_version_pr_input.yaml            @datarobot/core-modeling
+/.harness/python3_mcp_image_build_default_pr_input.yaml           @datarobot/inference-platform
+/.harness/python3_mcp_image_build_pr_input.yaml                   @datarobot/inference-platform
+/.harness/python3_mcp_on_pr.yaml                                  @datarobot/inference-platform
+/.harness/python3_mcp_on_push_master.yaml                         @datarobot/inference-platform
+/.harness/python3_mcp_publish_to_docker_pr_input.yaml             @datarobot/inference-platform
+/.harness/python3_mcp_trivy_scan_pr_input.yaml                    @datarobot/inference-platform
+/.harness/python3_mcp_update_env_version_pr_input.yaml            @datarobot/inference-platform
 /MODEL-METADATA.md                                                @datarobot/inference-platform @datarobot/core-modeling
 /README.md                                                        @datarobot/inference-platform @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
@@ -38,11 +38,11 @@
 /model_templates/proxy_model_azureml                              @datarobot/inference-platform
 /model_templates/proxy_model_datarobot                            @datarobot/inference-platform
 /model_templates/triton_onnx_unstructured                         @datarobot/inference-platform
-/public_dropin_environments/dr_mcp_execute_sandbox_minimal        @datarobot/mcp
+/public_dropin_environments/dr_mcp_execute_sandbox_minimal        @datarobot/inference-platform
 /public_dropin_environments/java_codegen                          @datarobot/inference-platform
 /public_dropin_environments/python3_genai_agents                  @datarobot/agent-lifecycle
 /public_dropin_environments/python3_keras                         @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/python3_mcp                           @datarobot/core-modeling
+/public_dropin_environments/python3_mcp                           @datarobot/inference-platform
 /public_dropin_environments/python3_onnx                          @datarobot/inference-platform
 /public_dropin_environments/python3_pytorch                       @datarobot/inference-platform @datarobot/core-modeling
 /public_dropin_environments/python3_sklearn                       @datarobot/inference-platform @datarobot/core-modeling
