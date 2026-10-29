@@ -13,7 +13,8 @@ USER root
 # Wolfi epoch for 11.0.30 GA is typically r6; override at build if your mirror uses a different release suffix.
 # RAPTOR-18453, RAPTOR-19223: 11.0.31-r1 -> 11.0.32.1-r0 (JAVA_VERSION 11.0.32.1, 2026-08-18).
 ARG OPENJDK11_APK_VERSION=11.0.32.1-r4
-RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION}
+# java-cacerts is pinned so a lagging mirror can't ship the compromised eMudhra roots (PRDSEC-2816).
+RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION} 'java-cacerts>=20260909-r3'
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
@@ -24,8 +25,14 @@ FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11
 
 USER root
 
-# Copy the JRE from the development stage
+# Copy the JDK from the development stage
 COPY --from=build /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/java-11-openjdk
+
+# The JDK's lib/security/cacerts is a symlink to this file from java-cacerts (pulled in by
+# openjdk-11 in the build stage). Without it Java has no default trust store, so every TLS
+# connection fails. java-cacerts 20260909-r3 or later drops the compromised eMudhra roots
+# (PRDSEC-2816).
+COPY --from=build /etc/ssl/certs/java/cacerts /etc/ssl/certs/java/cacerts
 
 # Most of the binaries below are just symlinks to busybox and some OCI build tools follow
 # symlinks (Docker buildkit) and some do not (Kaniko) so copy this in to be safe.
@@ -33,6 +40,10 @@ COPY --from=build /usr/bin/busybox /usr/bin/busybox
 
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
+
+# Fail the build if Java's default trust store doesn't resolve (functional tests use plain HTTP
+# and would not notice a dangling cacerts symlink).
+RUN /usr/lib/jvm/java-11-openjdk/bin/keytool -list -cacerts -storepass changeit >/dev/null
 
 # Required to change the ownership of copied files into the managed-image
 COPY --from=build /bin/chown /bin/chown
