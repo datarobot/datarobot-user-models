@@ -1,0 +1,14 @@
+inputSet:
+  name: retag_push_docker_image_default_input
+  identifier: retag_push_docker_image_default_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: retag_push_docker_image
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
