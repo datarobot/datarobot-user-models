@@ -3,7 +3,7 @@ name = "DockerContext"
 version = "0.1.0"
 description = "Implementation of DockerContext"
 readme = "README.md"
-requires-python = ">=3.13, <3.14"
+requires-python = ">=3.14, <3.15"
 dependencies = [
     "datarobot-genai[drmcp]>=0.29.60,<0.30.0",
 ]
