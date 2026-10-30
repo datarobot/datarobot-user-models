@@ -8,6 +8,7 @@
 #   - code runs in the prespawned kernel and in a newly created kernel
 #   - in the kernels, the dataframe extension renders a DataFrame and %pip installs a package
 #   - drgithelper runs, sshd and the monitoring agent are up
+#   - jq runs and tmux starts a session
 #   - a login shell gets the session env from the profile env file
 #   - an ssh login on port 8022 works and gets the session env
 #   - the git credential cache daemon starts
@@ -260,6 +261,17 @@ run_session() {
 
   check "[${pass}] monitoring agent (uvicorn agent:app) is running"
   grep "uvicorn agent:app" <<<"${processes}" | sed 's/^/[notebook-smoke]   /' || fail "no 'uvicorn agent:app' process"
+
+  check "[${pass}] jq runs and tmux starts a session"
+  # tmux keeps its socket under /tmp/tmux-<uid>, so the hardened pass proves it also starts at
+  # a uid the image was not built with.
+  docker exec "${NAME}" env -i HOME=/home/notebooks bash -lc '
+    jq --version &&
+    tmux -V &&
+    tmux -f /dev/null new-session -d -s smoke "sleep 30" &&
+    tmux has-session -t smoke &&
+    tmux kill-server
+  ' 2>&1 | tee -a "${output}" | sed 's/^/[notebook-smoke]   /' || fail "jq or tmux does not run"
 
   check "[${pass}] login shell gets the session env from the profile env file"
   # env -i drops the env docker exec passes, so only /etc/profile.d can set the marker

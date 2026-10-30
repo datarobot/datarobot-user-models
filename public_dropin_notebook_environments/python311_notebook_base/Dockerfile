@@ -34,6 +34,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 # libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
+# jq: JSON handling in deploy scripts; tmux: terminal sessions that survive a dropped connection, not a pod restart
 RUN echo "[Python${PYTHON_VERSION}] GIT_COMMIT: $GIT_COMMIT" && \
   apk update && apk add --no-cache gcc libgc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server gzip zip unzip wget curl jq tmux openjdk-11 vim nano \
@@ -53,7 +54,7 @@ RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
-RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.27/drgithelper && chmod +x drgithelper
+RUN curl -fsSL -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.27/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/

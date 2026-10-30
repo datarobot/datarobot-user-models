@@ -49,6 +49,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 # libcrypto3: Go FIPS binaries (e.g. drgithelper) dlopen OpenSSL 3, while the base image now ships only OpenSSL 4
+# jq: JSON handling in deploy scripts; tmux: terminal sessions that survive a dropped connection, not a pod restart
 RUN echo "[Python${PYTHON_VERSION}] ${CACHE_BUSTER}" && \
   apk update && apk add --no-cache gcc libgc++ libstdc++ glibc-dev libffi-dev graphviz \
   openblas git openssh-server busybox coreutils gzip zip unzip wget curl jq tmux \
@@ -74,7 +75,7 @@ RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
-RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/${GITHELPER_VERSION}/drgithelper && chmod +x drgithelper
+RUN curl -fsSL -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/${GITHELPER_VERSION}/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
@@ -204,7 +205,8 @@ RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
     && rm /tmp/opencode-install.sh
 
 # Pre-install datarobot skills for opencode
-RUN npx -y ai-agent-skills install datarobot-oss/datarobot-agent-skills --agent opencode
+RUN npx -y ai-agent-skills install datarobot-oss/datarobot-agent-skills --agent opencode \
+    && rm -rf /home/notebooks/.npm
 
 # Removing pip, setuptools & other misc. leftovers to avoid security scan reports
 RUN find $VENV_PATH/lib/python3.*/site-packages -name "pip-*.dist-info" -type d -exec rm -rf {} + \
