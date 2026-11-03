@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11, <3.14"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -74,7 +74,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "click" },
     { name = "datarobot", extra = ["auth"] },
-    { name = "datarobot-drum" },
+    { name = "datarobot-drum", extra = ["java"] },
     { name = "datarobot-mlops" },
     { name = "datarobot-moderations", extra = ["all"] },
     { name = "dotenv" },
@@ -109,9 +109,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "click", specifier = "~=8.3.3" },
-    { name = "datarobot", extras = ["auth"], specifier = "==3.8.2" },
-    { name = "datarobot-drum", specifier = "==1.17.15" },
-    { name = "datarobot-mlops", specifier = "==11.1.0" },
+    { name = "datarobot", extras = ["auth"], specifier = "==3.14.0" },
+    { name = "datarobot-drum", extras = ["java"], specifier = "==1.18.1" },
+    { name = "datarobot-mlops", specifier = "==11.1.28" },
     { name = "datarobot-moderations", extras = ["all"], specifier = "==11.2.45" },
     { name = "dotenv", specifier = "~=0.9.9" },
     { name = "litellm", specifier = ">=1.100.4,<2" },
@@ -311,11 +311,11 @@ wheels = [
 
 [[package]]
 name = "argcomplete"
-version = "3.6.3"
+version = "3.7.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/38/61/0b9ae6399dd4a58d8c1b1dc5a27d6f2808023d0b5dd3104bb99f45a33ff6/argcomplete-3.6.3.tar.gz", hash = "sha256:62e8ed4fd6a45864acc8235409461b72c9a28ee785a2011cc5eb78318786c89c", size = 73754, upload-time = "2025-10-20T03:33:34.741Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/6f/5a73f04007ca950701765949209f068da628bd11f9c2da287278ce91e0ee/argcomplete-3.7.2.tar.gz", hash = "sha256:aad8b69a0b9969edb62db0d1752354c0d50717b10e0cbb00e2a958381b9fc6b9", size = 74473, upload-time = "2026-08-06T04:53:21.662Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/74/f5/9373290775639cb67a2fce7f629a1c240dce9f12fe927bc32b2736e16dfc/argcomplete-3.6.3-py3-none-any.whl", hash = "sha256:f5007b3a600ccac5d25bbce33089211dfd49eab4a7718da3f10e3082525a92ce", size = 43846, upload-time = "2025-10-20T03:33:33.021Z" },
+    { url = "https://files.pythonhosted.org/packages/46/bd/551ee6af426af84ca33e02622be722925c196608e9127d731ef17c47f06e/argcomplete-3.7.2-py3-none-any.whl", hash = "sha256:6029205678bdd9c1c728a155f5f9ecf5812393f969eef58807641a2bc2aa5b19", size = 43294, upload-time = "2026-08-06T04:53:20.246Z" },
 ]
 
 [[package]]
@@ -741,12 +741,13 @@ wheels = [
 
 [[package]]
 name = "datarobot"
-version = "3.8.2"
+version = "3.14.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "mypy-extensions" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "python-dateutil" },
+    { name = "pytz" },
     { name = "pyyaml" },
     { name = "requests" },
     { name = "requests-toolbelt" },
@@ -755,9 +756,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/69/12/325bf553f71d56772631ebf0c636df8e92ecc5679f474b3210410c6ce97e/datarobot-3.8.2.tar.gz", hash = "sha256:299eac73dbda44913916f103181358132ec29332d9d981ce5c9d42f4f00d3737", size = 716770, upload-time = "2025-07-16T15:30:11.781Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/02/b1/0e4adf2c469151372e98db6448f7e66bc6a31fed665e8c4c39cdf9d30c2c/datarobot-3.14.0.tar.gz", hash = "sha256:ba382e04f1fcbc44403f294c8c9a57d0f8a884289e2d71fa76cf5750810721ab", size = 800059, upload-time = "2026-04-21T15:19:50.582Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/6f/495742af3b66c202994d013eb80d96d5c3b85d5519ff8cb169bd1e5a5629/datarobot-3.8.2-py3-none-any.whl", hash = "sha256:85b07d407e1f5b14f12c3895c2fb6b51aa0d514cfa46d417bd0e102ebd885540", size = 769003, upload-time = "2025-07-16T15:30:10.277Z" },
+    { url = "https://files.pythonhosted.org/packages/35/4c/954639e88cc1dfcb0530951c99d38b9a47d1609879af64295ec9352bdb11/datarobot-3.14.0-py3-none-any.whl", hash = "sha256:ceab54a8c77d46a4494aba31e26d62941a3b7ab53cb66101fc54c9f44b869e09", size = 865316, upload-time = "2026-04-21T15:19:49Z" },
 ]
 
 [package.optional-dependencies]
@@ -768,7 +769,7 @@ auth = [
 
 [[package]]
 name = "datarobot-drum"
-version = "1.17.15"
+version = "1.18.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "argcomplete" },
@@ -792,7 +793,6 @@ dependencies = [
     { name = "pandas" },
     { name = "pillow" },
     { name = "progress" },
-    { name = "py4j" },
     { name = "pydantic" },
     { name = "pytz" },
     { name = "pyyaml" },
@@ -804,12 +804,17 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/bb/55/8cb132e3ac5418521e6763fd115cfce7b357247e70d02bf84f216c74e83c/datarobot_drum-1.17.15-py3-none-any.whl", hash = "sha256:f3163a872f2e64b80138ad5343f0b6a9bf4a84fccf27ce5d78b122f259de99dd", size = 10816354, upload-time = "2026-04-15T10:58:15.949Z" },
+    { url = "https://files.pythonhosted.org/packages/cb/3c/21ecb33ea70969affb4ede39b554560362fcce0cd82fabf20586c7a5f4b3/datarobot_drum-1.18.1-py3-none-any.whl", hash = "sha256:b0444680255529907f0e46787b9b3de5eaaef11a2d5f06ec71ed51921aa9a8fe", size = 10816068, upload-time = "2026-10-07T11:54:46.305Z" },
+]
+
+[package.optional-dependencies]
+java = [
+    { name = "py4j" },
 ]
 
 [[package]]
 name = "datarobot-mlops"
-version = "11.1.0"
+version = "11.1.28"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "orjson" },
@@ -819,7 +824,7 @@ dependencies = [
     { name = "pyyaml" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/be/11/3b7bbc731ebe5f2ce95a1b1ae1a23a6633bf4929fa6dcad8da5378cc28f9/datarobot_mlops-11.1.0-py3-none-any.whl", hash = "sha256:a191010d783b9a926366dd9edd2ca9762b2dd0b6e1dae40e93b908b074f97966", size = 111391, upload-time = "2025-06-26T14:41:57.918Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/06/23c2885657b75bb81288c2e442f6aa54b811e2af847cba59b211358c1f82/datarobot_mlops-11.1.28-py3-none-any.whl", hash = "sha256:9745610e5bc2b3e0f2328d555fac068951ee528836ecfecc192daf3df599925f", size = 111386, upload-time = "2026-04-17T15:59:50.593Z" },
 ]
 
 [[package]]

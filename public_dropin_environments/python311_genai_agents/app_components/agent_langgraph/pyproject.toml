@@ -8,10 +8,10 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
     # Generic deps.
     "click~=8.3.3",
-    "datarobot-drum==1.17.15",
+    "datarobot-drum[java]==1.18.1",
     "datarobot-moderations[all]==11.2.45",
-    "datarobot-mlops==11.1.0",
-    "datarobot[auth]==3.8.2",
+    "datarobot-mlops==11.1.28",
+    "datarobot[auth]==3.14.0",
     "dotenv~=0.9.9",
     "litellm>=1.100.4,<2",
     "onnxruntime~=1.22.0",
