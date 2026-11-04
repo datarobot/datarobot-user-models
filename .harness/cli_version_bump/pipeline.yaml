@@ -80,7 +80,7 @@ pipeline:
                         --data "{\"text\": \"CLI Version Bump failed in datarobot-user-models. Execution: ${EXECUTION_URL}\"}" \
                         "${SLACK_WEBHOOK_URL}"
                     envVariables:
-                      SLACK_WEBHOOK_URL: <+secrets.getValue("org.slack_webhook_agent_lifecycle_notifications")>
+                      SLACK_WEBHOOK_URL: <+secrets.getValue("org.slack_webhook_agent_lifecycle_alerts")>
                       EXECUTION_URL: <+pipeline.executionUrl>
-                  description: Post a failure message to #agent-lifecycle-notifications via an incoming webhook
+                  description: Post a failure message to #agent-lifecycle-alerts via an incoming webhook
   allowStageExecutions: true
