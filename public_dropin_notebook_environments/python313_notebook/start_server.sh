@@ -75,31 +75,29 @@ source /etc/system/kernel/common-user-limits.sh
 # shellcheck disable=SC1091
 source /etc/system/kernel/setup-ssh.sh
 # The session's SSH keys are either mounted ready-made (Kubernetes sessions get them from the
-# orchestrator) or exchanged here through the shared directory: the runner publishes its
-# public key there when it starts, and the kernel makes its own host key and publishes the
-# public half for the runner to trust.
+# orchestrator) or exchanged through the shared directory (Workload API sessions): the runner
+# publishes its public key there when it starts, and the kernel makes its own host key and
+# publishes the public half for the runner to trust.
+NBX_SSH_MOUNTED_KEYS_DIR=/var/run/notebooks/ssh/keys
 NBX_SSH_SHARED_DIR=/var/run/notebooks/ssh/authorized_keys
 NBX_SSHD_OPTS=()
 NBX_AUTHORIZED_KEYS_DIR=/etc/authorized_keys
+NBX_PUBLISH_HOST_KEY=false
 
 # mkdir -p, not mkdir: an emptyDir mounted over this path makes a plain mkdir fail with
 # "File exists", so the cp never runs and sshd comes up with no host key while the pod
 # still reports 1/1 Running.
 mkdir -p /etc/ssh/keys
-if compgen -G "/var/run/notebooks/ssh/keys/ssh_host_*" > /dev/null; then
-    cp -L /var/run/notebooks/ssh/keys/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
+if compgen -G "${NBX_SSH_MOUNTED_KEYS_DIR}/ssh_host_*" > /dev/null; then
+    cp -L "${NBX_SSH_SHARED_DIR}/notebooks" /etc/authorized_keys/ && chmod 600 /etc/authorized_keys/notebooks
+    cp -L "${NBX_SSH_MOUNTED_KEYS_DIR}"/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
 else
     # sshd only offers ecdsa-sha2-nistp256 and ssh-ed25519 host keys (sshd_config)
     ssh-keygen -q -t ecdsa -b 256 -N "" -f /etc/ssh/keys/ssh_host_key
-    cp /etc/ssh/keys/ssh_host_key.pub "${NBX_SSH_SHARED_DIR}/ssh_host_key.pub" || \
-        echo "WARNING: the generated SSH host key can't be published to ${NBX_SSH_SHARED_DIR}." >&2
-fi
-
-if [ -f "${NBX_SSH_SHARED_DIR}/notebooks" ]; then
-    cp -L "${NBX_SSH_SHARED_DIR}/notebooks" /etc/authorized_keys/ && chmod 600 /etc/authorized_keys/notebooks
-else
-    # The runner's key isn't there yet: sshd reads it from the shared directory at each login
-    # instead of a copy, so it doesn't matter which container starts first.
+    NBX_PUBLISH_HOST_KEY=true
+    # The runner makes a new key each time it starts, so sshd reads it from the shared directory
+    # at each login rather than from a copy, which a restarted runner would be refused with. It
+    # also doesn't matter which container starts first.
     NBX_AUTHORIZED_KEYS_DIR="${NBX_SSH_SHARED_DIR}"
     NBX_SSHD_OPTS+=(-o "AuthorizedKeysFile=${NBX_SSH_SHARED_DIR}/%u")
 fi
@@ -112,6 +110,14 @@ if find "${NBX_AUTHORIZED_KEYS_DIR}" -maxdepth 0 \( -perm -0020 -o -perm -0002 \
     NBX_SSHD_OPTS+=(-o StrictModes=no)
 fi
 nohup /usr/sbin/sshd -D ${NBX_SSHD_OPTS[@]+"${NBX_SSHD_OPTS[@]}"} &
+
+# Published once sshd has been started, so the runner doesn't wait on a kernel that can't take
+# logins yet for long, and through a temporary file, so it never reads a half-written key.
+if [ "${NBX_PUBLISH_HOST_KEY}" = true ]; then
+    { cp /etc/ssh/keys/ssh_host_key.pub "${NBX_SSH_SHARED_DIR}/.ssh_host_key.pub.tmp" && \
+        mv -f "${NBX_SSH_SHARED_DIR}/.ssh_host_key.pub.tmp" "${NBX_SSH_SHARED_DIR}/ssh_host_key.pub"; } || \
+        echo "WARNING: the generated SSH host key can't be published to ${NBX_SSH_SHARED_DIR}." >&2
+fi
 
 # Ensure proper permissions on the directory used by cache daemon to ensure it starts (create dir. if needed)
 if mkdir -p /home/notebooks/storage/.cache/git/credential 2>/dev/null; then
