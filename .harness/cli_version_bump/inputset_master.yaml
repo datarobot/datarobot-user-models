@@ -1,0 +1,16 @@
+inputSet:
+  name: CLI Version Bump Master Input Set
+  tags: {}
+  identifier: CLI_Version_Bump_Master_Input_Set
+  description: Input set for daily CLI version bump runs against master
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: CLI_Version_Bump
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: master

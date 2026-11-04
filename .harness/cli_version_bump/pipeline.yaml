@@ -1,0 +1,86 @@
+pipeline:
+  name: CLI Version Bump
+  identifier: CLI_Version_Bump
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Bump CLI version
+        identifier: Bump_CLI_Version
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Bump CLI version
+                  identifier: Bump_CLI_Version
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: alpine/git
+                    shell: Sh
+                    command: |-
+                      set -exou pipefail
+
+                      echo "Install GitHub CLI"
+                      apk update
+                      apk add github-cli bash
+
+                      echo "configuring git"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global user.name "svc-harness-git2"
+                      git config --global push.default current
+                      git config --global --add --bool push.autoSetupRemote true
+
+                      echo "Set up datarobot-user-models repo. remote URL"
+                      git remote set-url origin https://svc-harness-git2:${GH_TOKEN}@github.com/datarobot/datarobot-user-models
+
+                      bash .harness/scripts/bump_cli_version.sh
+                    envVariables:
+                      GH_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                  description: Check for a newer stable datarobot-oss/cli release and open a PR bumping CLI_VERSION if one exists
+              - step:
+                  type: Run
+                  name: Notify Slack on failure
+                  identifier: Notify_Slack_On_Failure
+                  # Failure-only: a successful run (including "already up to date") stays silent.
+                  when:
+                    stageStatus: Failure
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: alpine/curl
+                    shell: Sh
+                    command: |-
+                      set -eu
+
+                      # The webhook URL is injected from a Harness secret; never echo it.
+                      curl -fsS -X POST -H 'Content-type: application/json' \
+                        --data "{\"text\": \"CLI Version Bump failed in datarobot-user-models. Execution: ${EXECUTION_URL}\"}" \
+                        "${SLACK_WEBHOOK_URL}"
+                    envVariables:
+                      SLACK_WEBHOOK_URL: <+secrets.getValue("org.slack_webhook_agent_lifecycle_notifications")>
+                      EXECUTION_URL: <+pipeline.executionUrl>
+                  description: Post a failure message to #agent-lifecycle-notifications via an incoming webhook
+  allowStageExecutions: true
