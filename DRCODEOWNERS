@@ -33,12 +33,12 @@
 /model_templates/triton_onnx_unstructured                         @datarobot/inference-platform
 /public_dropin_environments/java_codegen                          @datarobot/inference-platform
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
-/public_dropin_environments/python3_keras                         @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_keras                         @datarobot/inference-platform
 /public_dropin_environments/python3_onnx                          @datarobot/inference-platform
-/public_dropin_environments/python3_pytorch                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/python3_sklearn                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/python3_xgboost                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/r_lang                                @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_pytorch                       @datarobot/inference-platform
+/public_dropin_environments/python3_sklearn                       @datarobot/inference-platform
+/public_dropin_environments/python3_xgboost                       @datarobot/inference-platform
+/public_dropin_environments/r_lang                                @datarobot/inference-platform
 /public_dropin_environments_sandbox                               @datarobot/inference-platform
 /public_dropin_gpu_environments                                   @datarobot/inference-platform
 /public_dropin_nim_environments                                   @datarobot/inference-platform
