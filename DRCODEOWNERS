@@ -41,13 +41,13 @@
 /public_dropin_environments/dr_mcp_execute_sandbox_minimal        @datarobot/inference-platform
 /public_dropin_environments/java_codegen                          @datarobot/inference-platform
 /public_dropin_environments/python3_genai_agents                  @datarobot/agent-lifecycle
-/public_dropin_environments/python3_keras                         @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_keras                         @datarobot/inference-platform
 /public_dropin_environments/python3_mcp                           @datarobot/inference-platform
 /public_dropin_environments/python3_onnx                          @datarobot/inference-platform
-/public_dropin_environments/python3_pytorch                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/python3_sklearn                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/python3_xgboost                       @datarobot/inference-platform @datarobot/core-modeling
-/public_dropin_environments/r_lang                                @datarobot/inference-platform @datarobot/core-modeling
+/public_dropin_environments/python3_pytorch                       @datarobot/inference-platform
+/public_dropin_environments/python3_sklearn                       @datarobot/inference-platform
+/public_dropin_environments/python3_xgboost                       @datarobot/inference-platform
+/public_dropin_environments/r_lang                                @datarobot/inference-platform
 /public_dropin_environments_sandbox                               @datarobot/inference-platform
 /public_dropin_gpu_environments                                   @datarobot/inference-platform
 /public_dropin_notebook_environments                              @datarobot/agent-lifecycle
