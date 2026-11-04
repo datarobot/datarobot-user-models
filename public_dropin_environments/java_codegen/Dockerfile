@@ -12,7 +12,7 @@ USER root
 # Pin OpenJDK 11.0.30+ (Oracle CPU Jan 2026 / OpenJDK 11u) — addresses CVE-2026-21932, CVE-2026-21945 on the 11 train.
 # Wolfi epoch for 11.0.30 GA is typically r6; override at build if your mirror uses a different release suffix.
 # RAPTOR-18453, RAPTOR-19223: 11.0.31-r1 -> 11.0.32.1-r0 (JAVA_VERSION 11.0.32.1, 2026-08-18).
-ARG OPENJDK11_APK_VERSION=11.0.32.1-r4
+ARG OPENJDK11_APK_VERSION=11.0.33-r0
 # java-cacerts is pinned so a lagging mirror can't ship the compromised eMudhra roots (PRDSEC-2816).
 RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION} 'java-cacerts>=20260909-r3'
 
