@@ -74,7 +74,7 @@ COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ${WORKDIR}/jupyter_kernel_gateway_config.py
 COPY ./start_server_codespaces.sh ${WORKDIR}/start_server.sh
 COPY ./ipython_config.py /etc/ipython/
-COPY ./fips_guard.py ./sitecustomize.py /etc/datarobot-fips/
+COPY ./fips /etc/datarobot-fips/
 COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements

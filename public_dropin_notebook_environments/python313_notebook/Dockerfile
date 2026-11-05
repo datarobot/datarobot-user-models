@@ -80,7 +80,7 @@ RUN curl -fsSL -o drgithelper https://github.com/datarobot-oss/drgithelper/relea
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./ipython_config.py /etc/ipython/
-COPY ./fips_guard.py ./sitecustomize.py /etc/datarobot-fips/
+COPY ./fips /etc/datarobot-fips/
 COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements
