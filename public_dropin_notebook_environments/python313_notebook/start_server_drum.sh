@@ -7,7 +7,7 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 # FIPS 140-3 startup self-test (CFX-8623): halts with exit 78 before anything starts unless FIPS crypto is in effect.
-sh /etc/datarobot-fips/fips_selftest.sh || exit $?
+python3 -S /etc/datarobot-fips/fips_selftest.py || exit $?
 
 echo "Starting Custom Model environment with DRUM prediction server"
 
