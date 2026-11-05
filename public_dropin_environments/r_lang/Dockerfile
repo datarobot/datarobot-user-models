@@ -49,6 +49,18 @@ RUN Rscript -e "library(caret); install.packages(unique(modelLookup()[modelLooku
 RUN find /usr/lib/R/library -type f \( -name 'cacert.pem' -o -name 'ca-bundle.crt' \) \
       -exec ln -sf /etc/ssl/certs/ca-certificates.crt {} \;
 
+RUN apk update && apk add rust openssl-dev
+
+COPY requirements.txt requirements.txt
+
+ENV VIRTUAL_ENV=/opt/venv
+
+RUN sh -c "/usr/bin/python -m venv ${VIRTUAL_ENV} && \
+    . ${VIRTUAL_ENV}/bin/activate && \
+    python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -path '*/site-packages/datarobot_drum/*.jar' -delete && \
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
@@ -131,7 +143,6 @@ COPY --from=build /bin/chmod /bin/chmod
 COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
-COPY --from=build /usr/bin/pip /usr/bin/pip
 ARG PYTHON_VERSION
 COPY --from=build /usr/lib/python${PYTHON_VERSION}/site-packages/pip /usr/lib/python${PYTHON_VERSION}/site-packages/pip
 
@@ -142,19 +153,27 @@ COPY --from=build /usr/bin/find /usr/bin/find
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
-COPY requirements.txt requirements.txt
 COPY ensure_sh_shebang.py ensure_sh_shebang.py
 
+# Required to source activate script in final image
+COPY --from=build /usr/bin/uname /usr/bin/uname
+# Copy the virtualenv built from the dev base image
+COPY --from=build /opt/venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 ENV R_HOME=/usr/lib/R
 
-RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
-    . ${VIRTUAL_ENV}/bin/activate && \
-    /usr/bin/python -m pip install --no-cache-dir -r requirements.txt && \
-    find /usr/lib -path '*/site-packages/datarobot_drum/*.jar' -delete && \
+# FIPS Validation
+# Validate openssl fips in the final image
+COPY --from=build /usr/bin/openssl-fips-test /usr/bin/openssl-fips-test
+RUN /usr/bin/openssl-fips-test
+# Python cryptography fips validation
+RUN sh -c 'printf "Validating python cryptography fips support\n"; \
+  source /opt/venv/bin/activate; \
+  python -Bc "from cryptography.hazmat.backends.openssl.backend import backend; assert backend._fips_enabled"'
+
+RUN sh -c ". ${VIRTUAL_ENV}/bin/activate && \
     /usr/bin/python ensure_sh_shebang.py ${R_HOME}/bin && \
-    mkdir -p /usr/share/doc/R/html && \
-    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+    mkdir -p /usr/share/doc/R/html"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
