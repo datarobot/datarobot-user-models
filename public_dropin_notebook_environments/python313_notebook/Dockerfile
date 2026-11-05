@@ -200,6 +200,13 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
 
+# The pulumi-datarobot resource plugin for the SDK version in requirements.txt, so `pulumi up` in a
+# codespace does not download it. The datarobot-agent-application tool check wants it installed too.
+ARG PULUMI_DATAROBOT_VERSION=0.14.0
+ENV PULUMI_HOME=/home/notebooks/.pulumi
+RUN pulumi plugin install resource datarobot "$PULUMI_DATAROBOT_VERSION" \
+    --server "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v$PULUMI_DATAROBOT_VERSION"
+
 # Install opencode CLI
 RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
     && bash /tmp/opencode-install.sh --no-modify-path -v "$OPENCODE_VERSION" \

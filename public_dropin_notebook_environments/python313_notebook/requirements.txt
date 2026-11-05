@@ -1,6 +1,7 @@
 altair==5.5.0
 boto3==1.43.117
 cloudpickle==3.0.0
+copier==9.19.1
 dask==2024.12.0
 datarobot-bp-workshop==0.3.0
 datarobot-drum==1.18.0
