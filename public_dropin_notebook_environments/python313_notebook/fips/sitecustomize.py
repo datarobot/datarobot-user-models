@@ -8,8 +8,9 @@ import sys
 import fips_guard
 
 if fips_guard.fips_mode():
-    # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt.
-    fips_guard.start(bundled_grpc="warn")
+    # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt. No log handlers: a handler
+    # on the root logger this early makes the app's later logging.basicConfig() a no-op and silences its logs.
+    fips_guard.start(bundled_grpc="warn", loggers=())
 
     def _after_fork() -> None:
         # gunicorn (the agent server) replaces a worker that exits 78; 3 makes the arbiter stop the whole pod.
