@@ -13,8 +13,10 @@ halts, so commercial installs are unaffected.
 
 import ctypes
 import faulthandler
+import glob
 import hashlib
 import hmac
+import importlib.util
 import logging
 import os
 import re
@@ -60,12 +62,15 @@ def grpc_tls_library() -> Optional[str]:
     """Which TLS library grpcio uses: "openssl" for the +fips builds, which link the system libssl and so the FIPS
     provider, "boringssl" for stock wheels, which bundle their own non-FIPS BoringSSL, or None without grpcio.
     """
-    try:
-        from grpc._cython import cygrpc
-    except ImportError:
+    # Located without importing grpc: this runs at every interpreter start.
+    spec = importlib.util.find_spec("grpc")
+    if spec is None or not spec.submodule_search_locations:
         return None
-    with open(cygrpc.__file__, "rb") as f:
-        return "openssl" if re.search(rb"libssl\.so\.\d", f.read()) else "boringssl"
+    for d in spec.submodule_search_locations:
+        for so in glob.glob(os.path.join(d, "_cython", "cygrpc*.so")):
+            with open(so, "rb") as f:
+                return "openssl" if re.search(rb"libssl\.so\.\d", f.read()) else "boringssl"
+    return None
 
 
 def halt(reason: str) -> None:
@@ -233,6 +238,7 @@ def start(
     loggers: tuple[str, ...] = ("", "uvicorn.error", "gunicorn.error"),
     bundled_grpc: str = "halt",
     before_halt: Optional[Callable[[], None]] = None,
+    log_success: bool = True,
 ) -> bool:
     """Do nothing and return False unless OpenSSL is in FIPS mode. In FIPS mode, check once, halting on failure, then
     again every interval seconds on a daemon thread, hook uncaught exceptions and exceptions logged on `loggers`, and
@@ -242,6 +248,8 @@ def start(
 
     bundled_grpc is what to do in FIPS mode when grpcio bundles BoringSSL: "halt" (refuse to start, exit_code) or
     "warn" (log and continue, for a service that only uses plaintext gRPC behind a mesh).
+
+    log_success=False skips only the "known-answer tests passed" line; warnings and the FATAL line still print.
 
     before_halt, if given, is called by halt() after the FATAL line and before the process exits, from whichever
     thread detected the failure. Use it when exiting alone doesn't stop the service, as in a Celery pool child, which
@@ -276,9 +284,10 @@ def start(
             halt(reason)
         sys.stderr.write(f"[datarobot-fips] WARNING: {reason}\n")
     check_or_halt()
-    sys.stderr.write(
-        f"[datarobot-fips] crypto known-answer tests passed; rechecking every {interval:g}s\n",
-    )
+    if log_success:
+        sys.stderr.write(
+            f"[datarobot-fips] crypto known-answer tests passed; rechecking every {interval:g}s\n",
+        )
 
     _interval = interval
     _start_watchdog()
