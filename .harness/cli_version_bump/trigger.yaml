@@ -1,0 +1,19 @@
+trigger:
+  name: Daily CLI Version Bump
+  identifier: Daily_CLI_Version_Bump
+  enabled: true
+  tags: {}
+  description: A daily trigger that checks for a newer stable datarobot-oss/cli release and opens a PR bumping CLI_VERSION if one exists
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: CLI_Version_Bump
+  source:
+    type: Scheduled
+    spec:
+      type: Cron
+      spec:
+        expression: 0 13 * * *
+        type: UNIX
+  pipelineBranchName: master
+  inputSetRefs:
+    - CLI_Version_Bump_Master_Input_Set
