@@ -65,7 +65,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
-    PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
+    PYTHONPATH="/etc/datarobot-fips:/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN uv venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
@@ -74,6 +74,7 @@ COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ${WORKDIR}/jupyter_kernel_gateway_config.py
 COPY ./start_server_codespaces.sh ${WORKDIR}/start_server.sh
 COPY ./ipython_config.py /etc/ipython/
+COPY ./fips /etc/datarobot-fips/
 COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements
@@ -160,9 +161,12 @@ RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv /opt/code "${UV_CACHE_
 USER $UNAME
 
 # start_server.sh is not baked in: the agent ships its own into /opt/code.
+# UV_PYTHON_DOWNLOADS=never: a downloaded CPython links its own non-FIPS OpenSSL, so an agent whose
+# requires-python does not match the image fails at uv venv instead of at the first python start.
 ENV VENV_DIR=/opt/venv \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never \
     HOME=/opt \
     CODE_DIR=/opt/code \
     ADDRESS=0.0.0.0:8080

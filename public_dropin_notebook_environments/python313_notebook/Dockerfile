@@ -69,7 +69,7 @@ ENV PYTHONUNBUFFERED=1 \
     JAVA_HOME=/usr/lib/jvm/default-jvm
 
 ENV PATH="$VENV_PATH/bin:$JAVA_HOME/bin:$PATH" \
-  PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
+  PYTHONPATH="/etc/datarobot-fips:/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
@@ -80,6 +80,7 @@ RUN curl -fsSL -o drgithelper https://github.com/datarobot-oss/drgithelper/relea
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./ipython_config.py /etc/ipython/
+COPY ./fips /etc/datarobot-fips/
 COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements
