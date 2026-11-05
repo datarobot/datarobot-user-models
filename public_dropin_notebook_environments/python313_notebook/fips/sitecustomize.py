@@ -19,8 +19,8 @@ if fips_guard.fips_mode():
     )
     os.environ["DATAROBOT_FIPS_GUARD_LOGGED"] = "1"
 
-    # The Go binaries in this image (pulumi, gh, task) carry their own crypto, not OpenSSL. fips140=on limits
-    # Go's TLS and crypto to approved algorithms and runs its self-tests; children of the kernel gateway inherit it.
+    # Go binaries (pulumi, gh, task) carry their own crypto, not OpenSSL. fips140=on limits Go's TLS and crypto
+    # to approved algorithms and runs its self-tests; every child of this process inherits it.
     godebug = os.environ.get("GODEBUG", "")
     if "fips140=" not in godebug:
         os.environ["GODEBUG"] = ",".join(filter(None, [godebug, "fips140=on"]))
