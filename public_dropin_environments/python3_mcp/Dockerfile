@@ -127,29 +127,29 @@ COPY --chown=${UID}:${GID} ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
 
-# FIPS 140-3 (INF-1350): toolchain for building cryptography and grpcio from source against
-# the image's OpenSSL (no-binary-package in pyproject.toml); gcc is already in the image.
-# Removed again after uv sync.
-USER root
-RUN apk add --no-cache rust openssl-dev zlib-dev
-USER mcp
-
 # Bakes the dependency set into ${VENV_PATH} (which Workload API entrypoints resolve
 # through PATH) and, just as importantly, warms ${UV_CACHE_DIR} so the custom-model
 # `uv sync` at container start resolves from cache instead of the network.
+# FIPS 140-3 (INF-1350): cryptography and grpcio build from source against the image's
+# OpenSSL (no-binary-package in pyproject.toml). The toolchain (gcc is already in the image)
+# and the cargo home are added and removed in this one RUN so they don't ship in a layer;
+# it runs as root for apk, so the venv and uv cache are handed back to ${UNAME} at the end.
 # GRPC_PYTHON_BUILD_SYSTEM_*: grpcio links the system libssl and zlib instead of its bundled
 # BoringSSL and zlib. grpcio >= 1.85 compiles against OpenSSL 4 without patches.
 # -fdelete-null-pointer-checks: the image's gcc wrapper adds -fno-delete-null-pointer-checks
 # (openssf.spec), which makes `function_pointer == nullptr` non-constant and breaks
 # grpcio 1.85's bundled abseil (hash_policy_traits.h: "is not a constant expression").
-RUN . ${VENV_PATH}/bin/activate && \
+USER root
+RUN apk add --no-cache rust openssl-dev zlib-dev && \
+    . ${VENV_PATH}/bin/activate && \
+    CARGO_HOME=/tmp/cargo \
     CFLAGS=-fdelete-null-pointer-checks CXXFLAGS=-fdelete-null-pointer-checks \
     GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 \
     uv sync --frozen && \
+    apk del --no-cache rust openssl-dev zlib-dev && \
+    rm -rf /tmp/cargo && \
+    chown -R ${UID}:${GID} ${VENV_PATH} ${UV_CACHE_DIR} && \
     chmod -R 777 ${VENV_PATH}
-
-USER root
-RUN apk del --no-cache rust openssl-dev zlib-dev
 
 # FIPS validation: the provider's self-test, then cryptography and grpcio on the image's
 # OpenSSL 4 (a wheel with its own OpenSSL or BoringSSL would fail here).
