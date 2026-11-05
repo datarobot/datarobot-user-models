@@ -58,7 +58,8 @@ def fips_mode() -> bool:
 
 def grpc_tls_library() -> Optional[str]:
     """Which TLS library grpcio uses: "openssl" for the +fips builds, which link the system libssl and so the FIPS
-    provider, "boringssl" for stock wheels, which bundle their own non-FIPS BoringSSL, or None without grpcio."""
+    provider, "boringssl" for stock wheels, which bundle their own non-FIPS BoringSSL, or None without grpcio.
+    """
     try:
         from grpc._cython import cygrpc
     except ImportError:
@@ -130,7 +131,11 @@ def _provider_status() -> Optional[int]:
     value = ctypes.c_int(-1)
     params = (_OsslParam * 2)()
     params[0] = _OsslParam(
-        b"status", _OSSL_PARAM_INTEGER, ctypes.cast(ctypes.byref(value), ctypes.c_void_p), ctypes.sizeof(value), 0
+        b"status",
+        _OSSL_PARAM_INTEGER,
+        ctypes.cast(ctypes.byref(value), ctypes.c_void_p),
+        ctypes.sizeof(value),
+        0,
     )
     if not _lib.OSSL_PROVIDER_get_params(_prov, params) or value.value == -1:
         return None
@@ -179,7 +184,8 @@ def on_error(exc: Optional[BaseException] = None) -> None:
 
 class _ErrorLogHandler(logging.Handler):
     """Checks the module whenever anything logs an exception at ERROR or above. Frameworks log the exceptions they
-    swallow (a 500, a failed handshake, a failed task), so this catches most of them without wiring each one."""
+    swallow (a 500, a failed handshake, a failed task), so this catches most of them without wiring each one.
+    """
 
     def __init__(self) -> None:
         super().__init__(level=logging.ERROR)
@@ -199,7 +205,11 @@ def _install_hooks(loggers: tuple[str, ...]) -> None:
 
     # A fork() while the watchdog is inside check() would hand the child OpenSSL locks that no thread will ever
     # release. Hold off forks for the few microseconds a check takes.
-    os.register_at_fork(before=_checking.acquire, after_in_parent=_checking.release, after_in_child=_checking.release)
+    os.register_at_fork(
+        before=_checking.acquire,
+        after_in_parent=_checking.release,
+        after_in_child=_checking.release,
+    )
 
     for name in loggers:
         logging.getLogger(name).addHandler(_ErrorLogHandler())
@@ -287,7 +297,8 @@ def _start_watchdog() -> None:
 def restart_watchdog(exit_code: Optional[int] = None) -> None:
     """Start the watchdog again in a forked child, which inherits no threads. Runs no check itself: a check in the
     fork window of a multithreaded parent can deadlock on OpenSSL locks, so the first one comes after _interval.
-    exit_code replaces start()'s for this process, e.g. 3 in a gunicorn worker. Does nothing outside FIPS mode."""
+    exit_code replaces start()'s for this process, e.g. 3 in a gunicorn worker. Does nothing outside FIPS mode.
+    """
     global _exit_code
     if not _active:
         return
