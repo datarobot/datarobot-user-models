@@ -11,8 +11,10 @@ if fips_guard.fips_mode():
     # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt.
     fips_guard.start(bundled_grpc="warn")
 
-    def _after_fork():
+    def _after_fork() -> None:
         # gunicorn (the agent server) replaces a worker that exits 78; 3 makes the arbiter stop the whole pod.
-        fips_guard.restart_watchdog(exit_code=3 if "gunicorn" in sys.modules else fips_guard.EXIT_CODE)
+        fips_guard.restart_watchdog(
+            exit_code=3 if "gunicorn" in sys.modules else fips_guard.EXIT_CODE,
+        )
 
     os.register_at_fork(after_in_child=_after_fork)

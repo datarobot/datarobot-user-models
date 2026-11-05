@@ -9,6 +9,8 @@ It only acts when OpenSSL is in FIPS mode (fips_mode()). The same image run with
 halts, so commercial installs are unaffected.
 """
 
+# ruff: noqa: PLW0603, PLC0415 - module-level state and lazy imports are how this one-file guard works
+
 import ctypes
 import faulthandler
 import hashlib
@@ -19,26 +21,28 @@ import re
 import ssl
 import sys
 import threading
+from typing import Any, Callable, Optional
 
 EXIT_CODE = 78  # EX_CONFIG, as in the Java and Go services
 
-_exit_code = EXIT_CODE
+_exit_code: int = EXIT_CODE
 _halting = threading.Lock()
 _checking = threading.Lock()  # held by check_or_halt, and across fork() (see _install_hooks)
 _active = False
-_started_pid = None
+_started_pid: Optional[int] = None
 _hooks_installed = False
-_before_halt = None
-_lib = _prov = None
+_before_halt: Optional[Callable[[], None]] = None
+_lib: Any = None
+_prov: Any = None
 _interval = 5.0
 
 
-def active():
+def active() -> bool:
     """True once start() has found FIPS mode on; the integrations check it to decide whether to install anything."""
     return _active
 
 
-def fips_mode():
+def fips_mode() -> bool:
     """True when OpenSSL's default properties include fips=yes, so hashlib and ssl only use the FIPS provider.
 
     This is what the FIPS images' openssl.cnf sets. It reads the setting rather than an environment variable, so it
@@ -46,12 +50,13 @@ def fips_mode():
     """
     try:
         import _hashlib
+
         return bool(_hashlib.get_fips_mode())
     except (ImportError, AttributeError, ValueError):
         return False
 
 
-def grpc_tls_library():
+def grpc_tls_library() -> Optional[str]:
     """Which TLS library grpcio uses: "openssl" for the +fips builds, which link the system libssl and so the FIPS
     provider, "boringssl" for stock wheels, which bundle their own non-FIPS BoringSSL, or None without grpcio."""
     try:
@@ -62,7 +67,7 @@ def grpc_tls_library():
         return "openssl" if re.search(rb"libssl\.so\.\d", f.read()) else "boringssl"
 
 
-def halt(reason):
+def halt(reason: str) -> None:
     """Log a FATAL line, run start()'s before_halt, and exit, from any thread. Never returns; no cleanup or atexit
     handlers run.
 
@@ -94,7 +99,7 @@ class _OsslParam(ctypes.Structure):
 _OSSL_PARAM_INTEGER = 1
 
 
-def _fips_provider():
+def _fips_provider() -> tuple[Any, Any]:
     """Return (libcrypto, provider) for the FIPS provider that ssl and hashlib use, or (None, None) without one."""
     # Only the libcrypto that ssl and hashlib already use, never a second copy: RTLD_NOLOAD fails unless the library
     # is already loaded (importing ssl above loads it), and the major version comes from ssl. A plain
@@ -116,7 +121,7 @@ def _fips_provider():
     return lib, lib.OSSL_PROVIDER_load(None, b"fips")
 
 
-def _provider_status():
+def _provider_status() -> Optional[int]:
     """The FIPS provider's own "status" parameter: 1 while running, 0 in its error state, None if it can't be read.
 
     The provider reports its error state as a successful query that returns 0. A failed query, or one that leaves the
@@ -124,14 +129,15 @@ def _provider_status():
     """
     value = ctypes.c_int(-1)
     params = (_OsslParam * 2)()
-    params[0] = _OsslParam(b"status", _OSSL_PARAM_INTEGER, ctypes.cast(ctypes.byref(value), ctypes.c_void_p),
-                           ctypes.sizeof(value), 0)
+    params[0] = _OsslParam(
+        b"status", _OSSL_PARAM_INTEGER, ctypes.cast(ctypes.byref(value), ctypes.c_void_p), ctypes.sizeof(value), 0
+    )
     if not _lib.OSSL_PROVIDER_get_params(_prov, params) or value.value == -1:
         return None
     return value.value
 
 
-def check():
+def check() -> Optional[str]:
     """Return None if the module works, otherwise why not. Takes a few microseconds.
 
     Reads the FIPS provider's status, then runs known-answer tests for SHA-256 and HMAC-SHA-256 and reads from the
@@ -141,7 +147,8 @@ def check():
     try:
         if _prov and _provider_status() not in (1, None):
             return "OpenSSL FIPS provider status is not 1 (error state)"
-        if hashlib.sha256(b"abc").hexdigest() != "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad":
+        sha256_abc = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        if hashlib.sha256(b"abc").hexdigest() != sha256_abc:
             return "SHA-256 known-answer test failed"
         # RFC 4231 test case 1.
         mac = hmac.new(b"\x0b" * 20, b"Hi There", "sha256").hexdigest()
@@ -153,7 +160,7 @@ def check():
     return None
 
 
-def check_or_halt():
+def check_or_halt() -> None:
     """Halt if check() fails. Does nothing outside FIPS mode, so every hook is a no-op there."""
     if not _active:
         return
@@ -163,7 +170,7 @@ def check_or_halt():
         halt(reason)  # outside the lock, so a slow before_halt doesn't hold off fork()
 
 
-def on_error(exc=None):
+def on_error(exc: Optional[BaseException] = None) -> None:
     """Call wherever crypto raised (ssl.SSLError, a hashlib ValueError, a failed TLS call). In FIPS mode it halts if the
     module is in its error state; otherwise it returns, so ordinary failures like a bad client certificate are
     unaffected."""
@@ -174,15 +181,15 @@ class _ErrorLogHandler(logging.Handler):
     """Checks the module whenever anything logs an exception at ERROR or above. Frameworks log the exceptions they
     swallow (a 500, a failed handshake, a failed task), so this catches most of them without wiring each one."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(level=logging.ERROR)
 
-    def emit(self, record):
+    def emit(self, record: logging.LogRecord) -> None:
         if record.exc_info:
             check_or_halt()
 
 
-def _install_hooks(loggers):
+def _install_hooks(loggers: tuple[str, ...]) -> None:
     """Hook uncaught and logged exceptions. Runs once per process tree: a forked child inherits the hooks, so a
     start() in the child must not add them again."""
     global _hooks_installed
@@ -192,27 +199,31 @@ def _install_hooks(loggers):
 
     # A fork() while the watchdog is inside check() would hand the child OpenSSL locks that no thread will ever
     # release. Hold off forks for the few microseconds a check takes.
-    os.register_at_fork(before=_checking.acquire, after_in_parent=_checking.release,
-                        after_in_child=_checking.release)
+    os.register_at_fork(before=_checking.acquire, after_in_parent=_checking.release, after_in_child=_checking.release)
 
     for name in loggers:
         logging.getLogger(name).addHandler(_ErrorLogHandler())
 
     prev_excepthook, prev_thread_excepthook = sys.excepthook, threading.excepthook
 
-    def excepthook(*args):
+    def excepthook(*args: Any) -> None:
         check_or_halt()
         prev_excepthook(*args)
 
-    def thread_excepthook(args):
+    def thread_excepthook(args: threading.ExceptHookArgs) -> None:
         check_or_halt()
         prev_thread_excepthook(args)
 
     sys.excepthook, threading.excepthook = excepthook, thread_excepthook
 
 
-def start(interval=5.0, exit_code=EXIT_CODE, loggers=("", "uvicorn.error", "gunicorn.error"), bundled_grpc="halt",
-          before_halt=None):
+def start(
+    interval: float = 5.0,
+    exit_code: int = EXIT_CODE,
+    loggers: tuple[str, ...] = ("", "uvicorn.error", "gunicorn.error"),
+    bundled_grpc: str = "halt",
+    before_halt: Optional[Callable[[], None]] = None,
+) -> bool:
     """Do nothing and return False unless OpenSSL is in FIPS mode. In FIPS mode, check once, halting on failure, then
     again every interval seconds on a daemon thread, hook uncaught exceptions and exceptions logged on `loggers`, and
     return True. ("" is the root logger; the uvicorn and gunicorn loggers do not propagate to it.) Call it in every
@@ -242,18 +253,22 @@ def start(interval=5.0, exit_code=EXIT_CODE, loggers=("", "uvicorn.error", "guni
     _active = True
     try:
         _lib, _prov = _fips_provider()
-    except Exception:  # noqa: BLE001 - e.g. a libcrypto without these symbols: known-answer tests only
+    except Exception:  # noqa: BLE001 - e.g. no such symbols: known-answer tests only
         _lib, _prov = None, None
     if _prov is None:
-        sys.stderr.write("[datarobot-fips] WARNING: FIPS provider status unavailable; using known-answer tests only\n")
+        sys.stderr.write(
+            "[datarobot-fips] WARNING: FIPS provider status unavailable; using known-answer tests only\n",
+        )
     faulthandler.enable()  # a crash in a C extension (grpcio-fips) still leaves a traceback in the log
     if grpc_tls_library() == "boringssl":
-        reason = "grpcio bundles BoringSSL, which is not the FIPS module; install the grpcio +fips build"
+        reason = "grpcio bundles BoringSSL, not the FIPS module; install the grpcio +fips build"
         if bundled_grpc == "halt":
             halt(reason)
         sys.stderr.write(f"[datarobot-fips] WARNING: {reason}\n")
     check_or_halt()
-    sys.stderr.write(f"[datarobot-fips] crypto known-answer tests passed; rechecking every {interval:g}s\n")
+    sys.stderr.write(
+        f"[datarobot-fips] crypto known-answer tests passed; rechecking every {interval:g}s\n",
+    )
 
     _interval = interval
     _start_watchdog()
@@ -261,15 +276,15 @@ def start(interval=5.0, exit_code=EXIT_CODE, loggers=("", "uvicorn.error", "guni
     return True
 
 
-def _start_watchdog():
-    def watchdog():
+def _start_watchdog() -> None:
+    def watchdog() -> None:
         while not threading.Event().wait(_interval):
             check_or_halt()
 
     threading.Thread(target=watchdog, name="fips-guard", daemon=True).start()
 
 
-def restart_watchdog(exit_code=None):
+def restart_watchdog(exit_code: Optional[int] = None) -> None:
     """Start the watchdog again in a forked child, which inherits no threads. Runs no check itself: a check in the
     fork window of a multithreaded parent can deadlock on OpenSSL locks, so the first one comes after _interval.
     exit_code replaces start()'s for this process, e.g. 3 in a gunicorn worker. Does nothing outside FIPS mode."""
