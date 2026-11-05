@@ -2,3 +2,4 @@ datarobot-drum[java]
 pandas
 numpy
 urllib3>=2.7.0
+--no-binary cryptography

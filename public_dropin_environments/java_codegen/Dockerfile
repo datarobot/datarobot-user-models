@@ -5,6 +5,16 @@ ARG PYTHON_VERSION=3.13
 FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev AS build
 
 USER root
+RUN apk update && apk add rust openssl-dev
+
+COPY requirements.txt requirements.txt
+
+ENV VIRTUAL_ENV=/opt/venv
+
+RUN sh -c "/usr/bin/python -m venv ${VIRTUAL_ENV} && \
+    . ${VIRTUAL_ENV}/bin/activate && \
+    python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 # The JDK (not just JRE) is required because Py4J calls a Java method (o0.configure) that tries to execute 'javac'.
 # Pin OpenJDK 11.0.30+ (Oracle CPU Jan 2026 / OpenJDK 11u) — addresses CVE-2026-21932, CVE-2026-21945 on the 11 train.
@@ -58,7 +68,6 @@ COPY --from=build /bin/chmod /bin/chmod
 COPY --from=build /bin/mkdir /bin/mkdir
 
 # Required for custom-models to install dependencies
-COPY --from=build /usr/bin/pip /usr/bin/pip
 ARG PYTHON_VERSION
 COPY --from=build /usr/lib/python${PYTHON_VERSION}/site-packages/pip /usr/lib/python${PYTHON_VERSION}/site-packages/pip
 
@@ -69,15 +78,21 @@ COPY --from=build /usr/bin/find /usr/bin/find
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
-
-COPY requirements.txt requirements.txt
-
+# Required to source activate script in final image
+COPY --from=build /usr/bin/uname /usr/bin/uname
+# Copy the virtualenv built from the dev base image
+COPY --from=build /opt/venv /opt/venv
 ENV VIRTUAL_ENV=/opt/venv
 
-RUN sh -c "/usr/bin/python -m venv --without-pip ${VIRTUAL_ENV} \
-    && source ${VIRTUAL_ENV}/bin/activate \
-    && /usr/bin/python -m pip install --no-cache-dir -r requirements.txt \
-    && find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+# FIPS Validation
+# Validate openssl fips in the final image
+COPY --from=build /usr/bin/openssl-fips-test /usr/bin/openssl-fips-test
+RUN /usr/bin/openssl-fips-test
+# Python cryptography fips validation
+RUN sh -c 'printf "Validating python cryptography fips support\n"; \
+  source /opt/venv/bin/activate; \
+  python -Bc "from cryptography.hazmat.backends.openssl.backend import backend; assert backend._fips_enabled"'
+
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
