@@ -25,6 +25,11 @@ required-version = ">=0.10.0"
 # carries targets the crewai / llama-index / nemoguardrails / deepeval / ipykernel
 # stacks, none of which `datarobot-genai[drmcp]` pulls.
 exclude-dependencies = []
+# FIPS 140-3 (INF-1350): build these from source against the image's OpenSSL instead of
+# installing the PyPI wheels, which bundle their own OpenSSL (cryptography) and BoringSSL
+# (grpcio) and so run outside the FIPS provider. DataRobot's prebuilt FIPS wheels live in a
+# private index this public image can't use. The Dockerfile installs the toolchain.
+no-binary-package = ["cryptography", "grpcio"]
 # Managed by cve-sync from policy/. Do not hand-edit between the markers: `cve-sync
 # sync` regenerates both keys wholesale and drops anything policy lacks. Contribute
 # needed entries to policy instead. This note sits ABOVE the marker on purpose.

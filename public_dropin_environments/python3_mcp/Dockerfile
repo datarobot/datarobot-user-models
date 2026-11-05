@@ -126,14 +126,42 @@ COPY --chown=${UID}:${GID} ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY --chown=${UID}:${GID} ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
+
+# FIPS 140-3 (INF-1350): toolchain for building cryptography and grpcio from source against
+# the image's OpenSSL (no-binary-package in pyproject.toml); gcc is already in the image.
+# Removed again after uv sync.
+USER root
+RUN apk add --no-cache rust openssl-dev zlib-dev
 USER mcp
 
 # Bakes the dependency set into ${VENV_PATH} (which Workload API entrypoints resolve
 # through PATH) and, just as importantly, warms ${UV_CACHE_DIR} so the custom-model
 # `uv sync` at container start resolves from cache instead of the network.
+# GRPC_PYTHON_BUILD_SYSTEM_*: grpcio links the system libssl and zlib instead of its bundled
+# BoringSSL and zlib. grpcio >= 1.85 compiles against OpenSSL 4 without patches.
+# -fdelete-null-pointer-checks: the image's gcc wrapper adds -fno-delete-null-pointer-checks
+# (openssf.spec), which makes `function_pointer == nullptr` non-constant and breaks
+# grpcio 1.85's bundled abseil (hash_policy_traits.h: "is not a constant expression").
 RUN . ${VENV_PATH}/bin/activate && \
+    CFLAGS=-fdelete-null-pointer-checks CXXFLAGS=-fdelete-null-pointer-checks \
+    GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1 GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1 \
     uv sync --frozen && \
     chmod -R 777 ${VENV_PATH}
+
+USER root
+RUN apk del --no-cache rust openssl-dev zlib-dev
+
+# FIPS validation: the provider's self-test, then cryptography and grpcio on the image's
+# OpenSSL 4 (a wheel with its own OpenSSL or BoringSSL would fail here).
+RUN /usr/bin/openssl-fips-test && \
+    ${VENV_PATH}/bin/python -B -c "from cryptography.hazmat.backends.openssl.backend import backend; assert backend._fips_enabled, 'cryptography is not on the FIPS provider'; print('cryptography FIPS: ok')" && \
+    ${VENV_PATH}/bin/python -B -c "import glob, grpc; so = glob.glob(grpc.__path__[0] + '/_cython/cygrpc*.so'); assert so and b'libssl.so.4' in open(so[0], 'rb').read(), 'grpcio does not link the system libssl.so.4'; print('grpcio system OpenSSL: ok')"
+
+# FIPS 140-3 (INF-1349): halt any Python process when the crypto module fails, at startup and
+# periodically. Same files as python3_genai_agents (ALIFE-334); see fips/sitecustomize.py.
+# After the build steps above, so they don't run under the guard.
+COPY ./fips /etc/datarobot-fips/
+ENV PYTHONPATH="/etc/datarobot-fips"
 
 USER root
 # Custom model deployments and workloads run as securityContext.runAsUser: 1000, which is
