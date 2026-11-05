@@ -7,7 +7,7 @@ LABEL_REPOSHA  = $(shell git rev-parse HEAD 2>/dev/null || printf 'unknown')
 update-deps:
 	rm -f requirements.txt
 	docker run -v "$(PWD):/work" --entrypoint /bin/bash "datarobotdev/py-gen-requirements:$(PYTHON_VERSION)" \
-	  -c 'uv pip compile --no-annotate requirements.in -o requirements.txt'
+	  -c 'uv pip compile --emit-build-options --no-annotate requirements.in -o requirements.txt'
 
 image:
 	docker build --build-arg PYTHON_VERSION=$(PYTHON_VERSION) . \
