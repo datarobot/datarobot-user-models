@@ -3,3 +3,4 @@ torch
 scikit-learn
 pandas<3.0.0
 urllib3>=2.7.0
+--no-binary cryptography
