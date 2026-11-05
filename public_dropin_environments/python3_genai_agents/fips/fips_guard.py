@@ -238,7 +238,7 @@ def start(
     loggers: tuple[str, ...] = ("", "uvicorn.error", "gunicorn.error"),
     bundled_grpc: str = "halt",
     before_halt: Optional[Callable[[], None]] = None,
-    log_success: bool = True,
+    log_startup: bool = True,
 ) -> bool:
     """Do nothing and return False unless OpenSSL is in FIPS mode. In FIPS mode, check once, halting on failure, then
     again every interval seconds on a daemon thread, hook uncaught exceptions and exceptions logged on `loggers`, and
@@ -249,7 +249,8 @@ def start(
     bundled_grpc is what to do in FIPS mode when grpcio bundles BoringSSL: "halt" (refuse to start, exit_code) or
     "warn" (log and continue, for a service that only uses plaintext gRPC behind a mesh).
 
-    log_success=False skips only the "known-answer tests passed" line; warnings and the FATAL line still print.
+    log_startup=False skips the "known-answer tests passed" line and the bundled-grpc warning; the FATAL line still
+    prints.
 
     before_halt, if given, is called by halt() after the FATAL line and before the process exits, from whichever
     thread detected the failure. Use it when exiting alone doesn't stop the service, as in a Celery pool child, which
@@ -282,9 +283,10 @@ def start(
         reason = "grpcio bundles BoringSSL, not the FIPS module; install the grpcio +fips build"
         if bundled_grpc == "halt":
             halt(reason)
-        sys.stderr.write(f"[datarobot-fips] WARNING: {reason}\n")
+        if log_startup:
+            sys.stderr.write(f"[datarobot-fips] WARNING: {reason}\n")
     check_or_halt()
-    if log_success:
+    if log_startup:
         sys.stderr.write(
             f"[datarobot-fips] crypto known-answer tests passed; rechecking every {interval:g}s\n",
         )

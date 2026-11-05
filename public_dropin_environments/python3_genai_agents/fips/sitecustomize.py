@@ -10,12 +10,12 @@ import fips_guard
 if fips_guard.fips_mode():
     # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt. No log handlers: a handler
     # on the root logger this early makes the app's later logging.basicConfig() a no-op and silences its logs.
-    # Children inherit the variable, so the entry point (kernel gateway, agent server) logs success once and
-    # every process it starts (kernels, pip, uv) stays quiet. Checks, warnings and the FATAL line print everywhere.
+    # Children inherit the variable, so the entry point (kernel gateway, agent server) logs the startup lines once
+    # and every process it starts (kernels, pip, uv) stays quiet. Checks and the FATAL line still run everywhere.
     fips_guard.start(
         bundled_grpc="warn",
         loggers=(),
-        log_success=os.environ.get("DATAROBOT_FIPS_GUARD_LOGGED") != "1",
+        log_startup=os.environ.get("DATAROBOT_FIPS_GUARD_LOGGED") != "1",
     )
     os.environ["DATAROBOT_FIPS_GUARD_LOGGED"] = "1"
 
