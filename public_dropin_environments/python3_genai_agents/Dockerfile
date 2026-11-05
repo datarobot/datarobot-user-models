@@ -65,7 +65,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
-    PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
+    PYTHONPATH="/etc/datarobot-fips:/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN uv venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
@@ -74,6 +74,7 @@ COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ${WORKDIR}/jupyter_kernel_gateway_config.py
 COPY ./start_server_codespaces.sh ${WORKDIR}/start_server.sh
 COPY ./ipython_config.py /etc/ipython/
+COPY ./fips_guard.py ./sitecustomize.py /etc/datarobot-fips/
 COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements
