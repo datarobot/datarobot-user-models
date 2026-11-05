@@ -161,9 +161,12 @@ RUN mkdir -p /opt/venv /opt/code && chmod a+rwx /opt/venv /opt/code "${UV_CACHE_
 USER $UNAME
 
 # start_server.sh is not baked in: the agent ships its own into /opt/code.
+# UV_PYTHON_DOWNLOADS=never: a downloaded CPython links its own non-FIPS OpenSSL, so an agent whose
+# requires-python does not match the image fails at uv venv instead of at the first python start.
 ENV VENV_DIR=/opt/venv \
     UV_CACHE_DIR=${UV_CACHE_DIR} \
     UV_LINK_MODE=copy \
+    UV_PYTHON_DOWNLOADS=never \
     HOME=/opt \
     CODE_DIR=/opt/code \
     ADDRESS=0.0.0.0:8080
