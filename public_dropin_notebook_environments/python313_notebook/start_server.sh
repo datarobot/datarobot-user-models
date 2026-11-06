@@ -37,6 +37,13 @@ else
     export XDG_CACHE_HOME="${NOTEBOOKS_RW_DIR}/cache"
     mkdir -p "$JUPYTER_DATA_DIR" "$JUPYTER_RUNTIME_DIR" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" 2>/dev/null || true
     touch "$GIT_CONFIG_GLOBAL" 2>/dev/null || true
+    # pulumi writes credentials.json and new plugins under PULUMI_HOME, so it moves and the baked plugins are
+    # linked in file by file: pulumi skips a plugin directory that is itself a symlink.
+    NBX_PULUMI_HOME_IMAGE="$PULUMI_HOME"
+    export PULUMI_HOME="${NOTEBOOKS_RW_DIR}/pulumi"
+    for d in "${NBX_PULUMI_HOME_IMAGE}"/plugins/*/; do
+        mkdir -p "${PULUMI_HOME}/plugins/$(basename "$d")" && ln -sfn "$d"* "${PULUMI_HOME}/plugins/$(basename "$d")/"
+    done 2>/dev/null || true
 
     # The image bakes PYTHONPATH=/home/notebooks/.ipython/extensions, so a moved IPYTHONDIR has
     # to be added or dataframe_formatter stops importing and dataframe rendering disappears.

@@ -22,10 +22,11 @@ if enforce != "false" and fips_guard.fips_mode():
     )
     os.environ["DATAROBOT_FIPS_GUARD_LOGGED"] = "1"
 
-    # Go binaries (pulumi, gh, task) have their own crypto; fips140=on keeps it to approved algorithms.
-    godebug = os.environ.get("GODEBUG", "")
-    if "fips140=" not in godebug:
-        os.environ["GODEBUG"] = ",".join(filter(None, [godebug, "fips140=on"]))
+    # Go binaries (pulumi, gh, task) have their own crypto. fips140=on runs Go's self-tests and puts crypto/tls in
+    # FIPS settings; non-approved algorithms called directly still work (only fips140=only blocks them, best effort).
+    # An existing fips140= value, including off, is replaced.
+    godebug = [kv for kv in os.environ.get("GODEBUG", "").split(",") if kv and not kv.startswith("fips140=")]
+    os.environ["GODEBUG"] = ",".join(godebug + ["fips140=on"])
 
     def _after_fork() -> None:
         # gunicorn replaces a worker that exits 78; 3 stops the whole pod.
