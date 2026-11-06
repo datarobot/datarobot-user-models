@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# FIPS power-on self-test (openssl-fips-test) before anything else starts; a no-op unless DATAROBOT_FIPS_ENFORCE=true.
+sh /etc/datarobot-fips/fips_selftest_entrypoint.sh true || exit $?
+
 export HOME="/home/notebooks"
 
 # setup the working directory for the kernel
