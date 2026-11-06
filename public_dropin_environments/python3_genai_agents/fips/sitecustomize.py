@@ -25,7 +25,11 @@ if enforce != "false" and fips_guard.fips_mode():
     # Go binaries (pulumi, gh, task) have their own crypto. fips140=on runs Go's self-tests and puts crypto/tls in
     # FIPS settings; non-approved algorithms called directly still work (only fips140=only blocks them, best effort).
     # An existing fips140= value, including off, is replaced.
-    godebug = [kv for kv in os.environ.get("GODEBUG", "").split(",") if kv and not kv.startswith("fips140=")]
+    godebug = [
+        kv
+        for kv in os.environ.get("GODEBUG", "").split(",")
+        if kv and not kv.startswith("fips140=")
+    ]
     os.environ["GODEBUG"] = ",".join(godebug + ["fips140=on"])
 
     def _after_fork() -> None:
