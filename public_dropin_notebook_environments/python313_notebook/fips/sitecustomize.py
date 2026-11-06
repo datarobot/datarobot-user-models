@@ -1,13 +1,19 @@
 """Runs at every Python start in this image (sitecustomize on PYTHONPATH) and halts the process when the FIPS crypto
 module fails. One mechanism for the kernel gateway, every kernel, the agent server and anything a user runs. The
-check only runs in FIPS mode; see fips_guard.py next to this file."""
+check only runs in FIPS mode; see fips_guard.py next to this file.
+
+DATAROBOT_FIPS_ENFORCE, the platform-wide switch of the shell self-test wrappers: "false" turns the guard off even in
+FIPS mode (the opt-out for a commercial install), "true" also halts when OpenSSL is not in FIPS mode (decision 22: a
+FIPS install that came up with FIPS off must not run)."""
 
 import os
 import sys
 
 import fips_guard
 
-if fips_guard.fips_mode():
+_enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
+
+if _enforce != "false" and fips_guard.fips_mode():
     # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt. No log handlers: a handler
     # on the root logger this early makes the app's later logging.basicConfig() a no-op and silences its logs.
     # Children inherit the variable, so the entry point (kernel gateway, agent server) logs the startup lines once
@@ -32,3 +38,5 @@ if fips_guard.fips_mode():
         )
 
     os.register_at_fork(after_in_child=_after_fork)
+elif _enforce == "true":
+    fips_guard.halt("DATAROBOT_FIPS_ENFORCE=true but OpenSSL is not in FIPS mode")
