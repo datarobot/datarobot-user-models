@@ -24,10 +24,12 @@ if enforce != "false" and fips_guard.fips_mode():
 
     # Go binaries (pulumi, gh, task) have their own crypto. fips140=on runs Go's self-tests and puts crypto/tls in
     # FIPS settings; non-approved algorithms called directly still work (only fips140=only blocks them, best effort).
-    # An existing fips140= value, including off, is replaced.
+    # A preset only is kept, anything else becomes on. fips140ems=1 keeps TLS 1.2 Extended Master Secret enforced
+    # (PRDSEC-3003: some Go 1.27 builds default it off).
     godebug = os.environ.get("GODEBUG", "").split(",")
-    godebug = [kv for kv in godebug if kv and not kv.startswith("fips140=")]
-    os.environ["GODEBUG"] = ",".join(godebug + ["fips140=on"])
+    mode = "only" if "fips140=only" in godebug else "on"
+    godebug = [kv for kv in godebug if kv and kv.split("=")[0] not in ("fips140", "fips140ems")]
+    os.environ["GODEBUG"] = ",".join(godebug + [f"fips140={mode}", "fips140ems=1"])
 
     def _after_fork() -> None:
         # gunicorn replaces a worker that exits 78; 3 stops the whole pod.
