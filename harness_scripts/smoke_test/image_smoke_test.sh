@@ -185,6 +185,9 @@ log "  $(docker image inspect --format 'id {{.Id}}, {{.Os}}/{{.Architecture}}, c
 check "FIPS guard halts the image on a crypto module error"
 "$(dirname "$0")/fips_guard_check.sh" "${IMAGE}" || fail "fips_guard_check.sh ${IMAGE} failed"
 
+check "FIPS startup self-test passes, and halts the image when it fails"
+"$(dirname "$0")/fips_selftest_check.sh" "${IMAGE}" || fail "fips_selftest_check.sh ${IMAGE} failed"
+
 finish_check
 print_summary
 log "RESULT: PASSED"
