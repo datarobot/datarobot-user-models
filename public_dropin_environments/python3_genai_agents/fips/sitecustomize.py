@@ -1,10 +1,8 @@
-"""Runs at every Python start in this image (sitecustomize on PYTHONPATH) and halts the process when the FIPS crypto
-module fails. One mechanism for the kernel gateway, every kernel, the agent server and anything a user runs. The
-check only runs in FIPS mode; see fips_guard.py next to this file.
+"""Imported at every Python start in this image (sitecustomize on PYTHONPATH): halts the process when the FIPS
+crypto module fails. See fips_guard.py next to this file.
 
-DATAROBOT_FIPS_ENFORCE, the platform-wide switch of the shell self-test wrappers: "false" turns the guard off even in
-FIPS mode (the opt-out for a commercial install), "true" also halts when OpenSSL is not in FIPS mode (decision 22: a
-FIPS install that came up with FIPS off must not run)."""
+DATAROBOT_FIPS_ENFORCE, the switch of the shell self-test wrappers: "false" turns the guard off even in FIPS mode,
+"true" also halts when OpenSSL is not in FIPS mode (decision 22)."""
 
 import os
 import sys
@@ -14,10 +12,9 @@ import fips_guard
 _enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
 
 if _enforce != "false" and fips_guard.fips_mode():
-    # Nothing here does gRPC TLS, so stock grpcio in user code is a warning, not a halt. No log handlers: a handler
-    # on the root logger this early makes the app's later logging.basicConfig() a no-op and silences its logs.
-    # Children inherit the variable, so the entry point (kernel gateway, agent server) logs the startup lines once
-    # and every process it starts (kernels, pip, uv) stays quiet. Checks and the FATAL line still run everywhere.
+    # warn: nothing here does gRPC TLS. loggers=(): a root handler this early makes the app's logging.basicConfig()
+    # a no-op. log_startup: children inherit the variable, so the entry point logs once and kernels, pip, uv stay
+    # quiet; checks and the FATAL line still run everywhere.
     fips_guard.start(
         bundled_grpc="warn",
         loggers=(),
@@ -25,14 +22,13 @@ if _enforce != "false" and fips_guard.fips_mode():
     )
     os.environ["DATAROBOT_FIPS_GUARD_LOGGED"] = "1"
 
-    # Go binaries (pulumi, gh, task) carry their own crypto, not OpenSSL. fips140=on limits Go's TLS and crypto
-    # to approved algorithms and runs its self-tests; every child of this process inherits it.
+    # Go binaries (pulumi, gh, task) have their own crypto; fips140=on keeps it to approved algorithms.
     godebug = os.environ.get("GODEBUG", "")
     if "fips140=" not in godebug:
         os.environ["GODEBUG"] = ",".join(filter(None, [godebug, "fips140=on"]))
 
     def _after_fork() -> None:
-        # gunicorn (the agent server) replaces a worker that exits 78; 3 makes the arbiter stop the whole pod.
+        # gunicorn replaces a worker that exits 78; 3 stops the whole pod.
         fips_guard.restart_watchdog(
             exit_code=3 if "gunicorn" in sys.modules else fips_guard.EXIT_CODE,
         )
