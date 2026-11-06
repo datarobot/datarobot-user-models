@@ -9,9 +9,9 @@ import sys
 
 import fips_guard
 
-_enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
+enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
 
-if _enforce != "false" and fips_guard.fips_mode():
+if enforce != "false" and fips_guard.fips_mode():
     # warn: nothing here does gRPC TLS. loggers=(): a root handler this early makes the app's logging.basicConfig()
     # a no-op. log_startup: children inherit the variable, so the entry point logs once and kernels, pip, uv stay
     # quiet; checks and the FATAL line still run everywhere.
@@ -34,5 +34,5 @@ if _enforce != "false" and fips_guard.fips_mode():
         )
 
     os.register_at_fork(after_in_child=_after_fork)
-elif _enforce == "true":
+elif enforce == "true":
     fips_guard.halt("DATAROBOT_FIPS_ENFORCE=true but OpenSSL is not in FIPS mode")
