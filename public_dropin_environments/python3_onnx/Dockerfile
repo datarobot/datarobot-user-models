@@ -79,13 +79,13 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
-# Both system python and venv python should look at both venv and system site
-# packages.
 # FIPS 140-3 (INF-711): halt any Python process when the crypto module fails, at startup and
 # periodically; with DATAROBOT_FIPS_ENFORCE=true also when OpenSSL is not in FIPS mode. Same files
-# as python3_genai_agents and python3_mcp; see fips/sitecustomize.py. Prepended, so the guard's
-# directory comes first and the existing paths stay.
+# as the other environments with fips/; see fips/sitecustomize.py.
 COPY ./fips /etc/datarobot-fips/
+
+# Both system python and venv python should look at both venv and system site
+# packages.
 ENV PYTHONPATH=/etc/datarobot-fips:/opt/venv/lib/python${PYTHON_VERSION}/site-packages:/usr/lib/python${PYTHON_VERSION}/site-packages
 
 # Gunicorn configuration

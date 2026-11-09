@@ -9,7 +9,8 @@ import sys
 
 import fips_guard
 
-enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
+# Case and surrounding spaces are ignored, so "True" or " true " still enforce instead of failing open.
+enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE", "").strip().lower()
 
 if enforce != "false" and fips_guard.fips_mode():
     # warn: nothing here does gRPC TLS. loggers=(): a root handler this early makes the app's logging.basicConfig()
@@ -22,10 +23,14 @@ if enforce != "false" and fips_guard.fips_mode():
     )
     os.environ["DATAROBOT_FIPS_GUARD_LOGGED"] = "1"
 
-    # Go binaries (pulumi, gh, task) have their own crypto; fips140=on keeps it to approved algorithms.
-    godebug = os.environ.get("GODEBUG", "")
-    if "fips140=" not in godebug:
-        os.environ["GODEBUG"] = ",".join(filter(None, [godebug, "fips140=on"]))
+    # Go binaries (pulumi, gh, task) have their own crypto. fips140=on runs Go's self-tests and puts crypto/tls in
+    # FIPS settings; non-approved algorithms called directly still work (only fips140=only blocks them, best effort).
+    # A preset only is kept, anything else becomes on. fips140ems=1 keeps TLS 1.2 Extended Master Secret enforced
+    # (PRDSEC-3003: some Go 1.27 builds default it off).
+    godebug = os.environ.get("GODEBUG", "").split(",")
+    mode = "only" if "fips140=only" in godebug else "on"
+    godebug = [kv for kv in godebug if kv and kv.split("=")[0] not in ("fips140", "fips140ems")]
+    os.environ["GODEBUG"] = ",".join(godebug + [f"fips140={mode}", "fips140ems=1"])
 
     def _after_fork() -> None:
         # gunicorn replaces a worker that exits 78; 3 stops the whole pod.
