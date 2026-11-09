@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# FIPS power-on self-test (openssl-fips-test) before anything else starts; a no-op unless DATAROBOT_FIPS_ENFORCE=true.
+sh /etc/datarobot-fips/fips_selftest_entrypoint.sh true || exit $?
+
 export HOME="/home/notebooks"
 
 # setup the working directory for the kernel
@@ -37,6 +40,13 @@ else
     export XDG_CACHE_HOME="${NOTEBOOKS_RW_DIR}/cache"
     mkdir -p "$JUPYTER_DATA_DIR" "$JUPYTER_RUNTIME_DIR" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" 2>/dev/null || true
     touch "$GIT_CONFIG_GLOBAL" 2>/dev/null || true
+    # pulumi writes credentials.json and new plugins under PULUMI_HOME, so it moves and the baked plugins are
+    # linked in file by file: pulumi skips a plugin directory that is itself a symlink.
+    NBX_PULUMI_HOME_IMAGE="$PULUMI_HOME"
+    export PULUMI_HOME="${NOTEBOOKS_RW_DIR}/pulumi"
+    for d in "${NBX_PULUMI_HOME_IMAGE}"/plugins/*/; do
+        mkdir -p "${PULUMI_HOME}/plugins/$(basename "$d")" && ln -sfn "$d"* "${PULUMI_HOME}/plugins/$(basename "$d")/"
+    done 2>/dev/null || true
 
     # The image bakes PYTHONPATH=/home/notebooks/.ipython/extensions, so a moved IPYTHONDIR has
     # to be added or dataframe_formatter stops importing and dataframe rendering disappears.
@@ -71,6 +81,12 @@ nohup uvicorn agent:app --host 0.0.0.0 --port 8889 &
 
 # shellcheck disable=SC1091
 source /etc/system/kernel/common-user-limits.sh
+
+# fips/sitecustomize.py sets GODEBUG and DATAROBOT_FIPS_GUARD_LOGGED inside Python processes only; exported here
+# so the sshd env snapshot in setup-ssh.sh carries them into terminals.
+eval "$(python -c 'import os, shlex
+for k in ("GODEBUG", "DATAROBOT_FIPS_GUARD_LOGGED"):
+    if k in os.environ: print(f"export {k}={shlex.quote(os.environ[k])}")')"
 
 # shellcheck disable=SC1091
 source /etc/system/kernel/setup-ssh.sh
