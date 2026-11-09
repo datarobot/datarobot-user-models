@@ -15,7 +15,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.18.1
+ARG CLI_VERSION=v0.19.0
 ARG GITHELPER_VERSION=v0.0.37
 ARG OPENCODE_VERSION=1.19.4
 
@@ -199,6 +199,19 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
     && /home/notebooks/.local/bin/dr/dr plugin install xp \
     && /home/notebooks/.local/bin/dr/dr plugin install opencode \
     && /home/notebooks/.local/bin/dr/dr plugin install assist
+
+# The pulumi-datarobot resource plugin for the SDK version in requirements.txt, so `pulumi up` in a
+# codespace does not download it. The datarobot-agent-application tool check wants it installed too.
+# a+rX: pulumi creates PULUMI_HOME owner-only, and a FLEET-8918 session at another uid reads the
+# plugin from here (see start_server.sh).
+ARG PULUMI_DATAROBOT_VERSION=0.14.0
+ARG PULUMI_DATAROBOT_SHA256=86630984831f36b064b4c048bd3840c050c47412c898df5333a5ca89742ed8cd
+ENV PULUMI_HOME=/home/notebooks/.pulumi
+RUN curl -fsSLo /tmp/pulumi-datarobot.tar.gz "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v${PULUMI_DATAROBOT_VERSION}/pulumi-resource-datarobot-v${PULUMI_DATAROBOT_VERSION}-linux-amd64.tar.gz" \
+    && echo "${PULUMI_DATAROBOT_SHA256}  /tmp/pulumi-datarobot.tar.gz" | sha256sum -c - \
+    && pulumi plugin install resource datarobot "$PULUMI_DATAROBOT_VERSION" --file /tmp/pulumi-datarobot.tar.gz \
+    && rm /tmp/pulumi-datarobot.tar.gz \
+    && chmod -R a+rX "$PULUMI_HOME"
 
 # Install opencode CLI
 RUN wget -qO /tmp/opencode-install.sh https://opencode.ai/install \
