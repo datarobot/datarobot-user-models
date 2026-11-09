@@ -87,10 +87,15 @@ ENV GRPC_DEFAULT_SSL_ROOTS_FILE_PATH=/etc/ssl/certs/ca-certificates.crt
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
+# FIPS 140-3 (INF-711): halt any Python process when the crypto module fails, at startup and
+# periodically; with DATAROBOT_FIPS_ENFORCE=true also when OpenSSL is not in FIPS mode. Same files
+# as the other environments with fips/; see fips/sitecustomize.py.
+COPY ./fips /etc/datarobot-fips/
+
 # Both system python and venv python should look at both venv and system site
 # packages.
 ARG PYTHON_VERSION
-ENV PYTHONPATH=/opt/venv/lib/python${PYTHON_VERSION}/site-packages:/usr/lib/python${PYTHON_VERSION}/site-packages
+ENV PYTHONPATH=/etc/datarobot-fips:/opt/venv/lib/python${PYTHON_VERSION}/site-packages:/usr/lib/python${PYTHON_VERSION}/site-packages
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
