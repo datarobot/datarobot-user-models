@@ -43,17 +43,14 @@ RUN apk update \
   && apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
     openjdk-11 vim nano procps tzdata \
   && apk upgrade --no-cache curl wget openjdk-11
-# pulumi and pulumi-language-python are deliberately left unpinned so each build picks up the
-# newest available build, which is what remediates CVEs against them. The upgrade below is a
-# no-op whenever that already happens: our builder does no layer caching, so the `apk add`
-# re-runs every build and `--no-cache` refetches the index rather than reusing a stale one.
-# It is spelled out anyway so the remediation is visible here instead of being an implicit
-# side effect of not pinning. If a pulumi CVE survives a rebuild, the fixed version does not
-# exist in the Chainguard repo our base image is entitled to, and the fix has to come from
-# that supplier rather than from this file.
+# task, pulumi and pulumi-language-python get minimum versions, not exact pins: apk installs
+# the newest build at or above the floor, and the build fails if the Chainguard repo our base
+# image is entitled to has no such build yet, rather than shipping a vulnerable one.
+#   pulumi, pulumi-language-python: >= 3.274.1-r1 (klauspost/compress CVE-2026-116591)
+#   task: >= 3.54.0-r8 (klauspost/compress CVE-2026-116591, go-getter CVE-2026-19585)
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache rust sqlite task pulumi pulumi-language-python \
-  && apk upgrade --no-cache pulumi pulumi-language-python
+RUN apk add --no-cache rust sqlite 'task>=3.54.0-r8' \
+    'pulumi>=3.274.1-r1' 'pulumi-language-python>=3.274.1-r1'
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
