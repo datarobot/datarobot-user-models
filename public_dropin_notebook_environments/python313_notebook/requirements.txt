@@ -1,3 +1,6 @@
+# FIPS: build these from source so they link the image's FIPS OpenSSL instead of a bundled TLS library.
+--no-binary cryptography
+--no-binary grpcio
 altair==5.5.0
 boto3==1.43.117
 cloudpickle==3.0.0

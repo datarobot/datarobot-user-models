@@ -156,12 +156,22 @@ EXPOSE 8889
 FROM minimal AS builder
 # this stage includes all data science dependencies we want to have in the kernel runtime out of the box
 
+ARG UNAME
 ARG WORKDIR
 ARG VENV_PATH
 
+# Toolchain to build cryptography and grpcio from source against the image's FIPS OpenSSL. This stage
+# is discarded, so rust and the headers never reach the kernel image.
+USER root
+RUN apk update && apk add --no-cache rust openssl-dev && rm -rf /var/cache/apk/
+USER $UNAME
+
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
+# Links grpcio to the system libssl instead of its bundled BoringSSL.
+ENV GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+# Chainguard sets -fno-delete-null-pointer-checks, which breaks the abseil compile inside grpcio.
+RUN CXXFLAGS=-fdelete-null-pointer-checks pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
   && rm ${WORKDIR}/requirements.txt
 
 FROM base AS kernel
@@ -184,6 +194,12 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+
+# FIPS validation of the shipped venv: cryptography must use the FIPS provider, and grpcio must link the
+# system libssl (grpcio has no FIPS flag to check).
+RUN /usr/bin/openssl-fips-test \
+  && python3 -Bc "from cryptography.hazmat.backends.openssl.backend import backend; assert backend._fips_enabled, 'cryptography is not on the FIPS provider'" \
+  && python3 -Bc "import sys; sys.path.insert(0, '/etc/datarobot-fips'); import fips_guard; lib = fips_guard.grpc_tls_library(); assert lib == 'openssl', f'grpcio TLS library is {lib}'"
 
 # Install DR CLI; the version check fails the build if the binary does not match CLI_VERSION
 RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
