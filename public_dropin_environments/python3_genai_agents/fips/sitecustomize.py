@@ -9,7 +9,8 @@ import sys
 
 import fips_guard
 
-enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE")
+# Case and surrounding spaces are ignored, so "True" or " true " still enforce instead of failing open.
+enforce = os.environ.get("DATAROBOT_FIPS_ENFORCE", "").strip().lower()
 
 if enforce != "false" and fips_guard.fips_mode():
     # warn: nothing here does gRPC TLS. loggers=(): a root handler this early makes the app's logging.basicConfig()
