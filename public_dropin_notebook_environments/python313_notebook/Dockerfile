@@ -15,7 +15,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG CLI_VERSION=v0.18.1
+ARG CLI_VERSION=v0.19.0
 ARG GITHELPER_VERSION=v0.0.37
 ARG OPENCODE_VERSION=1.19.4
 
@@ -156,12 +156,22 @@ EXPOSE 8889
 FROM minimal AS builder
 # this stage includes all data science dependencies we want to have in the kernel runtime out of the box
 
+ARG UNAME
 ARG WORKDIR
 ARG VENV_PATH
 
+# Toolchain to build cryptography and grpcio from source against the image's FIPS OpenSSL. This stage
+# is discarded, so rust and the headers never reach the kernel image.
+USER root
+RUN apk update && apk add --no-cache rust openssl-dev && rm -rf /var/cache/apk/
+USER $UNAME
+
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
+# Links grpcio to the system libssl instead of its bundled BoringSSL.
+ENV GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+# Chainguard sets -fno-delete-null-pointer-checks, which breaks the abseil compile inside grpcio.
+RUN CXXFLAGS=-fdelete-null-pointer-checks pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
   && rm ${WORKDIR}/requirements.txt
 
 FROM base AS kernel
@@ -185,6 +195,12 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 
+# FIPS validation of the shipped venv: cryptography must use the FIPS provider, and grpcio must link the
+# system libssl (grpcio has no FIPS flag to check).
+RUN /usr/bin/openssl-fips-test \
+  && python3 -Bc "from cryptography.hazmat.backends.openssl.backend import backend; assert backend._fips_enabled, 'cryptography is not on the FIPS provider'" \
+  && python3 -Bc "import sys; sys.path.insert(0, '/etc/datarobot-fips'); import fips_guard; lib = fips_guard.grpc_tls_library(); assert lib == 'openssl', f'grpcio TLS library is {lib}'"
+
 # Install DR CLI; the version check fails the build if the binary does not match CLI_VERSION
 RUN wget -q https://github.com/datarobot-oss/cli/releases/download/"$CLI_VERSION"/dr_"$CLI_VERSION"_Linux_x86_64.tar.gz \
     && mkdir -p /home/notebooks/.local/bin/dr \
@@ -204,8 +220,8 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
 # codespace does not download it. The datarobot-agent-application tool check wants it installed too.
 # a+rX: pulumi creates PULUMI_HOME owner-only, and a FLEET-8918 session at another uid reads the
 # plugin from here (see start_server.sh).
-ARG PULUMI_DATAROBOT_VERSION=0.14.0
-ARG PULUMI_DATAROBOT_SHA256=86630984831f36b064b4c048bd3840c050c47412c898df5333a5ca89742ed8cd
+ARG PULUMI_DATAROBOT_VERSION=0.14.3
+ARG PULUMI_DATAROBOT_SHA256=4a52ab3be85c06285f53d45b553e75694eef6a3c9f3e1e4df2597c1d92bc639a
 ENV PULUMI_HOME=/home/notebooks/.pulumi
 RUN curl -fsSLo /tmp/pulumi-datarobot.tar.gz "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v${PULUMI_DATAROBOT_VERSION}/pulumi-resource-datarobot-v${PULUMI_DATAROBOT_VERSION}-linux-amd64.tar.gz" \
     && echo "${PULUMI_DATAROBOT_SHA256}  /tmp/pulumi-datarobot.tar.gz" | sha256sum -c - \
