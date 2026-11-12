@@ -12,6 +12,20 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     env
 fi
 
+# FIPS 140-3 (RAPTOR-21063): with DATAROBOT_FIPS_ENFORCE=true, run the JVM FIPS self-test once
+# before the server starts, so a failure stops the container (exit 78) instead of leaving DRUM
+# retrying a Java gateway that never came up. The agent itself runs in every JVM (JAVA_TOOL_OPTIONS).
+case "${DATAROBOT_FIPS_ENFORCE:-}" in
+    [Tt][Rr][Uu][Ee])
+        out=$(java -version 2>&1)
+        rc=$?
+        if [ "$rc" -ne 0 ]; then
+            echo "$out" >&2
+            exit "$rc"
+        fi
+        ;;
+esac
+
 echo
 echo "Executing command: drum server $*"
 echo
