@@ -1,4 +1,7 @@
-# Python 3 Keras FIPS-compliant Drop-In Template Environment
+# Python 3 Keras Drop-In Template Environment (FIPS base)
+
+This environment is built on a FIPS base image, but it is **not** FIPS 140-3 compliant: tensorflow,
+cryptography and grpcio bundle their own TLS libraries instead of using the image's FIPS OpenSSL.
 
 This template environment can be used to create artifact-only keras + tensorflow custom models.
 Your custom model directory needs only contain your model artifact if you use the

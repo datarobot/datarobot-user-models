@@ -1,10 +1,10 @@
 {
   "id": "67ab1a2061bc15226be2f273",
-  "name": "[DataRobot] [FIPS-compliant] Python 3.11 Keras Drop-In",
-  "description": "This template environment can be used to create FIPS-compliant artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file.",
+  "name": "[DataRobot] Python 3.11 Keras Drop-In",
+  "description": "This template environment can be used to create artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file. It is built on a FIPS base image, but it is not FIPS 140-3 compliant: tensorflow, cryptography and grpcio bundle their own TLS libraries.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6accbb8b005071281f001dbe",
+  "environmentVersionId": "6af37d60edc776a6eb642878",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
