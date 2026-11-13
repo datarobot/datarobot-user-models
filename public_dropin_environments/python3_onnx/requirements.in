@@ -2,3 +2,4 @@ datarobot-drum
 onnxruntime
 scikit-learn
 urllib3>=2.7.0
+setuptools>=83.0.0
