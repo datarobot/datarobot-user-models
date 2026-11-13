@@ -221,7 +221,7 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
 # a+rX: pulumi creates PULUMI_HOME owner-only, and a FLEET-8918 session at another uid reads the
 # plugin from here (see start_server.sh).
 ARG PULUMI_DATAROBOT_VERSION=0.14.4
-ARG PULUMI_DATAROBOT_SHA256=4a52ab3be85c06285f53d45b553e75694eef6a3c9f3e1e4df2597c1d92bc639a
+ARG PULUMI_DATAROBOT_SHA256=1bb36f5814b7cf73cf24260b16fd1e8803af53077bf29dc67bd87bb5e9535442
 ENV PULUMI_HOME=/home/notebooks/.pulumi
 RUN curl -fsSLo /tmp/pulumi-datarobot.tar.gz "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v${PULUMI_DATAROBOT_VERSION}/pulumi-resource-datarobot-v${PULUMI_DATAROBOT_VERSION}-linux-amd64.tar.gz" \
     && echo "${PULUMI_DATAROBOT_SHA256}  /tmp/pulumi-datarobot.tar.gz" | sha256sum -c - \
