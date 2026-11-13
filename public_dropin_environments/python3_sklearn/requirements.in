@@ -4,3 +4,4 @@ scipy
 numpy
 pandas<3.0.0
 --no-binary cryptography
+setuptools>=83.0.0
