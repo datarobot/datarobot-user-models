@@ -27,9 +27,11 @@ RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION} 'java-cacerts>=202609
 # FIPS 140-3 (RAPTOR-21063): the JVM gets the Bouncy Castle FIPS provider (FIPS 140-3 module,
 # approved-only mode) in place of the JDK's own crypto providers. The jars come from Maven Central,
 # pinned by SHA-256 (fips_jvm/fetch_bcfips.py); java.security is this JDK's own file with the
-# provider list switched (fips_jvm/apply_bcfips_security.sh).
+# provider list switched (fips_jvm/apply_bcfips_security.sh). Set MAVEN_REPO_URL to build behind a
+# Maven mirror.
+ARG MAVEN_REPO_URL=https://repo1.maven.org/maven2
 COPY fips_jvm/fetch_bcfips.py fips_jvm/apply_bcfips_security.sh /tmp/fips_jvm/
-RUN /usr/bin/python /tmp/fips_jvm/fetch_bcfips.py /usr/share/java/bouncycastle-fips && \
+RUN MAVEN_REPO_URL="${MAVEN_REPO_URL}" /usr/bin/python /tmp/fips_jvm/fetch_bcfips.py /usr/share/java/bouncycastle-fips && \
     sh /tmp/fips_jvm/apply_bcfips_security.sh /usr/lib/jvm/java-11-openjdk/conf/security/java.security && \
     rm -rf /tmp/fips_jvm
 
@@ -108,23 +110,27 @@ RUN sh -c 'printf "Validating python cryptography fips support\n"; \
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
 
-# FIPS 140-3 (RAPTOR-21063): every JVM (the DRUM Py4J gateway, javac) loads Bouncy Castle FIPS from
-# the module path. The add-exports are the ones Chainguard's jdk-fips image sets for Bouncy Castle
-# FIPS on JDK 11. start_server.sh runs fips_jvm/FipsSelfTest.java (from source) before the server
-# starts: with DATAROBOT_FIPS_ENFORCE=true it exits 78 with a "[datarobot-fips] FATAL" line unless
-# the FIPS module passed its power-on self-tests and is the first provider, in approved-only mode.
-ENV JAVA_TOOL_OPTIONS="--module-path=/usr/share/java/bouncycastle-fips"
-ENV JDK_JAVA_OPTIONS="--add-exports=java.base/sun.security.internal.spec=ALL-UNNAMED --add-exports=java.base/sun.security.provider=ALL-UNNAMED"
+# FIPS 140-3 (RAPTOR-21063): every JVM (the DRUM Py4J gateway, javac, the self-test) loads Bouncy
+# Castle FIPS from the module path, with the same options. start_server.sh adds them back if a
+# deployment replaces JAVA_TOOL_OPTIONS. start_server.sh runs fips_jvm/FipsSelfTest.java (from
+# source) before the server starts: with DATAROBOT_FIPS_ENFORCE=true it exits 78 with a
+# "[datarobot-fips] FATAL" line unless the FIPS module passed its power-on self-tests and is the
+# first provider, in approved-only mode, with no JDK crypto provider loaded and default TLS on its
+# JSSE provider.
+ENV DATAROBOT_FIPS_JAVA_OPTIONS="--module-path=/usr/share/java/bouncycastle-fips --add-modules=org.bouncycastle.fips.core"
+ENV JAVA_TOOL_OPTIONS="${DATAROBOT_FIPS_JAVA_OPTIONS}"
 COPY fips_jvm/FipsSelfTest.java /usr/share/java/datarobot-fips/FipsSelfTest.java
 # Fail the build unless the self-test passes here, and unless it refuses a JVM with a non-FIPS
-# provider (SunJCE) added, so a self-test that passes everything can't ship.
-RUN DATAROBOT_FIPS_ENFORCE=true java --add-modules org.bouncycastle.fips.core \
-      /usr/share/java/datarobot-fips/FipsSelfTest.java 2>&1 | \
-      busybox grep -q -e '^\[datarobot-fips\] JVM FIPS self-test passed' && \
+# provider (SunJCE) added, so a self-test that passes everything can't ship. Its output is printed
+# either way, so a failed build says why.
+RUN out=$(DATAROBOT_FIPS_ENFORCE=true java /usr/share/java/datarobot-fips/FipsSelfTest.java 2>&1); \
+    rc=$?; printf '%s\n' "$out"; \
+    test "$rc" -eq 0 && printf '%s\n' "$out" | busybox grep -q -e '^\[datarobot-fips\] JVM FIPS self-test passed' && \
     printf 'security.provider.9=SunJCE\n' > /tmp/sunjce.security && \
-    { DATAROBOT_FIPS_ENFORCE=true java -Djava.security.properties=/tmp/sunjce.security \
-        --add-modules org.bouncycastle.fips.core /usr/share/java/datarobot-fips/FipsSelfTest.java >/dev/null 2>&1; \
-      test $? -eq 78; } && \
+    { out=$(DATAROBOT_FIPS_ENFORCE=true java -Djava.security.properties=/tmp/sunjce.security \
+        /usr/share/java/datarobot-fips/FipsSelfTest.java 2>&1); \
+      rc=$?; printf '%s\n' "$out"; \
+      test "$rc" -eq 78 || { echo "expected the self-test to exit 78 with SunJCE added, got $rc" >&2; false; }; } && \
     rm -f /tmp/sunjce.security
 ENV HOME=/opt
 ENV CODE_DIR=/opt/code

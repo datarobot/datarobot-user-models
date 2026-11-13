@@ -22,6 +22,10 @@ awk '
     next
   }
   /^org\.bouncycastle\.fips\.approved_only=/ { next }
+  # The JDK default SunX509 came from SunJSSE, which is gone: BCJSSE only offers PKIX/X.509, and
+  # without this SSLContext.getDefault() (every default HTTPS call) fails. Chainguard sets both.
+  /^ssl\.KeyManagerFactory\.algorithm=/ { print "ssl.KeyManagerFactory.algorithm=PKIX"; next }
+  /^ssl\.TrustManagerFactory\.algorithm=/ { print "ssl.TrustManagerFactory.algorithm=PKIX"; next }
   { print }
   END { print "org.bouncycastle.fips.approved_only=true" }
 ' "$sec" > "$tmp"
@@ -29,6 +33,8 @@ awk '
 # awk succeeds even when nothing matched, so check the result.
 grep -q '^security\.provider\.1=org\.bouncycastle\.jcajce\.provider\.BouncyCastleFipsProvider ' "$tmp"
 grep -q '^org\.bouncycastle\.fips\.approved_only=true$' "$tmp"
+grep -q '^ssl\.KeyManagerFactory\.algorithm=PKIX$' "$tmp"
+grep -q '^ssl\.TrustManagerFactory\.algorithm=PKIX$' "$tmp"
 if grep -qE '^security\.provider\.[0-9]+=(SunJCE|SunRsaSign|SunEC|SunJSSE|SunPKCS11)' "$tmp"; then
   echo "apply_bcfips_security.sh: a non-FIPS crypto provider is still listed in $tmp" >&2
   exit 1
