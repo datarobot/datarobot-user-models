@@ -97,3 +97,6 @@ wrapt==2.5.2
 xgboost==3.0.5
 zope-event==6.2
 zope-interface==8.7
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

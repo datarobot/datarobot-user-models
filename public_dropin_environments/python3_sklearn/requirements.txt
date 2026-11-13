@@ -96,3 +96,6 @@ werkzeug==3.1.9
 wrapt==2.5.2
 zope-event==6.2
 zope-interface==8.7
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
