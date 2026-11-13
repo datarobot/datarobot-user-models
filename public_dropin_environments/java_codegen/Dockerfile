@@ -24,6 +24,17 @@ ARG OPENJDK11_APK_VERSION=11.0.32.1-r6
 # java-cacerts is pinned so a lagging mirror can't ship the compromised eMudhra roots (PRDSEC-2816).
 RUN apk add --no-cache openjdk-11=${OPENJDK11_APK_VERSION} 'java-cacerts>=20260909-r3'
 
+# FIPS 140-3 (RAPTOR-21063): the JVM gets the Bouncy Castle FIPS provider (FIPS 140-3 module,
+# approved-only mode) in place of the JDK's own crypto providers. The jars come from Maven Central,
+# pinned by SHA-256 (fips_jvm/fetch_bcfips.py); java.security is this JDK's own file with the
+# provider list switched (fips_jvm/apply_bcfips_security.sh). Set MAVEN_REPO_URL to build behind a
+# Maven mirror.
+ARG MAVEN_REPO_URL=https://repo1.maven.org/maven2
+COPY fips_jvm/fetch_bcfips.py fips_jvm/apply_bcfips_security.sh /tmp/fips_jvm/
+RUN MAVEN_REPO_URL="${MAVEN_REPO_URL}" /usr/bin/python /tmp/fips_jvm/fetch_bcfips.py /usr/share/java/bouncycastle-fips && \
+    sh /tmp/fips_jvm/apply_bcfips_security.sh /usr/lib/jvm/java-11-openjdk/conf/security/java.security && \
+    rm -rf /tmp/fips_jvm
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
 # RAPTOR-19887: rebuild for CVE-2026-63073 - libcrypto3/libssl3 3.6.3-r5 -> 3.6.4-r1.
@@ -33,8 +44,10 @@ FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}
 
 USER root
 
-# Copy the JDK from the development stage
+# Copy the JDK from the development stage (its java.security switched to Bouncy Castle FIPS) and the
+# Bouncy Castle FIPS jars (RAPTOR-21063).
 COPY --from=build /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/java-11-openjdk
+COPY --from=build /usr/share/java/bouncycastle-fips /usr/share/java/bouncycastle-fips
 
 # The JDK's lib/security/cacerts is a symlink to this file from java-cacerts (pulled in by
 # openjdk-11 in the build stage). Without it Java has no default trust store, so every TLS
@@ -96,6 +109,29 @@ RUN sh -c 'printf "Validating python cryptography fips support\n"; \
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
+
+# FIPS 140-3 (RAPTOR-21063): every JVM (the DRUM Py4J gateway, javac, the self-test) loads Bouncy
+# Castle FIPS from the module path, with the same options. start_server.sh adds them back if a
+# deployment replaces JAVA_TOOL_OPTIONS. start_server.sh runs fips_jvm/FipsSelfTest.java (from
+# source) before the server starts: with DATAROBOT_FIPS_ENFORCE=true it exits 78 with a
+# "[datarobot-fips] FATAL" line unless the FIPS module passed its power-on self-tests and is the
+# first provider, in approved-only mode, with no JDK crypto provider loaded and default TLS on its
+# JSSE provider.
+ENV DATAROBOT_FIPS_JAVA_OPTIONS="--module-path=/usr/share/java/bouncycastle-fips --add-modules=org.bouncycastle.fips.core"
+ENV JAVA_TOOL_OPTIONS="${DATAROBOT_FIPS_JAVA_OPTIONS}"
+COPY fips_jvm/FipsSelfTest.java /usr/share/java/datarobot-fips/FipsSelfTest.java
+# Fail the build unless the self-test passes here, and unless it refuses a JVM with a non-FIPS
+# provider (SunJCE) added, so a self-test that passes everything can't ship. Its output is printed
+# either way, so a failed build says why.
+RUN out=$(DATAROBOT_FIPS_ENFORCE=true java /usr/share/java/datarobot-fips/FipsSelfTest.java 2>&1); \
+    rc=$?; printf '%s\n' "$out"; \
+    test "$rc" -eq 0 && printf '%s\n' "$out" | busybox grep -q -e '^\[datarobot-fips\] JVM FIPS self-test passed' && \
+    printf 'security.provider.9=SunJCE\n' > /tmp/sunjce.security && \
+    { out=$(DATAROBOT_FIPS_ENFORCE=true java -Djava.security.properties=/tmp/sunjce.security \
+        /usr/share/java/datarobot-fips/FipsSelfTest.java 2>&1); \
+      rc=$?; printf '%s\n' "$out"; \
+      test "$rc" -eq 78 || { echo "expected the self-test to exit 78 with SunJCE added, got $rc" >&2; false; }; } && \
+    rm -f /tmp/sunjce.security
 ENV HOME=/opt
 ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
