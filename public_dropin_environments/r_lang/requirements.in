@@ -4,3 +4,4 @@ rpy2
 datarobot-drum[R]
 urllib3>=2.7.0
 --no-binary cryptography
+setuptools>=83.0.0
