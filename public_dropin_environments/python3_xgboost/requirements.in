@@ -3,3 +3,4 @@ xgboost < 3.1.0
 pandas
 scikit-learn >=1.6.1,<1.7
 urllib3>=2.7.0
+setuptools>=83.0.0
