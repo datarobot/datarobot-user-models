@@ -27,7 +27,7 @@ lime==0.2.0.1
 matplotlib==3.11.0
 mistune==3.3.3
 numpy==2.4.6
-opencv-python-headless==5.0.0.93
+opencv-python-headless==5.1.0.95
 openpyxl==3.0.10
 Pillow==13.0.0
 pandas==2.3.3
