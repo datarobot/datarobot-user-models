@@ -9,8 +9,8 @@ azure-core==1.41.0
 azure-identity==1.27.0
 azure-storage-blob==12.19.0
 blinker==1.9.0
-boto3==1.44.5
-botocore==1.44.5
+boto3==1.44.7
+botocore==1.44.7
 certifi==2026.10.23
 cffi==2.1.1
 charset-normalizer==3.5.2
@@ -67,8 +67,8 @@ py4j==0.10.9.9
 pyasn1==0.6.5
 pyasn1-modules==0.4.2
 pycparser==3.12
-pydantic==2.14.3
-pydantic-core==2.50.4
+pydantic==2.14.4
+pydantic-core==2.50.5
 pyjwt==2.15.1
 python-dateutil==2.9.0.post0
 pytz==2026.6
