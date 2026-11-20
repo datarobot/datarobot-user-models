@@ -6,6 +6,13 @@ FROM datarobot/mirror_chainguard_datarobot.com_python-fips:${PYTHON_VERSION}-dev
 USER root
 RUN apk update && apk add rust openssl-dev
 
+# Pillow is built from source (--no-binary pillow in requirements.txt): the PyPI wheel bundles
+# libbrotlidec 1.2.0 in pillow.libs (CVE-2026-111497). Built here it links the image's
+# FreeType and codec libraries, and that FreeType links the system libbrotlidec 1.2.1. The
+# production image ships none of these libraries, so they are staged in /opt/pillow-libs below.
+RUN apk add --no-cache build-base zlib-dev libjpeg-turbo-dev libpng-dev libwebp-dev tiff-dev \
+    openjpeg-dev lcms2-dev freetype-dev brotli-dev
+
 COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
@@ -17,6 +24,13 @@ RUN sh -c "/usr/bin/python -m venv ${VIRTUAL_ENV} && \
     CXXFLAGS=-fdelete-null-pointer-checks python -m pip install --no-cache-dir -r requirements.txt && \
     find ${VIRTUAL_ENV} -path '*/site-packages/datarobot_drum/*.jar' -delete && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+
+# Stage the shared libraries the source-built Pillow needs at runtime (the -dev packages pull in
+# libxcb, so Pillow builds its XCB module too).
+RUN ${VIRTUAL_ENV}/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'" && \
+    mkdir -p /opt/pillow-libs && cd /usr/lib && \
+    cp -L libfreetype.so.6 libjpeg.so.8 liblcms2.so.2 libopenjp2.so.7 libpng16.so.16 libtiff.so.6 libwebp.so.7 libwebpdemux.so.2 libwebpmux.so.3 libsharpyuv.so.0 libzstd.so.1 \
+          libxcb.so.1 libXau.so.6 libXdmcp.so.6 /opt/pillow-libs/
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
@@ -58,6 +72,10 @@ COPY --from=build /bin/ls /bin/ls
 COPY --from=build /usr/bin/uname /usr/bin/uname
 # Copy the virtualenv built from the dev base image
 COPY --from=build /opt/venv /opt/venv
+
+# Shared libraries for the source-built Pillow (see the build stage).
+COPY --from=build /opt/pillow-libs/ /usr/lib/
+RUN /opt/venv/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'"
 ENV VIRTUAL_ENV=/opt/venv
 
 # FIPS Validation

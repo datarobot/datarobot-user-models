@@ -2,6 +2,7 @@
 #    uv pip compile --emit-build-options --no-annotate requirements.in -o requirements.txt
 --no-binary cryptography
 --no-binary grpcio
+--no-binary pillow
 
 absl-py==2.5.1
 annotated-types==0.8.0
