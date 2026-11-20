@@ -59,7 +59,7 @@ markdown-it-py==4.0.0
 markupsafe==3.0.3
 matplotlib-inline==0.2.1
 mdurl==0.1.2
-mistune==3.3.3
+mistune==3.3.4
 nbclient==0.10.4
 nbconvert==7.17.2
 nbformat==5.10.4
