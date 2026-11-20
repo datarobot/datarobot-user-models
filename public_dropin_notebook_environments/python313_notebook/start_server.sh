@@ -113,9 +113,10 @@ else
     NBX_PUBLISH_HOST_KEY=true
     # The runner makes a new key each time it starts, so sshd reads it from the shared directory
     # at each login rather than from a copy, which a restarted runner would be refused with. It
-    # also doesn't matter which container starts first.
+    # also doesn't matter which container starts first. The user's own ~/.ssh/authorized_keys stays
+    # in the list, as sshd_config has it: `dr codespace ssh` (drcs) logs in with a key it writes there.
     NBX_AUTHORIZED_KEYS_DIR="${NBX_SSH_SHARED_DIR}"
-    NBX_SSHD_OPTS+=(-o "AuthorizedKeysFile=${NBX_SSH_SHARED_DIR}/%u")
+    NBX_SSHD_OPTS+=(-o "AuthorizedKeysFile=.ssh/authorized_keys ${NBX_SSH_SHARED_DIR}/%u")
 fi
 
 # StrictModes refuses an authorized_keys file whose directory group or others can write, which
