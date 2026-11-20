@@ -56,7 +56,7 @@ RUN apk update && apk add rust openssl-dev
 # FreeType and codec libraries, and that FreeType links the system libbrotlidec 1.2.1. The
 # production image ships none of these libraries, so they are staged in /opt/pillow-libs below.
 RUN apk add --no-cache build-base zlib-dev libjpeg-turbo-dev libpng-dev libwebp-dev tiff-dev \
-    openjpeg-dev lcms2-dev freetype-dev brotli-dev
+    openjpeg-dev lcms2-dev freetype-dev brotli-dev libavif-dev
 
 COPY requirements.txt requirements.txt
 
@@ -68,12 +68,18 @@ RUN sh -c "/usr/bin/python -m venv ${VIRTUAL_ENV} && \
     find ${VIRTUAL_ENV} -path '*/site-packages/datarobot_drum/*.jar' -delete && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
-# Stage the shared libraries the source-built Pillow needs at runtime (the -dev packages pull in
+# Stage the shared libraries the source-built Pillow needs at runtime, with each one's apk database
+# record and SBOM so image scanners still see the package it came from (the -dev packages pull in
 # libxcb, so Pillow builds its XCB module too).
-RUN ${VIRTUAL_ENV}/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'" && \
-    mkdir -p /opt/pillow-libs && cd /usr/lib && \
-    cp -L libfreetype.so.6 libjpeg.so.8 liblcms2.so.2 libopenjp2.so.7 libpng16.so.16 libtiff.so.6 libwebp.so.7 libwebpdemux.so.2 libwebpmux.so.3 libsharpyuv.so.0 libzstd.so.1 \
-          libxcb.so.1 libXau.so.6 libXdmcp.so.6 /opt/pillow-libs/
+ARG PILLOW_RUNTIME_LIBS="libfreetype.so.6 libjpeg.so.8 liblcms2.so.2 libopenjp2.so.7 libpng16.so.16 libtiff.so.6 libwebp.so.7 libwebpdemux.so.2 libwebpmux.so.3 libsharpyuv.so.0 libzstd.so.1 libavif.so.16 libdav1d.so.7 libaom.so.3 libxcb.so.1 libXau.so.6 libXdmcp.so.6"
+RUN ${VIRTUAL_ENV}/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff', 'avif') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'" && \
+    mkdir -p /opt/pillow-libs/lib /opt/pillow-libs/sbom && cd /usr/lib && \
+    for lib in ${PILLOW_RUNTIME_LIBS}; do cp -L "${lib}" /opt/pillow-libs/lib/ || exit 1; done && \
+    for pkg in $(for lib in ${PILLOW_RUNTIME_LIBS}; do apk info -W "${lib}"; done | sed 's/.* is owned by //' | sort -u); do \
+        cp "/var/lib/db/sbom/${pkg}.spdx.json" /opt/pillow-libs/sbom/ && \
+        awk -v pkg="${pkg}" 'BEGIN{RS="";ORS="\n\n"} {p="";v="";n=split($0,L,"\n");for(i=1;i<=n;i++){if(L[i]~/^P:/)p=substr(L[i],3);if(L[i]~/^V:/)v=substr(L[i],3)} if(p"-"v==pkg)print}' /lib/apk/db/installed >> /opt/pillow-libs/apk-installed || exit 1; \
+    done && \
+    test "$(grep -c '^P:' /opt/pillow-libs/apk-installed)" -eq "$(ls /opt/pillow-libs/sbom | wc -l)"
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-guard image if you build your own.
@@ -174,9 +180,12 @@ COPY --from=build /usr/bin/uname /usr/bin/uname
 # Copy the virtualenv built from the dev base image
 COPY --from=build /opt/venv /opt/venv
 
-# Shared libraries for the source-built Pillow (see the build stage).
-COPY --from=build /opt/pillow-libs/ /usr/lib/
-RUN /opt/venv/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'"
+# Shared libraries for the source-built Pillow, with their apk records and SBOMs (see the build stage).
+COPY --from=build /opt/pillow-libs/lib/ /usr/lib/
+COPY --from=build /opt/pillow-libs/sbom/ /var/lib/db/sbom/
+COPY --from=build /opt/pillow-libs/apk-installed /opt/pillow-libs/apk-installed
+RUN /opt/venv/bin/python -Bc "import shutil; shutil.copyfileobj(open('/opt/pillow-libs/apk-installed'), open('/lib/apk/db/installed', 'a')); shutil.rmtree('/opt/pillow-libs')"
+RUN /opt/venv/bin/python -Bc "import os, PIL; from PIL import features; missing = [f for f in ('freetype2', 'littlecms2', 'webp', 'jpg', 'jpg_2000', 'zlib', 'libtiff', 'avif') if not features.check(f)]; bundled = os.path.isdir(os.path.join(os.path.dirname(os.path.dirname(PIL.__file__)), 'pillow.libs')); assert not missing and not bundled, f'Pillow source build is wrong: missing={missing} bundled_libs={bundled}'"
 ENV VIRTUAL_ENV=/opt/venv
 ENV R_HOME=/usr/lib/R
 
