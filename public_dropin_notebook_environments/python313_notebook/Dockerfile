@@ -220,8 +220,8 @@ RUN echo "[Install DR CLI plugins] ${CACHE_BUSTER}" \
 # codespace does not download it. The datarobot-agent-application tool check wants it installed too.
 # a+rX: pulumi creates PULUMI_HOME owner-only, and a FLEET-8918 session at another uid reads the
 # plugin from here (see start_server.sh).
-ARG PULUMI_DATAROBOT_VERSION=0.14.5
-ARG PULUMI_DATAROBOT_SHA256=3fbbd2552c5a7ae12f149627559aa13d822f3bcf36e9e734b197cf3e356961d1
+ARG PULUMI_DATAROBOT_VERSION=0.14.6
+ARG PULUMI_DATAROBOT_SHA256=f248742d084bf19fcf3e1fca86b95d6592dd7a46550ae890ca19f713ce982554
 ENV PULUMI_HOME=/home/notebooks/.pulumi
 RUN curl -fsSLo /tmp/pulumi-datarobot.tar.gz "https://github.com/datarobot-community/pulumi-datarobot/releases/download/v${PULUMI_DATAROBOT_VERSION}/pulumi-resource-datarobot-v${PULUMI_DATAROBOT_VERSION}-linux-amd64.tar.gz" \
     && echo "${PULUMI_DATAROBOT_SHA256}  /tmp/pulumi-datarobot.tar.gz" | sha256sum -c - \
